@@ -2,9 +2,16 @@
 
 import React, { useState } from 'react'
 import Link from 'next/link'
-import { Plus, Settings, Star, Ban, User } from 'lucide-react'
+import { Plus, Settings, User, Eye, Edit, Trash2, MapPin, Calendar, Users, MoreVertical } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 import {
   Drawer,
   DrawerContent,
@@ -26,7 +33,7 @@ const sampleEvents: (Event & { image: string; time: string; isFavorite?: boolean
     date: '2025-12-27T07:00:00',
     venue: 'Phnom Penh',
     guestCount: 0,
-    status: 'active',
+    status: 'draft',
     createdAt: '2024-01-15T10:00:00Z',
     updatedAt: '2024-01-15T10:00:00Z',
     image: 'https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=800&q=80',
@@ -40,7 +47,7 @@ const sampleEvents: (Event & { image: string; time: string; isFavorite?: boolean
     date: '2026-01-31T13:11:00',
     venue: 'Siem Reap',
     guestCount: 2,
-    status: 'active',
+    status: 'published',
     createdAt: '2024-01-15T10:00:00Z',
     updatedAt: '2024-01-15T10:00:00Z',
     image: 'https://images.unsplash.com/photo-1519162808019-7de1683fa2ad?w=800&q=80',
@@ -50,8 +57,6 @@ const sampleEvents: (Event & { image: string; time: string; isFavorite?: boolean
 ]
 
 function EventCard({ event }: { event: typeof sampleEvents[0] }) {
-  const [isFavorite, setIsFavorite] = useState(event.isFavorite || false)
-  const [isPrivate, setIsPrivate] = useState(event.isPrivate || false)
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString)
@@ -60,6 +65,32 @@ function EventCard({ event }: { event: typeof sampleEvents[0] }) {
       month: 'long',
       day: 'numeric',
     })
+  }
+
+  const formatDateTime = (dateString: string) => {
+    const date = new Date(dateString)
+    return date.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    })
+  }
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'published':
+        return 'default'
+      case 'draft':
+        return 'secondary'
+      case 'completed':
+        return 'outline'
+      case 'cancelled':
+        return 'destructive'
+      default:
+        return 'outline'
+    }
   }
 
   return (
@@ -71,26 +102,6 @@ function EventCard({ event }: { event: typeof sampleEvents[0] }) {
       >
         {/* Overlay Gradient */}
         <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-black/40 to-black/80" />
-
-        {/* Top Right Icon */}
-        <div className="absolute top-3 right-3 z-10">
-          <button
-            onClick={() => {
-              if (event.isPrivate !== undefined) {
-                setIsPrivate(!isPrivate)
-              } else {
-                setIsFavorite(!isFavorite)
-              }
-            }}
-            className="p-1.5 rounded-full bg-white/20 backdrop-blur-sm hover:bg-white/30 transition-colors"
-          >
-            {isPrivate ? (
-              <Ban className="h-4 w-4 text-gray-300" />
-            ) : (
-              <Star className={`h-4 w-4 ${isFavorite ? 'text-pink-400 fill-pink-400' : 'text-gray-300'}`} />
-            )}
-          </button>
-        </div>
 
         {/* Countdown Timer and Event Title - Centered Column */}
         <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-10 w-full px-4">
@@ -118,18 +129,59 @@ function EventCard({ event }: { event: typeof sampleEvents[0] }) {
             <User className="h-5 w-5 text-pink-600" />
           </div>
           <div className="flex-1 min-w-0">
-            <h4 className="text-sm font-semibold text-black mb-1 truncate">{event.description || event.title}</h4>
-            <p className="text-xs text-gray-600">
-              ចំនួនភ្ញៀវ {event.guestCount} នាក់
-            </p>
+            <div className="flex items-start justify-between gap-2 mb-1">
+              <h4 className="text-sm font-semibold text-black truncate">{event.description || event.title}</h4>
+              <Badge variant={getStatusColor(event.status)} className="text-xs shrink-0 capitalize">
+                {event.status}
+              </Badge>
+            </div>
+            <div className="space-y-1 text-xs text-gray-600">
+              <div className="flex items-center gap-1.5">
+                <MapPin className="h-3 w-3" />
+                <span className="truncate">{event.venue}</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <Users className="h-3 w-3" />
+                <span>ចំនួនភ្ញៀវ {event.guestCount} នាក់</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <Calendar className="h-3 w-3" />
+                <span>Created: {formatDateTime(event.createdAt)}</span>
+              </div>
+            </div>
           </div>
         </div>
-        <Link href={`/dashbord/events/${event.id}`}>
-          <Button variant="outline" className="w-full text-xs h-8 border-gray-300 hover:bg-gray-50" size="sm">
-            <Settings className="h-3.5 w-3.5 mr-1.5" />
-            Manage
+        
+        {/* Action Buttons */}
+        <div className="flex items-center gap-2">
+          <Link href={`/dashbord/events/${event.id}`} className="flex-1">
+            <Button variant="outline" className="w-full text-xs h-8 border-gray-300 hover:bg-gray-50" size="sm">
+              <Eye className="h-3.5 w-3.5 mr-1.5" />
+              View
+            </Button>
+          </Link>
+          <Button variant="outline" className="text-xs h-8 border-gray-300 hover:bg-gray-50" size="sm">
+            <Edit className="h-3.5 w-3.5 mr-1.5" />
+            Edit
           </Button>
-        </Link>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" className="text-xs h-8 border-gray-300 hover:bg-gray-50 px-2" size="sm">
+                <MoreVertical className="h-3.5 w-3.5" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-40">
+              <DropdownMenuItem className="text-xs">
+                <Settings className="h-3.5 w-3.5 mr-2" />
+                Manage
+              </DropdownMenuItem>
+              <DropdownMenuItem className="text-xs text-red-600">
+                <Trash2 className="h-3.5 w-3.5 mr-2" />
+                Delete
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       </div>
     </Card>
   )

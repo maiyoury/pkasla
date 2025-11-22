@@ -13,7 +13,7 @@ export async function GET(request: NextRequest) {
         date: '2024-12-20',
         venue: 'Grand Ballroom, Phnom Penh',
         guestCount: 120,
-        status: 'active'
+        status: 'published'
       }
     ]
 

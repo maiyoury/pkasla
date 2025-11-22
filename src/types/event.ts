@@ -5,7 +5,7 @@ export interface Event {
   date: string
   venue: string
   guestCount: number
-  status: 'active' | 'draft' | 'completed' | 'cancelled'
+  status: 'published' | 'draft' | 'completed' | 'cancelled'
   createdAt: string
   updatedAt: string
 }
