@@ -5,7 +5,8 @@ import Link from 'next/link'
 import { Users, Settings, CreditCard, MessageSquare, ShoppingCart, UserCheck } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart'
+import { ChartContainer, ChartTooltip } from '@/components/ui/chart'
+import { CustomChartTooltipContent } from '@/components/charts/CustomChartTooltip'
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, PieChart, Pie, Cell, BarChart, Bar } from 'recharts'
 
 export default function AdminPage() {
@@ -130,7 +131,7 @@ export default function AdminPage() {
                   className="text-xs"
                   width={40}
                 />
-                <ChartTooltip content={<ChartTooltipContent />} />
+                <ChartTooltip content={<CustomChartTooltipContent />} />
                 <Line 
                   type="monotone" 
                   dataKey="expected" 
@@ -188,7 +189,7 @@ export default function AdminPage() {
                     fill="hsl(var(--chart-2))" 
                     fillOpacity={0.6}
                   />
-                  <ChartTooltip content={<ChartTooltipContent />} />
+                  <ChartTooltip content={<CustomChartTooltipContent />} />
                 </RadarChart>
             </ChartContainer>
           </CardContent>
@@ -215,7 +216,7 @@ export default function AdminPage() {
                     <Cell key={`cell-${index}`} fill={entry.color} />
                   ))}
                 </Pie>
-                <ChartTooltip content={<ChartTooltipContent />} />
+                <ChartTooltip content={<CustomChartTooltipContent />} />
               </PieChart>
             </ChartContainer>
             <div className="flex flex-wrap justify-center gap-2 md:gap-4 mt-3 md:mt-4">
@@ -257,7 +258,7 @@ export default function AdminPage() {
                     className="text-xs"
                     width={40}
                   />
-                  <ChartTooltip content={<ChartTooltipContent />} />
+                  <ChartTooltip content={<CustomChartTooltipContent />} />
                   <Bar 
                     dataKey="value" 
                     fill="hsl(var(--chart-1))" 
