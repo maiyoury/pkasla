@@ -80,7 +80,7 @@ export function useAuth() {
       setUser(userWithoutPassword)
       
       // Redirect based on role
-      const redirectPath = userWithoutPassword.role === 'admin' ? '/admin' : '/dashbord'
+      const redirectPath = userWithoutPassword.role === 'admin' ? '/admin' : '/dashboard'
       console.log('Redirecting to:', redirectPath)
       
       // Use window.location.href for a full page reload to ensure all components
@@ -127,7 +127,7 @@ export function useAuth() {
 
       setUser(newUser)
       // New users go to dashboard (not admin panel)
-      router.push('/dashbord')
+      router.push('/dashboard')
       return { success: true }
     } catch (error) {
       return { success: false, error: 'Registration failed' }
