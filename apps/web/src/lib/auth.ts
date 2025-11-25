@@ -1,5 +1,8 @@
-import NextAuth, { type DefaultSession, type NextAuthOptions } from 'next-auth';
+import NextAuth, { type DefaultSession, type NextAuthConfig } from 'next-auth';
 import Credentials from 'next-auth/providers/credentials';
+import Google from 'next-auth/providers/google';
+import GitHub from 'next-auth/providers/github';
+import LinkedIn from 'next-auth/providers/linkedin';
 import type { User, UserRole } from '@/types';
 
 declare module 'next-auth' {
@@ -23,7 +26,7 @@ declare module 'next-auth' {
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
 
-export const authConfig: NextAuthOptions = {
+export const authConfig: NextAuthConfig = {
   providers: [
     Credentials({
       name: 'Credentials',
@@ -79,6 +82,21 @@ export const authConfig: NextAuthOptions = {
         }
       },
     }),
+    Google({
+      clientId: process.env.GOOGLE_CLIENT_ID,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+      allowDangerousEmailAccountLinking: true,
+    }),
+    GitHub({
+      clientId: process.env.GITHUB_CLIENT_ID,
+      clientSecret: process.env.GITHUB_CLIENT_SECRET,
+      allowDangerousEmailAccountLinking: true,
+    }),
+    LinkedIn({
+      clientId: process.env.LINKEDIN_CLIENT_ID,
+      clientSecret: process.env.LINKEDIN_CLIENT_SECRET,
+      allowDangerousEmailAccountLinking: true,
+    }),
   ],
   callbacks: {
     async signIn() {
@@ -124,15 +142,16 @@ export const authConfig: NextAuthOptions = {
     },
   },
   pages: {
-    signIn: '/auth/login',
-    error: '/auth/error',
+    signIn: '/login',
+    error: '/error',
   },
   session: {
     strategy: 'jwt',
     maxAge: 30 * 24 * 60 * 60, // 30 days
   },
-  secret: process.env.NEXTAUTH_SECRET,
+  secret: process.env.NEXTAUTH_SECRET || 'fallback-secret-key-for-development-only',
 };
 
-export default NextAuth(authConfig);
+export const { handlers, auth, signIn, signOut } = NextAuth(authConfig);
+
 

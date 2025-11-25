@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import  auth  from '@/lib/auth';
+import  {auth}  from '@/lib/auth';
 import type { UserRole } from '@/types';
 
 /**
@@ -72,7 +72,7 @@ export async function middleware(request: NextRequest) {
   }
 
   // Redirect authenticated users away from auth pages
-  if (pathname.startsWith('/auth/login') || pathname.startsWith('/register')) {
+  if (pathname.startsWith('/login') || pathname.startsWith('/register')) {
     if (session?.user) {
       return NextResponse.redirect(new URL('/', request.url));
     }
