@@ -1,6 +1,6 @@
 import React from 'react'
 
-function Hero() {
+export function Footer() {
   return (
     <div>
       
@@ -8,4 +8,4 @@ function Hero() {
   )
 }
 
-export default Hero
+export default Footer
