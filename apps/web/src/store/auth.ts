@@ -7,46 +7,55 @@ import type { User, AuthTokens } from '@/types';
 interface AuthState {
   user: User | null;
   tokens: AuthTokens | null;
-  isAuthenticated: boolean;
   setAuth: (user: User, tokens: AuthTokens) => void;
-  setUser: (user: User | null) => void;
   setTokens: (tokens: AuthTokens | null) => void;
   logout: () => void;
 }
 
+/**
+ * Store tokens in localStorage
+ */
+function storeTokens(tokens: AuthTokens): void {
+  if (typeof window !== 'undefined') {
+    localStorage.setItem('accessToken', tokens.accessToken);
+    localStorage.setItem('refreshToken', tokens.refreshToken);
+  }
+}
+
+/**
+ * Remove tokens from localStorage
+ */
+function clearTokens(): void {
+  if (typeof window !== 'undefined') {
+    localStorage.removeItem('accessToken');
+    localStorage.removeItem('refreshToken');
+  }
+}
+
 export const useAuthStore = create<AuthState>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       user: null,
       tokens: null,
-      isAuthenticated: false,
-      setAuth: (user, tokens) => {
-        // Store tokens in localStorage
-        if (typeof window !== 'undefined') {
-          localStorage.setItem('accessToken', tokens.accessToken);
-          localStorage.setItem('refreshToken', tokens.refreshToken);
-        }
-        set({ user, tokens, isAuthenticated: true });
+      // Computed property - derived from user state
+      get isAuthenticated() {
+        return get().user !== null;
       },
-      setUser: (user) => {
-        set({ user, isAuthenticated: !!user });
+      setAuth: (user, tokens) => {
+        storeTokens(tokens);
+        set({ user, tokens });
       },
       setTokens: (tokens) => {
-        if (tokens && typeof window !== 'undefined') {
-          localStorage.setItem('accessToken', tokens.accessToken);
-          localStorage.setItem('refreshToken', tokens.refreshToken);
-        } else if (typeof window !== 'undefined') {
-          localStorage.removeItem('accessToken');
-          localStorage.removeItem('refreshToken');
+        if (tokens) {
+          storeTokens(tokens);
+        } else {
+          clearTokens();
         }
         set({ tokens });
       },
       logout: () => {
-        if (typeof window !== 'undefined') {
-          localStorage.removeItem('accessToken');
-          localStorage.removeItem('refreshToken');
-        }
-        set({ user: null, tokens: null, isAuthenticated: false });
+        clearTokens();
+        set({ user: null, tokens: null });
       },
     }),
     {
@@ -54,7 +63,7 @@ export const useAuthStore = create<AuthState>()(
       partialize: (state) => ({
         user: state.user,
         tokens: state.tokens,
-        isAuthenticated: state.isAuthenticated,
+        // isAuthenticated is computed, so we don't need to persist it
       }),
     }
   )

@@ -8,6 +8,7 @@ import toast from 'react-hot-toast';
 import { ROUTES } from '@/constants';
 import type { LoginDto } from '@/types';
 import { useLogin } from '@/hooks/api/useAuth';
+import { signIn } from 'next-auth/react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -114,10 +115,29 @@ export function LoginForm() {
     try {
       const callbackUrl = searchParams.get('callbackUrl') || '/';
 
-      await loginMutation.mutateAsync({
-        email: formData.email,
+      // Sign in with NextAuth first (required for middleware and ProtectedRoute)
+      const nextAuthResult = await signIn('credentials', {
+        emailOrPhone: formData.email,
         password: formData.password,
+        redirect: false,
       });
+
+      if (!nextAuthResult?.ok) {
+        throw new Error(nextAuthResult?.error || 'Invalid email or password');
+      }
+
+      // Also update Zustand store for API token management
+      // This ensures both NextAuth session and Zustand store are synchronized
+      try {
+        await loginMutation.mutateAsync({
+          email: formData.email,
+          password: formData.password,
+        });
+      } catch (zustandError) {
+        // If Zustand update fails, log but don't block login
+        // NextAuth session is already established
+        console.warn('Failed to update Zustand store:', zustandError);
+      }
 
       // Handle remember me
       if (formData.rememberMe) {
