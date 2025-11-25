@@ -14,6 +14,12 @@ export function Hero() {
   const subtitleRef = useRef<HTMLParagraphElement>(null)
   const buttonsRef = useRef<HTMLDivElement>(null)
   const statsRef = useRef<HTMLDivElement>(null)
+  const overlayImage1Ref = useRef<HTMLDivElement>(null)
+  const overlayImage2Ref = useRef<HTMLDivElement>(null)
+  const overlayImage3Ref = useRef<HTMLDivElement>(null)
+  const overlayImage4Ref = useRef<HTMLDivElement>(null)
+  const overlayImage5Ref = useRef<HTMLDivElement>(null)
+  const overlayImage6Ref = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     if (typeof window === 'undefined') return
@@ -53,6 +59,84 @@ export function Hero() {
         { opacity: 0, y: 20 },
         { opacity: 1, y: 0, duration: 1, delay: 1.1, ease: 'power3.out' }
       )
+
+      // Animate overlay images
+      if (overlayImage1Ref.current) {
+        gsap.to(overlayImage1Ref.current, {
+          y: -20,
+          x: 10,
+          rotation: 5,
+          duration: 3,
+          repeat: -1,
+          yoyo: true,
+          ease: 'sine.inOut',
+        })
+      }
+
+      if (overlayImage2Ref.current) {
+        gsap.to(overlayImage2Ref.current, {
+          y: 15,
+          x: -15,
+          rotation: -5,
+          duration: 4,
+          repeat: -1,
+          yoyo: true,
+          ease: 'sine.inOut',
+          delay: 0.5,
+        })
+      }
+
+      if (overlayImage3Ref.current) {
+        gsap.to(overlayImage3Ref.current, {
+          y: -10,
+          x: 20,
+          rotation: 3,
+          duration: 3.5,
+          repeat: -1,
+          yoyo: true,
+          ease: 'sine.inOut',
+          delay: 1,
+        })
+      }
+
+      if (overlayImage4Ref.current) {
+        gsap.to(overlayImage4Ref.current, {
+          y: 20,
+          x: -10,
+          rotation: -3,
+          duration: 4.5,
+          repeat: -1,
+          yoyo: true,
+          ease: 'sine.inOut',
+          delay: 1.5,
+        })
+      }
+
+      if (overlayImage5Ref.current) {
+        gsap.to(overlayImage5Ref.current, {
+          y: -15,
+          x: 15,
+          rotation: 4,
+          duration: 3.2,
+          repeat: -1,
+          yoyo: true,
+          ease: 'sine.inOut',
+          delay: 2,
+        })
+      }
+
+      if (overlayImage6Ref.current) {
+        gsap.to(overlayImage6Ref.current, {
+          y: 12,
+          x: -20,
+          rotation: -4,
+          duration: 4.2,
+          repeat: -1,
+          yoyo: true,
+          ease: 'sine.inOut',
+          delay: 2.5,
+        })
+      }
     }, heroRef)
 
     return () => ctx.revert()
@@ -76,6 +160,93 @@ export function Hero() {
         />
         {/* Overlay for better text readability */}
         <div className="absolute inset-0 bg-black/40"></div>
+      </div>
+
+      {/* Animated Overlay Images */}
+      <div className="absolute inset-0 z-5 pointer-events-none">
+        {/* Overlay Image 1 */}
+        <div
+          ref={overlayImage1Ref}
+          className="absolute top-20 left-10 w-24 h-24 md:w-32 md:h-32 opacity-50"
+        >
+          <Image
+            src="https://i.pinimg.com/1200x/97/8d/71/978d715a8ede8b69000f3d0eaf6d8cbc.jpg"
+            alt="Decoration"
+            fill
+            className="object-cover rounded-full"
+            sizes="128px"
+          />
+        </div>
+
+        {/* Overlay Image 2 */}
+        <div
+          ref={overlayImage2Ref}
+          className="absolute bottom-32 right-16 w-20 h-20 md:w-28 md:h-28 opacity-50"
+        >
+          <Image
+            src="https://i.pinimg.com/1200x/12/48/ce/1248ceaa77a70877f81e3f46a3262762.jpg"
+            alt="Decoration"
+            fill
+            className="object-cover rounded-full"
+            sizes="112px"
+          />
+        </div>
+
+        {/* Overlay Image 3 */}
+        <div
+          ref={overlayImage3Ref}
+          className="absolute top-1/2 right-20 w-16 h-16 md:w-24 md:h-24 opacity-50"
+        >
+          <Image
+            src="https://i.pinimg.com/1200x/88/c1/0d/88c10d4fb189790cb4cf673c9f604665.jpg"
+            alt="Decoration"
+            fill
+            className="object-cover rounded-full"
+            sizes="96px"
+          />
+        </div>
+
+        {/* Overlay Image 4 */}
+        <div
+          ref={overlayImage4Ref}
+          className="absolute top-1/3 left-1/4 w-20 h-20 md:w-28 md:h-28 opacity-40"
+        >
+          <Image
+            src="https://i.pinimg.com/736x/65/08/a4/6508a441441a0b3e31154882497e1993.jpg"
+            alt="Decoration"
+            fill
+            className="object-cover rounded-full"
+            sizes="112px"
+          />
+        </div>
+
+        {/* Overlay Image 5 */}
+        <div
+          ref={overlayImage5Ref}
+          className="absolute bottom-1/4 left-20 w-18 h-18 md:w-26 md:h-26 opacity-35"
+        >
+          <Image
+            src="https://i.pinimg.com/1200x/7a/07/ae/7a07aef417a460bd23706a6cb6976bc7.jpg"
+            alt="Decoration"
+            fill
+            className="object-cover rounded-full"
+            sizes="104px"
+          />
+        </div>
+
+        {/* Overlay Image 6 */}
+        <div
+          ref={overlayImage6Ref}
+          className="absolute top-2/3 left-1/3 w-14 h-14 md:w-22 md:h-22 opacity-30"
+        >
+          <Image
+            src="https://i.pinimg.com/736x/cb/ed/3d/cbed3d24b04afebcdac6db09b70601ad.jpg"
+            alt="Decoration"
+            fill
+            className="object-cover rounded-full"
+            sizes="88px"
+          />
+        </div>
       </div>
     
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
