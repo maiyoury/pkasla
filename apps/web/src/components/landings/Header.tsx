@@ -40,7 +40,7 @@ export function Header() {
             {/* Login Button */}
             <Button
               variant="outline"
-              className="bg-transparent backdrop-blur-xl border-red-500 text-black hover:bg-red-50 rounded-lg px-4 py-2"
+              className="bg-transparent backdrop-blur-xl border-red-500 text-white hover:bg-red-500 hover:text-white rounded-lg px-4 py-2"
               asChild
             >
               <Link href={ROUTES.LOGIN}>ចូលប្រើ</Link>
