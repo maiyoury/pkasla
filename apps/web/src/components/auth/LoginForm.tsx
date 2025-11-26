@@ -1,12 +1,12 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { signIn } from 'next-auth/react';
+import { signIn, useSession } from 'next-auth/react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import toast from 'react-hot-toast';
 import { ROUTES } from '@/constants';
-import type { LoginDto } from '@/types';
+import type { LoginDto, User } from '@/types';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
@@ -19,6 +19,7 @@ import { Github, Linkedin } from 'lucide-react';
 export function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { update: updateSession } = useSession();
   
   // Initialize form data with remembered email if available
   const getInitialFormData = (): LoginDto & { rememberMe: boolean } => {
@@ -93,8 +94,32 @@ export function LoginForm() {
         }
 
         toast.success('Login successful!');
-        router.push(callbackUrl);
-        router.refresh();
+        
+        // Update session to get latest user data
+        await updateSession();
+        
+        // Fetch session to get user role for redirect
+        try {
+          const sessionResponse = await fetch('/api/auth/session');
+          const sessionData = await sessionResponse.json();
+          const user = sessionData?.user as User | undefined;
+          
+          // If callbackUrl is provided and it's not home, use it
+          if (callbackUrl && callbackUrl !== '/' && callbackUrl !== ROUTES.HOME) {
+            router.push(callbackUrl);
+            router.refresh();
+            return;
+          }
+          
+          // Redirect based on user role
+          const redirectPath = user?.role === 'admin' ? ROUTES.ADMIN : ROUTES.DASHBOARD;
+          router.push(redirectPath);
+          router.refresh();
+        } catch {
+          // Fallback: redirect to home, middleware will handle role-based redirect
+          router.push(callbackUrl);
+          router.refresh();
+        }
       }
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Login failed');

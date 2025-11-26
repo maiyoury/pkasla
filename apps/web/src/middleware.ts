@@ -82,7 +82,7 @@ export async function middleware(request: NextRequest) {
   const session = await auth();
   const user = session?.user;
 
-  // Redirect authenticated users away from auth pages
+  // Redirect authenticated users away from auth pages to their role-based dashboard
   if (authPages.some((route) => pathname.startsWith(route)) && user) {
     return NextResponse.redirect(new URL(ROUTES.HOME, request.url));
   }
