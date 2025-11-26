@@ -20,6 +20,7 @@ export function Hero() {
   const overlayImage4Ref = useRef<HTMLDivElement>(null)
   const overlayImage5Ref = useRef<HTMLDivElement>(null)
   const overlayImage6Ref = useRef<HTMLDivElement>(null)
+  const backgroundImages = 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?q=80&w=2560&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'
 
   useEffect(() => {
     if (typeof window === 'undefined') return
@@ -151,7 +152,7 @@ export function Hero() {
       {/* Background Image */}
       <div className="absolute inset-0 w-full h-full z-0">
         <Image
-          src="https://images.unsplash.com/photo-1441974231531-c6227db76b6e?q=80&w=2560&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+          src={backgroundImages}
           alt="Background"
           fill
           className="object-cover"
@@ -254,7 +255,7 @@ export function Hero() {
           {/* Header */}
           <p
             ref={headerRef}
-            className="text-xs text-white font-medium mb-2"
+            className="text-sm md:text-base text-white font-medium mb-3"
           >
             PHKASLA - ធៀបការឌីជីថល
           </p>
@@ -262,7 +263,7 @@ export function Hero() {
           {/* Main Title */}
           <h1
             ref={titleRef}
-            className="text-xl md:text-2xl lg:text-3xl xl:text-4xl font-bold mb-3 text-white leading-tight drop-shadow-lg"
+            className="text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold mb-4 text-white leading-tight drop-shadow-lg"
           >
             ធៀបការបែបឌីជីថលក្នុងដៃអ្នក
           </h1>
@@ -270,16 +271,16 @@ export function Hero() {
           {/* Subtitle */}
           <p
             ref={subtitleRef}
-            className="text-xs md:text-sm text-white mb-5 max-w-2xl mx-auto leading-relaxed drop-shadow-md"
+            className="text-sm md:text-base lg:text-lg text-white mb-6 max-w-2xl mx-auto leading-relaxed drop-shadow-md"
           >
             កម្មវិធីគ្រប់គ្រងការរៀបចំពិធីមង្គលការដ៏ទំនើប ស្វែងរកភ្ញៀវ គ្រប់គ្រងចំណងដៃ បង្កើត លិខិតអញ្ជើញបែបឌីជីថល និងមានមុខងារពិសេសៗជាច្រើនទៀត។
           </p>
 
           {/* CTA Button */}
-          <div ref={buttonsRef} className="mb-5">
+          <div ref={buttonsRef} className="mb-6">
             <Button
               size="lg"
-              className="bg-linear-to-r from-pink-500 to-red-500 hover:from-pink-600 hover:to-red-600 text-white rounded-lg px-5 py-4 text-sm font-medium shadow-lg"
+              className="bg-linear-to-r from-pink-500 to-red-500 hover:from-pink-600 hover:to-red-600 text-white rounded-lg px-6 py-5 text-base font-medium shadow-lg"
               asChild
             >
               <Link href={ROUTES.REGISTER}>ចាប់ផ្តើមឥឡូវនេះ</Link>
@@ -289,25 +290,25 @@ export function Hero() {
           {/* Statistics */}
           <div
             ref={statsRef}
-            className="grid grid-cols-3 gap-3 md:gap-4 max-w-md mx-auto"
+            className="grid grid-cols-3 gap-4 md:gap-6 max-w-md mx-auto"
           >
             <div className="text-center">
-              <div className="text-lg md:text-xl font-bold text-white mb-1 drop-shadow-md">
+              <div className="text-2xl md:text-3xl lg:text-4xl font-bold text-white mb-2 drop-shadow-md">
                 ២០០០+
               </div>
-              <div className="text-xs text-white">គូរស្នេហ៍</div>
+              <div className="text-sm md:text-base text-white">គូរស្នេហ៍</div>
             </div>
             <div className="text-center">
-              <div className="text-lg md:text-xl font-bold text-white mb-1 drop-shadow-md">
+              <div className="text-2xl md:text-3xl lg:text-4xl font-bold text-white mb-2 drop-shadow-md">
                 ២៤/៧
               </div>
-              <div className="text-xs text-white">ការគាំទ្រ</div>
+              <div className="text-sm md:text-base text-white">ការគាំទ្រ</div>
             </div>
             <div className="text-center">
-              <div className="text-lg md:text-xl font-bold text-white mb-1 drop-shadow-md">
+              <div className="text-2xl md:text-3xl lg:text-4xl font-bold text-white mb-2 drop-shadow-md">
                 ៩៩%
               </div>
-              <div className="text-xs text-white">ការពេញចិត្ត</div>
+              <div className="text-sm md:text-base text-white">ការពេញចិត្ត</div>
             </div>
           </div>
         </div>
