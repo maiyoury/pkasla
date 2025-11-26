@@ -14,13 +14,14 @@ declare module 'next-auth' {
 
   interface User {
     id: string;
-    email?: string;
+    email: string;
+    name?: string;
+    role: UserRole;
+    status: string;
     phone?: string;
     avatar?: string;
-    name: string;
-    role: UserRole;
-    createdAt?: Date | string;
-    updatedAt?: Date | string;
+    createdAt: Date | string;
+    updatedAt: Date | string;
     accessToken?: string;
     refreshToken?: string;
   }
@@ -38,20 +39,17 @@ export const authConfig: NextAuthConfig = {
       },
       async authorize(credentials) {
         if (!credentials?.emailOrPhone || !credentials?.password) {
-          throw new Error('Email and password are required');
+          return null;
         }
 
         try {
-          // Map emailOrPhone to email for backend API
-          const email = credentials.emailOrPhone;
-          
           const response = await fetch(`${API_BASE_URL}/auth/login`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-              email: email,
+              emailOrPhone: credentials.emailOrPhone,
               password: credentials.password,
             }),
           });
@@ -59,33 +57,26 @@ export const authConfig: NextAuthConfig = {
           const data = await response.json();
 
           if (!response.ok || !data.success) {
-            // Provide more specific error message
-            const errorMessage = data.message || data.error || 'Invalid email or password';
-            throw new Error(errorMessage);
+            return null;
           }
 
           const authData = data.data;
-          
-          // Handle 2FA requirement
-          if (authData.requiresTwoFactor) {
-            throw new Error('Two-factor authentication is required. Please use the API directly.');
-          }
-
           const user = authData.user;
           const tokens = authData.tokens;
 
           if (!user || !tokens) {
-            throw new Error('Invalid response from authentication server');
+            return null;
           }
 
           // Return user with tokens
           return {
             id: user.id,
             email: user.email,
+            name: user.name,
+            role: user.role,
+            status: user.status,
             phone: user.phone,
             avatar: user.avatar,
-            name: user.name || `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.email,
-            role: user.role,
             createdAt: user.createdAt,
             updatedAt: user.updatedAt,
             accessToken: tokens.accessToken,
@@ -93,11 +84,7 @@ export const authConfig: NextAuthConfig = {
           };
         } catch (error) {
           console.error('Auth error:', error);
-          // Re-throw to provide error message to NextAuth
-          if (error instanceof Error) {
-            throw error;
-          }
-          throw new Error('Authentication failed');
+          return null;
         }
       },
     }),
@@ -118,8 +105,61 @@ export const authConfig: NextAuthConfig = {
     }),
   ],
   callbacks: {
-    async signIn() {
-      // For invitation system, only allow credentials-based sign-in
+    async signIn({ user, account }) {
+      // Handle OAuth sign-in - link with backend API
+      if (account && account.provider !== 'credentials' && user.email) {
+        try {
+          // Split name into firstName and lastName for OAuth providers
+          const nameParts = (user.name || user.email).split(/\s+/);
+          const firstName = nameParts[0] || '';
+          const lastName = nameParts.slice(1).join(' ') || '';
+
+          // Call backend API to register/login with OAuth
+          const response = await fetch(`${API_BASE_URL}/auth/oauth`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              email: user.email,
+              firstName,
+              lastName,
+              provider: account.provider,
+              providerId: account.providerAccountId,
+              accessToken: account.access_token,
+              avatar: user.image,
+            }),
+          });
+
+          const data = await response.json();
+
+          if (response.ok && data.success) {
+            const authData = data.data;
+            const apiUser = authData.user;
+            const tokens = authData.tokens;
+
+            // Update user object with API response
+            user.id = apiUser.id;
+            user.role = apiUser.role;
+            user.status = apiUser.status;
+            user.avatar = apiUser.avatar || user.image;
+            user.createdAt = apiUser.createdAt;
+            user.updatedAt = apiUser.updatedAt;
+            (user as User & { accessToken?: string; refreshToken?: string }).accessToken = tokens.accessToken;
+            (user as User & { accessToken?: string; refreshToken?: string }).refreshToken = tokens.refreshToken;
+            return true;
+          } else {
+            // OAuth API call failed - log error and prevent sign-in
+            console.error('OAuth API error:', data.error || data.message || 'Unknown error');
+            return false; // Prevent sign-in if backend API fails
+          }
+        } catch (error) {
+          // Network or other error - prevent sign-in
+          console.error('OAuth error:', error);
+          return false; // Prevent sign-in on error
+        }
+      }
+      // For credentials provider, always allow
       return true;
     },
     async redirect({ url, baseUrl }) {
@@ -161,16 +201,15 @@ export const authConfig: NextAuthConfig = {
     },
   },
   pages: {
-    signIn: '/login',
-    error: '/error',
+    signIn: '/auth/login',
+    error: '/auth/error',
   },
   session: {
     strategy: 'jwt',
     maxAge: 30 * 24 * 60 * 60, // 30 days
   },
-  secret: process.env.NEXTAUTH_SECRET || 'fallback-secret-key-for-development-only',
+  secret: process.env.NEXTAUTH_SECRET,
 };
 
 export const { handlers, auth, signIn, signOut } = NextAuth(authConfig);
-
 
