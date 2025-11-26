@@ -8,7 +8,7 @@ import {
   listUsersHandler,
   updateCurrentUserHandler,
 } from './user.controller';
-import { updateProfileSchema } from './user.validation';
+import { updateProfileSchema, listUsersQuerySchema } from './user.validation';
 
 const router = Router();
 
@@ -20,7 +20,13 @@ router.patch(
   asyncHandler(updateCurrentUserHandler),
 );
 
-router.get('/', authenticate, authorize('admin'), asyncHandler(listUsersHandler));
+router.get(
+  '/',
+  authenticate,
+  authorize('admin'),
+  validateRequest(listUsersQuerySchema),
+  asyncHandler(listUsersHandler),
+);
 
 export const userRouter: Router = router;
 

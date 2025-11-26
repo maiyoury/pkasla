@@ -68,6 +68,18 @@ export class UserRepository {
     return UserModel.find(filter).lean();
   }
 
+  listPaginated(filter: FilterQuery<UserDocument> = {}, page: number = 1, pageSize: number = 10, sort?: Record<string, 1 | -1>) {
+    const skip = (page - 1) * pageSize;
+    const query = UserModel.find(filter);
+    if (sort) {
+      query.sort(sort);
+    }
+    return query
+      .skip(skip)
+      .limit(pageSize)
+      .lean();
+  }
+
   countDocuments(filter: FilterQuery<UserDocument> = {}) {
     return UserModel.countDocuments(filter);
   }

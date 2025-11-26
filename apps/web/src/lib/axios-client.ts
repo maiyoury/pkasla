@@ -1,22 +1,37 @@
 import axios, { type AxiosInstance, type AxiosRequestConfig, type AxiosResponse } from 'axios';
 import type { ApiResponse } from '@/types/axios';
+import { useAuthStore } from '@/store/auth';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
 
 /**
- * Get auth token from storage
+ * Get auth token from store
  */
 function getAuthToken(): string | null {
   if (typeof window === 'undefined') return null;
-  return localStorage.getItem('accessToken');
+  const tokens = useAuthStore.getState().tokens;
+  const token = tokens?.accessToken || null;
+  // Validate token format (basic check - should be a JWT)
+  if (token && token.split('.').length !== 3) {
+    console.warn('Invalid token format detected');
+    return null;
+  }
+  return token;
 }
 
 /**
- * Get refresh token from storage
+ * Get refresh token from store
  */
 function getRefreshToken(): string | null {
   if (typeof window === 'undefined') return null;
-  return localStorage.getItem('refreshToken');
+  const tokens = useAuthStore.getState().tokens;
+  const token = tokens?.refreshToken || null;
+  // Validate token format (basic check - should be a JWT)
+  if (token && token.split('.').length !== 3) {
+    console.warn('Invalid refresh token format detected');
+    return null;
+  }
+  return token;
 }
 
 /**
@@ -38,7 +53,11 @@ axiosInstance.interceptors.request.use(
     // Get token from storage
     const token = getAuthToken();
     if (token) {
+      // Ensure Authorization header is set correctly
       config.headers.Authorization = `Bearer ${token}`;
+    } else {
+      // Remove Authorization header if no token
+      delete config.headers.Authorization;
     }
     return config;
   },
@@ -83,47 +102,75 @@ axiosInstance.interceptors.response.use(
 
       try {
         const refreshToken = getRefreshToken();
-        if (refreshToken) {
-          // Try to refresh the token
-          const response = await axiosInstance.post('/auth/refresh', {
-            refreshToken,
-          });
+        if (!refreshToken) {
+          // No refresh token, clear everything and redirect
+          if (typeof window !== 'undefined') {
+            useAuthStore.getState().logout();
+            window.location.href = '/login';
+          }
+          return Promise.reject(error);
+        }
 
-          // Handle response structure: { success: true, data: { tokens: { accessToken, refreshToken } } }
-          interface RefreshResponse {
-            data?: {
-              tokens?: {
-                accessToken: string;
-                refreshToken?: string;
-              };
-            };
-            tokens?: {
-              accessToken: string;
-              refreshToken?: string;
-            };
+        // Try to refresh the token - use base axios to avoid interceptors
+        const refreshResponse = await axios.post(
+          `${API_BASE_URL}/auth/refresh`,
+          { refreshToken },
+          {
+            headers: {
+              'Content-Type': 'application/json',
+            },
           }
-          const refreshData = response.data as unknown as RefreshResponse;
-          const tokens = refreshData?.data?.tokens || refreshData?.tokens;
-          const accessToken = tokens?.accessToken;
+        );
+
+        // Backend returns: { success: true, data: { tokens: { accessToken, refreshToken } } }
+        let accessToken: string | undefined;
+        let newRefreshToken: string | undefined;
+
+        if (refreshResponse.data?.success && refreshResponse.data.data) {
+          const responseData = refreshResponse.data.data;
+          // Handle structure: { tokens: { accessToken, refreshToken } }
+          if (responseData.tokens) {
+            accessToken = responseData.tokens.accessToken;
+            newRefreshToken = responseData.tokens.refreshToken;
+          }
+          // Fallback: direct tokens in data
+          else if (responseData.accessToken) {
+            accessToken = responseData.accessToken;
+            newRefreshToken = responseData.refreshToken;
+          }
+        }
+
+        if (accessToken) {
+          // Store new tokens in store (which also updates localStorage)
+          useAuthStore.getState().setTokens({
+            accessToken,
+            refreshToken: newRefreshToken || refreshToken,
+          });
           
-          if (accessToken) {
-            localStorage.setItem('accessToken', accessToken);
-            if (tokens.refreshToken) {
-              localStorage.setItem('refreshToken', tokens.refreshToken);
-            }
-            originalRequest.headers.Authorization = `Bearer ${accessToken}`;
-            return axiosInstance(originalRequest);
-          }
+          // Retry original request with new token
+          originalRequest.headers.Authorization = `Bearer ${accessToken}`;
+          return axiosInstance(originalRequest);
+        } else {
+          throw new Error('Invalid refresh token response');
         }
       } catch (refreshError) {
         // Refresh failed, clear tokens and redirect to login
-        localStorage.removeItem('accessToken');
-        localStorage.removeItem('refreshToken');
         if (typeof window !== 'undefined') {
-          window.location.href = '/auth/login';
+          useAuthStore.getState().logout();
+          window.location.href = '/login';
         }
         return Promise.reject(refreshError);
       }
+    }
+
+    // Handle 403 Forbidden - user doesn't have permission
+    if (error.response?.status === 403) {
+      const errorResponse: ApiResponse<never> = {
+        success: false,
+        error: error.response.data?.error || error.response.data?.message || 'Access forbidden',
+        message: error.response.data?.message || 'You do not have permission to access this resource',
+      };
+      return Promise.reject(errorResponse);
     }
 
     // Handle other errors
@@ -140,6 +187,7 @@ axiosInstance.interceptors.response.use(
       const errorResponse: ApiResponse<never> = {
         success: false,
         error: 'Network error occurred',
+        message: 'Unable to connect to the server. Please check your internet connection.',
       };
       return Promise.reject(errorResponse);
     } else {

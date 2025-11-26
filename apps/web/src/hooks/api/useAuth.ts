@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import type { User, LoginDto, RegisterDto, AuthResponse } from '@/types';
+import { useSession, signIn, signOut } from 'next-auth/react';
+import type { User, RegisterDto } from '@/types';
 import { api } from '@/lib/axios-client';
 import { useAuthStore } from '@/store';
 
@@ -12,9 +13,11 @@ export const authKeys = {
 };
 
 /**
- * Get current authenticated user
+ * Get current authenticated user from NextAuth session
+ * Falls back to API call if session data is incomplete
  */
 export function useMe() {
+  const { data: session, status } = useSession();
   const user = useAuthStore((state) => state.user);
   
   return useQuery({
@@ -26,64 +29,53 @@ export function useMe() {
     },
     retry: false,
     staleTime: 1000 * 60 * 5, // 5 minutes
-    enabled: !!user, // Only fetch if user exists in store
-    initialData: user || undefined,
+    enabled: status === 'authenticated' && !!user, // Only fetch if authenticated
+    initialData: (session?.user as User) || user || undefined,
   });
 }
 
 /**
- * Login mutation
- */
-export function useLogin() {
-  const queryClient = useQueryClient();
-  const setAuth = useAuthStore((state) => state.setAuth);
-  
-  return useMutation({
-    mutationFn: async (credentials: LoginDto) => {
-      const response = await api.post<{ data: AuthResponse }>('/auth/login', credentials);
-      if (!response.success) throw new Error(response.error);
-      
-      // Response structure: { success: true, data: { user, tokens } }
-      const authData = (response.data as unknown as { data: AuthResponse }).data || response.data as unknown as AuthResponse;
-      return authData;
-    },
-    onSuccess: (data) => {
-      // Store user and tokens
-      setAuth(data.user, data.tokens);
-      queryClient.setQueryData(authKeys.me(), data.user);
-    },
-  });
-}
-
-/**
- * Register mutation
+ * Register mutation - registers user then signs them in with NextAuth
  */
 export function useRegister() {
   const queryClient = useQueryClient();
-  const setAuth = useAuthStore((state) => state.setAuth);
   
   return useMutation({
     mutationFn: async (data: RegisterDto) => {
-      const response = await api.post<{ data: AuthResponse }>('/auth/register', data);
+      // Register user via API
+      const response = await api.post<{ data: { user: User } }>('/auth/register', data);
       if (!response.success) throw new Error(response.error);
       
-      // Response structure: { success: true, data: { user, tokens } }
-      const authData = (response.data as unknown as { data: AuthResponse }).data || response.data as unknown as AuthResponse;
-      return authData;
+      const userData = (response.data as unknown as { data: { user: User } }).data?.user;
+      if (!userData) {
+        throw new Error('Registration failed - no user data returned');
+      }
+      
+      // After successful registration, sign in with NextAuth
+      const signInResult = await signIn('credentials', {
+        email: data.email,
+        password: data.password,
+        redirect: false,
+      });
+      
+      if (signInResult?.error) {
+        throw new Error(signInResult.error);
+      }
+      
+      return userData;
     },
-    onSuccess: (data) => {
-      // Store user and tokens
-      setAuth(data.user, data.tokens);
-      queryClient.setQueryData(authKeys.me(), data.user);
+    onSuccess: (user) => {
+      queryClient.setQueryData(authKeys.me(), user);
     },
   });
 }
 
 /**
  * Refresh token mutation
+ * Note: NextAuth handles token refresh automatically, but this can be used for manual refresh
  */
 export function useRefreshToken() {
-  const setTokens = useAuthStore((state) => state.setTokens);
+  const { update } = useSession();
   
   return useMutation({
     mutationFn: async (refreshToken: string) => {
@@ -94,34 +86,51 @@ export function useRefreshToken() {
       if (!response.success) throw new Error(response.error);
       
       // Response structure may vary, adjust based on your API
-      const tokens = (response.data as any).tokens || (response.data as any).data?.tokens;
+      const responseData = response.data as 
+        | { tokens?: { accessToken: string; refreshToken: string } }
+        | { data?: { tokens?: { accessToken: string; refreshToken: string } } };
+      
+      const tokens = 
+        'tokens' in responseData && responseData.tokens
+          ? responseData.tokens
+          : 'data' in responseData && responseData.data?.tokens
+          ? responseData.data.tokens
+          : null;
+      
+      // Update NextAuth session with new tokens
+      if (tokens) {
+        await update({
+          accessToken: tokens.accessToken,
+          refreshToken: tokens.refreshToken,
+        });
+      }
+      
       return tokens;
-    },
-    onSuccess: (tokens) => {
-      setTokens(tokens);
     },
   });
 }
 
 /**
- * Logout mutation
+ * Logout mutation - uses NextAuth signOut
  */
 export function useLogout() {
   const queryClient = useQueryClient();
-  const logout = useAuthStore((state) => state.logout);
   
   return useMutation({
     mutationFn: async () => {
       try {
-        const response = await api.post('/auth/logout');
-        return response;
+        // Call backend logout endpoint
+        await api.post('/auth/logout');
       } catch (error) {
-        // Even if logout fails on server, clear local state
+        // Even if logout fails on server, continue with client-side logout
         console.error('Logout error:', error);
       }
+      
+      // Sign out from NextAuth (this clears the session)
+      await signOut({ redirect: false });
     },
     onSuccess: () => {
-      logout();
+      // Clear React Query cache
       queryClient.clear();
     },
   });

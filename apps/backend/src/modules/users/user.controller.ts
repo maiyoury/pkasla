@@ -15,8 +15,11 @@ export const updateCurrentUserHandler = async (req: Request, res: Response) => {
   return res.status(httpStatus.OK).json(buildSuccessResponse(updated));
 };
 
-export const listUsersHandler = async (_req: Request, res: Response) => {
-  const users = await userService.list();
-  return res.status(httpStatus.OK).json(buildSuccessResponse(users));
+export const listUsersHandler = async (req: Request, res: Response) => {
+  const page = Number(req.query.page) || 1;
+  const pageSize = Number(req.query.pageSize) || 10;
+  
+  const result = await userService.list(page, pageSize);
+  return res.status(httpStatus.OK).json(result);
 };
 

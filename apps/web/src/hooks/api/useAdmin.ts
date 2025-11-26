@@ -7,6 +7,8 @@ import { api } from '@/lib/axios-client';
  */
 export const adminKeys = {
   all: ['admin'] as const,
+  dashboard: () => [...adminKeys.all, 'dashboard'] as const,
+  userMetrics: () => [...adminKeys.all, 'user-metrics'] as const,
   users: (filters?: UserListFilters) => [...adminKeys.all, 'users', filters] as const,
   user: (id: string) => [...adminKeys.all, 'user', id] as const,
 };
@@ -20,13 +22,28 @@ export interface UserListFilters {
 }
 
 export interface UserListResponse {
-  data: User[];
-  meta: {
-    total: number;
-    page: number;
-    limit: number;
-    hasNextPage: boolean;
-    hasPrevPage: boolean;
+  items: User[];
+  total: number;
+  page: number;
+  limit: number;
+}
+
+export interface SiteMetrics {
+  totalUsers: number;
+  activeUsers: number;
+  activeUsersCount: number;
+}
+
+export interface UserMetrics {
+  total: number;
+  active: number;
+  pending: number;
+  suspended: number;
+  byRole: Record<string, number>;
+  companyApprovals: {
+    pending: number;
+    approved: number;
+    rejected: number;
   };
 }
 
@@ -107,6 +124,48 @@ export function useUpdateUserRole() {
       queryClient.invalidateQueries({ queryKey: adminKeys.users() });
       queryClient.invalidateQueries({ queryKey: adminKeys.user(variables.userId) });
     },
+  });
+}
+
+/**
+ * Get dashboard metrics (site metrics)
+ */
+export function useDashboardMetrics() {
+  return useQuery<SiteMetrics, Error>({
+    queryKey: adminKeys.dashboard(),
+    queryFn: async (): Promise<SiteMetrics> => {
+      const response = await api.get<SiteMetrics>('/admin/dashboard');
+      if (!response.success) {
+        throw new Error(response.error || 'Failed to fetch dashboard metrics');
+      }
+      if (!response.data) {
+        throw new Error('Dashboard metrics not found');
+      }
+      return response.data;
+    },
+    retry: false,
+    staleTime: 1000 * 60, // 1 minute
+  });
+}
+
+/**
+ * Get user metrics
+ */
+export function useUserMetrics() {
+  return useQuery<UserMetrics, Error>({
+    queryKey: adminKeys.userMetrics(),
+    queryFn: async (): Promise<UserMetrics> => {
+      const response = await api.get<UserMetrics>('/admin/analytics/users');
+      if (!response.success) {
+        throw new Error(response.error || 'Failed to fetch user metrics');
+      }
+      if (!response.data) {
+        throw new Error('User metrics not found');
+      }
+      return response.data;
+    },
+    retry: false,
+    staleTime: 1000 * 60, // 1 minute
   });
 }
 

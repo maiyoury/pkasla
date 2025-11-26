@@ -1,12 +1,13 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 import Link from 'next/link';
-import { Eye, EyeOff, Mail, Lock, User, Loader2 } from 'lucide-react';
+import { Eye, EyeOff, Mail, Lock, User as UserIcon, Loader2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { ROUTES } from '@/constants';
-import type { RegisterDto } from '@/types';
+import type { RegisterDto, User } from '@/types';
 import { useRegister } from '@/hooks/api/useAuth';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -16,6 +17,7 @@ import { cn } from '@/lib/utils';
 
 export function RegisterForm() {
   const router = useRouter();
+  const { update: updateSession } = useSession();
   const registerMutation = useRegister();
   const [formData, setFormData] = useState<RegisterDto & { confirmPassword: string }>({
     name: '',
@@ -35,34 +37,34 @@ export function RegisterForm() {
     nameInputRef.current?.focus();
   }, []);
 
-  const validateName = (value: string) => {
-    if (!value) {
+  const validateName = useCallback((value: string) => {
+    if (!value.trim()) {
       setNameError('Name is required');
       return false;
     }
-    if (value.length < 2) {
+    if (value.trim().length < 2) {
       setNameError('Name must be at least 2 characters');
       return false;
     }
     setNameError(null);
     return true;
-  };
+  }, []);
 
-  const validateEmail = (value: string) => {
-    if (!value) {
+  const validateEmail = useCallback((value: string) => {
+    if (!value.trim()) {
       setEmailError('Email is required');
       return false;
     }
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(value)) {
+    if (!emailRegex.test(value.trim())) {
       setEmailError('Please enter a valid email address');
       return false;
     }
     setEmailError(null);
     return true;
-  };
+  }, []);
 
-  const validatePassword = (value: string) => {
+  const validatePassword = useCallback((value: string) => {
     if (!value) {
       setPasswordError('Password is required');
       return false;
@@ -73,9 +75,9 @@ export function RegisterForm() {
     }
     setPasswordError(null);
     return true;
-  };
+  }, []);
 
-  const validateConfirmPassword = (value: string, password: string) => {
+  const validateConfirmPassword = useCallback((value: string, password: string) => {
     if (!value) {
       setConfirmPasswordError('Please confirm your password');
       return false;
@@ -86,7 +88,7 @@ export function RegisterForm() {
     }
     setConfirmPasswordError(null);
     return true;
-  };
+  }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -110,10 +112,18 @@ export function RegisterForm() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const isNameValid = validateName(formData.name);
-    const isEmailValid = validateEmail(formData.email);
-    const isPasswordValid = validatePassword(formData.password);
-    const isConfirmPasswordValid = validateConfirmPassword(formData.confirmPassword, formData.password);
+    // Trim form data
+    const trimmedData = {
+      name: formData.name.trim(),
+      email: formData.email.trim(),
+      password: formData.password,
+      confirmPassword: formData.confirmPassword,
+    };
+
+    const isNameValid = validateName(trimmedData.name);
+    const isEmailValid = validateEmail(trimmedData.email);
+    const isPasswordValid = validatePassword(trimmedData.password);
+    const isConfirmPasswordValid = validateConfirmPassword(trimmedData.confirmPassword, trimmedData.password);
 
     if (!isNameValid || !isEmailValid || !isPasswordValid || !isConfirmPasswordValid) {
       return;
@@ -121,16 +131,35 @@ export function RegisterForm() {
 
     try {
       await registerMutation.mutateAsync({
-        name: formData.name,
-        email: formData.email,
-        password: formData.password,
+        name: trimmedData.name,
+        email: trimmedData.email,
+        password: trimmedData.password,
       });
 
-      toast.success('Registration successful! Welcome!');
-      router.push(ROUTES.HOME);
-      router.refresh();
+      // Update session to get latest user data
+      await updateSession();
+
+      // Get user role for redirect
+      try {
+        const sessionResponse = await fetch('/api/auth/session');
+        const sessionData = await sessionResponse.json();
+        const user = sessionData?.user as User | undefined;
+
+        toast.success('Registration successful! Welcome!');
+
+        // Redirect based on user role
+        const redirectPath = user?.role === 'admin' ? ROUTES.ADMIN : ROUTES.DASHBOARD;
+        router.push(redirectPath);
+        router.refresh();
+      } catch {
+        // Fallback redirect
+        toast.success('Registration successful! Welcome!');
+        router.push(ROUTES.HOME);
+        router.refresh();
+      }
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Registration failed');
+      const errorMessage = err instanceof Error ? err.message : 'Registration failed';
+      toast.error(errorMessage);
     }
   };
 
@@ -150,7 +179,7 @@ export function RegisterForm() {
               Full Name
             </Label>
             <div className="relative">
-              <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <UserIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
               <Input
                 ref={nameInputRef}
                 id="name"

@@ -1,13 +1,13 @@
 import type { Request, Response } from 'express';
 import httpStatus from 'http-status';
-import { buildSuccessResponse, usePageResponseSuccess } from '@/helpers/http-response';
+import { buildSuccessResponse } from '@/helpers/http-response';
 import { asyncHandler } from '@/utils/async-handler';
 import { adminService } from './admin.service';
 import { analyticsService } from './analytics.service';
 
 // Dashboard & Analytics
 export const getDashboardHandler = asyncHandler(async (req: Request, res: Response) => {
-  const metrics = analyticsService.getSiteMetrics();
+  const metrics = await analyticsService.getSiteMetrics();
   return res.status(httpStatus.OK).json(buildSuccessResponse(metrics));
 });
 
@@ -18,13 +18,21 @@ export const getUserMetricsHandler = asyncHandler(async (req: Request, res: Resp
 
 // User Management
 export const listUsersHandler = asyncHandler(async (req: Request, res: Response) => {
-  const { page = 1, limit = 20, role, status, search } = req.query;
-  const data = await adminService.listUsers(
-    Number(page),
-    Number(limit),
-    { role: role as string, status: status as string, search: search as string },
+  const page = Number(req.query.page) || 1;
+  const limit = Number(req.query.limit) || 20;
+  const role = req.query.role as string | undefined;
+  const status = req.query.status as string | undefined;
+  const search = req.query.search as string | undefined;
+  
+  const result = await adminService.listUsers(
+    page,
+    limit,
+    { role, status, search },
   );
-  return res.status(httpStatus.OK).json(usePageResponseSuccess(Number(page), Number(limit), data.data, { message: 'Users fetched successfully' }));
+  
+  return res.status(httpStatus.OK).json(
+    buildSuccessResponse(result, 'Users fetched successfully')
+  );
 });
 
 export const updateUserStatusHandler = asyncHandler(async (req: Request, res: Response) => {

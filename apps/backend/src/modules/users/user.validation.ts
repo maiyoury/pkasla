@@ -39,3 +39,18 @@ export const updateProfileSchema = z.object({
  */
 export type UpdateProfileInput = z.infer<typeof updateProfileSchema>['body'];
 
+/**
+ * List users query validation schema
+ */
+export const listUsersQuerySchema = z.object({
+  query: z.object({
+    page: z.coerce.number().min(1).default(1).optional(),
+    pageSize: z.coerce.number().min(1).max(100).default(10).optional(),
+  }),
+});
+
+/**
+ * Type inference for list users query
+ */
+export type ListUsersQuery = z.infer<typeof listUsersQuerySchema>['query'];
+

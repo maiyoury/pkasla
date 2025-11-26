@@ -3,6 +3,7 @@ import { AppError } from '@/common/errors/app-error';
 import { userRepository } from './user.repository';
 import type { UserDocument } from './user.model';
 import type { UserRole, UserStatus, OAuthProvider } from './user.types';
+import { buildSuccessResponse } from '@/helpers/http-response';
 
 export interface CreateUserInput {
   name: string;
@@ -170,11 +171,25 @@ class UserService {
     return safeUser;
   }
 
-  async list() {
-    const users = await userRepository.list();
-    return users
+  async list(page: number = 1, pageSize: number = 10) {
+    const [users, total] = await Promise.all([
+      userRepository.listPaginated({}, page, pageSize),
+      userRepository.countDocuments({}),
+    ]);
+
+    const sanitizedUsers = users
       .map((user) => sanitizeUser(user as unknown as UserDocument))
       .filter(Boolean) as UserResponse[];
+
+    return buildSuccessResponse(
+      {
+        items: sanitizedUsers,
+        total,
+        page,
+        pageSize,
+      },
+      'Users fetched successfully',
+    );
   }
 }
 

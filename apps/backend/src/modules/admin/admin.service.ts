@@ -28,7 +28,6 @@ class AdminService {
     status?: string;
     search?: string;
   }) {
-    const skip = (page - 1) * limit;
     const query: any = {};
 
     if (filters?.role) {
@@ -39,29 +38,22 @@ class AdminService {
     }
     if (filters?.search) {
       query.$or = [
-        { firstName: { $regex: filters.search, $options: 'i' } },
-        { lastName: { $regex: filters.search, $options: 'i' } },
+        { name: { $regex: filters.search, $options: 'i' } },
         { email: { $regex: filters.search, $options: 'i' } },
+        { phone: { $regex: filters.search, $options: 'i' } },
       ];
     }
 
     const [users, total] = await Promise.all([
-      userRepository.list(query)
-        .sort({ createdAt: -1 })
-        .skip(skip)
-        .limit(limit),
+      userRepository.listPaginated(query, page, limit, { createdAt: -1 }),
       userRepository.countDocuments(query),
     ]);
 
     return {
-      data: users,
-      meta: {
-        total,
-        page,
-        limit,
-        hasNextPage: page * limit < total,
-        hasPrevPage: page > 1,
-      },
+      items: users,
+      total,
+      page,
+      limit,
     };
   }
 

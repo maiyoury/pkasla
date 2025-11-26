@@ -1,4 +1,4 @@
-export { useAuthStore, useIsAuthenticated } from './auth';
+export { useAuthStore, useIsAuthenticated, useSyncAuthSession } from './auth';
 export { 
   useUserStore, 
   useCurrentUser, 

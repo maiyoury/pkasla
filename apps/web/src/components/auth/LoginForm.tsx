@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { signIn, useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
@@ -14,6 +14,7 @@ import {
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { cn } from "@/lib/utils";
 import { Mail, Lock, EyeOff, Eye, Loader2 } from "lucide-react";
 import { Github, Linkedin } from "lucide-react";
@@ -60,15 +61,18 @@ export function LoginForm() {
     if (oauthSuccess === "true" && provider) {
       toast.success(`Successfully signed in with ${provider}!`);
       // Clean up URL
-      router.replace("/auth/login");
+      router.replace("/login");
     }
   }, [searchParams, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    // Trim email
+    const trimmedEmail = formData.email.trim();
+
     // Validate form
-    const isEmailValid = validateEmail(formData.email);
+    const isEmailValid = validateEmail(trimmedEmail);
     const isPasswordValid = validatePassword(formData.password);
 
     if (!isEmailValid || !isPasswordValid) {
@@ -80,23 +84,25 @@ export function LoginForm() {
     try {
       const callbackUrl = searchParams.get("callbackUrl") || "/";
       const result = await signIn("credentials", {
-        email: formData.email,
+        email: trimmedEmail,
         password: formData.password,
         redirect: false,
       });
-      console.log("🚀 ~ handleSubmit ~ result:", result);
 
       if (result?.error) {
         toast.error(
           result.error === "CredentialsSignin"
-            ? "Invalid email/phone or password"
+            ? "Invalid email or password"
             : result.error
         );
         setIsLoading(false);
-      } else if (result?.ok) {
+        return;
+      }
+
+      if (result?.ok) {
         // Handle remember me
         if (formData.rememberMe) {
-          localStorage.setItem("rememberedEmail", formData.email);
+          localStorage.setItem("rememberedEmail", trimmedEmail);
         } else {
           localStorage.removeItem("rememberedEmail");
         }
@@ -106,26 +112,20 @@ export function LoginForm() {
         // Update session to get latest user data
         await updateSession();
 
-        // Fetch session to get user role for redirect
+        // Get user role for redirect
         try {
           const sessionResponse = await fetch("/api/auth/session");
           const sessionData = await sessionResponse.json();
           const user = sessionData?.user as User | undefined;
 
-          // If callbackUrl is provided and it's not home, use it
-          if (
-            callbackUrl &&
-            callbackUrl !== "/" &&
-            callbackUrl !== ROUTES.HOME
-          ) {
-            router.push(callbackUrl);
-            router.refresh();
-            return;
+          // Determine redirect path
+          let redirectPath = callbackUrl;
+          
+          // If callbackUrl is home or root, redirect based on role
+          if (callbackUrl === "/" || callbackUrl === ROUTES.HOME) {
+            redirectPath = user?.role === "admin" ? ROUTES.ADMIN : ROUTES.DASHBOARD;
           }
 
-          // Redirect based on user role
-          const redirectPath =
-            user?.role === "admin" ? ROUTES.ADMIN : ROUTES.DASHBOARD;
           router.push(redirectPath);
           router.refresh();
         } catch {
@@ -140,21 +140,21 @@ export function LoginForm() {
     }
   };
 
-  const validateEmail = (email: string): boolean => {
-    if (!email) {
+  const validateEmail = useCallback((email: string): boolean => {
+    if (!email.trim()) {
       setEmailError("Email is required");
       return false;
     }
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
+    if (!emailRegex.test(email.trim())) {
       setEmailError("Please enter a valid email address");
       return false;
     }
     setEmailError("");
     return true;
-  };
+  }, []);
 
-  const validatePassword = (password: string): boolean => {
+  const validatePassword = useCallback((password: string): boolean => {
     if (!password) {
       setPasswordError("Password is required");
       return false;
@@ -165,7 +165,7 @@ export function LoginForm() {
     }
     setPasswordError("");
     return true;
-  };
+  }, []);
 
   const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
@@ -183,22 +183,17 @@ export function LoginForm() {
     }
   };
 
-  const handleOAuthSignIn = async (
-    provider: "google" | "github" | "linkedin"
-  ) => {
-    setOauthLoading(provider);
-    try {
+  const handleOAuthSignIn = useCallback(
+    (provider: "google" | "github" | "linkedin") => {
+      setOauthLoading(provider);
       const callbackUrl = searchParams.get("callbackUrl") || "/";
       signIn(provider, {
         callbackUrl: callbackUrl,
         redirect: true,
       });
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    } catch (error) {
-      toast.error(`Failed to sign in with ${provider}`);
-      setOauthLoading(null);
-    }
-  };
+    },
+    [searchParams]
+  );
 
   return (
     <div className="bg-[url('/images/login-background.png')] bg-cover border-0 bg-center">
@@ -296,6 +291,22 @@ export function LoginForm() {
               )}
             </div>
 
+            {/* Remember Me Checkbox */}
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="rememberMe"
+                checked={formData.rememberMe}
+                onCheckedChange={(checked) =>
+                  setFormData({ ...formData, rememberMe: checked === true })
+                }
+              />
+              <Label
+                htmlFor="rememberMe"
+                className="text-sm font-normal text-gray-700 cursor-pointer"
+              >
+                Remember me
+              </Label>
+            </div>
 
             {/* Submit Button */}
             <Button
