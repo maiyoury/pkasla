@@ -192,13 +192,15 @@ export const authConfig: NextAuthConfig = {
       // Handle OAuth callback redirects
       // If url is relative, make it absolute
       if (url.startsWith('/')) {
+        // If redirecting to home, middleware will handle role-based redirect
+        // For other paths, use them as-is
         return `${baseUrl}${url}`;
       }
       // If url is on the same origin, allow it
       if (new URL(url).origin === baseUrl) {
         return url;
       }
-      // Default to baseUrl
+      // Default to baseUrl (middleware will redirect to role-based dashboard)
       return baseUrl;
     },
     async jwt({ token, user }) {
