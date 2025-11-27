@@ -1,59 +1,36 @@
 'use client';
 
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
-import { useSession } from 'next-auth/react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { ROUTES } from '@/constants';
-import type { RegisterDto, User } from '@/types';
-import { useRegister } from '@/hooks/api/useAuth';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 
-export function RegisterForm() {
+export function ResetPasswordForm() {
   const router = useRouter();
-  const { update: updateSession } = useSession();
-  const registerMutation = useRegister();
-  const [formData, setFormData] = useState<RegisterDto & { confirmPassword: string }>({
-    name: '',
-    email: '',
+  const searchParams = useSearchParams();
+  const [formData, setFormData] = useState({
     password: '',
     confirmPassword: '',
   });
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const nameInputRef = useRef<HTMLInputElement>(null);
+  const [loading, setLoading] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
+  const passwordInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    nameInputRef.current?.focus();
-  }, []);
-
-  const validateName = useCallback((value: string): boolean => {
-    if (!value.trim()) {
-      toast.error('សូមបញ្ចូលឈ្មោះរបស់អ្នក');
-      return false;
+    passwordInputRef.current?.focus();
+    
+    // Check if token exists in URL
+    const token = searchParams.get('token');
+    if (!token) {
+      toast.error('តំណភ្ជាប់មិនត្រឹមត្រូវ។ សូមស្នើសុំកំណត់ពាក្យសម្ងាត់ឡើងវិញម្តងទៀត។');
     }
-    if (value.trim().length < 2) {
-      toast.error('ឈ្មោះត្រូវមានយ៉ាងហោចណាស់ 2 តួអក្សរ');
-      return false;
-    }
-    return true;
-  }, []);
-
-  const validateEmail = useCallback((value: string): boolean => {
-    if (!value.trim()) {
-      toast.error('សូមបញ្ចូលអាសយដ្ឋានអ៊ីមែលរបស់អ្នក');
-      return false;
-    }
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(value.trim())) {
-      toast.error('សូមបញ្ចូលអាសយដ្ឋានអ៊ីមែល');
-      return false;
-    }
-    return true;
-  }, []);
+  }, [searchParams]);
 
   const validatePassword = useCallback((value: string): boolean => {
     if (!value) {
@@ -79,16 +56,6 @@ export function RegisterForm() {
     return true;
   }, []);
 
-  const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    setFormData({ ...formData, name: value });
-  };
-
-  const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    setFormData({ ...formData, email: value });
-  };
-
   const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setFormData({ ...formData, password: value });
@@ -102,68 +69,90 @@ export function RegisterForm() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Trim form data
-    const trimmedData = {
-      name: formData.name.trim(),
-      email: formData.email.trim(),
-      password: formData.password,
-      confirmPassword: formData.confirmPassword,
-    };
+    const token = searchParams.get('token');
+    if (!token) {
+      toast.error('តំណភ្ជាប់មិនត្រឹមត្រូវ។ សូមស្នើសុំកំណត់ពាក្យសម្ងាត់ឡើងវិញម្តងទៀត។');
+      return;
+    }
 
     // Validate form - stop at first error to avoid duplicate toasts
-    const isNameValid = validateName(trimmedData.name);
-    if (!isNameValid) {
-      return;
-    }
-
-    const isEmailValid = validateEmail(trimmedData.email);
-    if (!isEmailValid) {
-      return;
-    }
-
-    const isPasswordValid = validatePassword(trimmedData.password);
+    const isPasswordValid = validatePassword(formData.password);
     if (!isPasswordValid) {
       return;
     }
 
-    const isConfirmPasswordValid = validateConfirmPassword(trimmedData.confirmPassword, trimmedData.password);
+    const isConfirmPasswordValid = validateConfirmPassword(formData.confirmPassword, formData.password);
     if (!isConfirmPasswordValid) {
       return;
     }
 
+    setLoading(true);
+
     try {
-      await registerMutation.mutateAsync({
-        name: trimmedData.name,
-        email: trimmedData.email,
-        password: trimmedData.password,
-      });
+      // TODO: Replace with actual API call
+      // const response = await fetch('/api/auth/reset-password', {
+      //   method: 'POST',
+      //   headers: { 'Content-Type': 'application/json' },
+      //   body: JSON.stringify({
+      //     token,
+      //     password: formData.password,
+      //   })
+      // })
+      // const result = await response.json()
 
-      // Update session to get latest user data
-      await updateSession();
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 1500));
 
-      // Get user role for redirect
-      try {
-        const sessionResponse = await fetch('/api/auth/session');
-        const sessionData = await sessionResponse.json();
-        const user = sessionData?.user as User | undefined;
+      setIsSuccess(true);
+      toast.success('កំណត់ពាក្យសម្ងាត់ឡើងវិញជោគជ័យ!');
 
-        toast.success('ការចុះឈ្មោះជោគជ័យ! សូមស្វាគមន៍!');
-
-        // Redirect based on user role
-        const redirectPath = user?.role === 'admin' ? ROUTES.ADMIN : ROUTES.DASHBOARD;
-        router.push(redirectPath);
-        router.refresh();
-      } catch {
-        // Fallback redirect
-        toast.success('ការចុះឈ្មោះជោគជ័យ! សូមស្វាគមន៍!');
-        router.push(ROUTES.HOME);
-        router.refresh();
-      }
+      // Redirect to login after 2 seconds
+      setTimeout(() => {
+        router.push(ROUTES.LOGIN);
+      }, 2000);
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'ការចុះឈ្មោះមិនជោគជ័យ!';
-      toast.error(errorMessage);
+      console.error('Reset password error:', err);
+      toast.error('មានកំហុសកើតឡើង។ សូមព្យាយាមម្តងទៀត។');
+    } finally {
+      setLoading(false);
     }
   };
+
+  if (isSuccess) {
+    return (
+      <div className="w-full max-w-[320px] sm:max-w-[380px] md:max-w-[420px] lg:max-w-[450px] mx-auto">
+        <Card className="p-0 shadow-none bg-transparent border-0">
+          <CardContent className="relative p-0 m-0 sm:p-4 md:p-10 lg:p-12">
+            {/* Header Frame */}
+            <div 
+              className="absolute -top-12 flex items-center justify-center left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-[280px] sm:max-w-[320px] md:max-w-[360px] h-44 md:h-64 bg-[url('/images/assets/frame-image-title.png')] bg-no-repeat bg-cover bg-center z-10"
+              style={{
+                backgroundSize: '100% 100%',
+              }}
+            >
+              <h1 className="text-red-800 md:text-3xl text-2xl -translate-y-1 font-moulpali font-bold">កំណត់ពាក្យសម្ងាត់</h1>
+            </div>
+            <div className="pt-8 sm:pt-10 md:pt-12 space-y-4 sm:space-y-5 text-center">
+              <div className="space-y-3">
+                <p className="text-sm sm:text-base text-gray-700">
+                  ពាក្យសម្ងាត់របស់អ្នកត្រូវបានកំណត់ឡើងវិញដោយជោគជ័យ!
+                </p>
+                <p className="text-xs sm:text-sm text-gray-600">
+                  អ្នកនឹងត្រូវបានបញ្ជូនទៅកាន់ទំព័រចូល...
+                </p>
+              </div>
+              <Link
+                href={ROUTES.LOGIN}
+                className="inline-block text-sm text-black hover:underline font-semibold transition-colors"
+              >
+                ចូលឥឡូវនេះ
+              </Link>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full max-w-[320px] sm:max-w-[380px] md:max-w-[420px] lg:max-w-[450px] mx-auto">
@@ -176,58 +165,9 @@ export function RegisterForm() {
               backgroundSize: '100% 100%',
             }}
           >
-            <h1 className="text-red-800 md:text-3xl text-2xl -translate-y-1 font-moulpali font-bold">ចុះឈ្មោះ</h1>
+            <h1 className="text-red-800 md:text-3xl text-2xl -translate-y-1 font-moulpali font-bold">កំណត់ពាក្យសម្ងាត់</h1>
           </div>
           <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-5 pt-8 sm:pt-10 md:pt-12" noValidate autoComplete="on">
-            {/* Name Field */}
-            <div className="space-y-2">
-              <div className="relative">
-                <div 
-                  className="relative bg-[url('/images/assets/input-frame.png')] bg-no-repeat bg-cover bg-center h-10 sm:h-11 rounded-md"
-                  style={{
-                    backgroundSize: '100% 100%',
-                  }}
-                >
-                  <input
-                    ref={nameInputRef}
-                    id="name"
-                    name="name"
-                    type="text"
-                    value={formData.name}
-                    onChange={handleNameChange}
-                    placeholder="ឈ្មោះពេញរបស់អ្នក"
-                    autoComplete="name"
-                    className="w-full h-full bg-transparent border-0 outline-none text-sm pl-10 sm:pl-12 pr-4 text-white placeholder:text-gray-400 focus:ring-0 focus:outline-none"
-                    required
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Email Field */}
-            <div className="space-y-2">
-              <div className="relative">
-                <div 
-                  className="relative bg-[url('/images/assets/input-frame.png')] bg-no-repeat bg-cover bg-center h-10 sm:h-11 rounded-md"
-                  style={{
-                    backgroundSize: '100% 100%',
-                  }}
-                >
-                  <input
-                    id="email"
-                    name="email"
-                    type="email"
-                    value={formData.email}
-                    onChange={handleEmailChange}
-                    placeholder="អ៊ីមែលរបស់អ្នក"
-                    autoComplete="email"
-                    className="w-full h-full bg-transparent border-0 outline-none text-sm pl-10 sm:pl-12 pr-4 text-white placeholder:text-gray-400 focus:ring-0 focus:outline-none"
-                    required
-                  />
-                </div>
-              </div>
-            </div>
-
             {/* Password Field */}
             <div className="space-y-2">
               <div className="relative">
@@ -238,12 +178,13 @@ export function RegisterForm() {
                   }}
                 >
                   <input
+                    ref={passwordInputRef}
                     id="password"
                     name="password"
                     type={showPassword ? 'text' : 'password'}
                     value={formData.password}
                     onChange={handlePasswordChange}
-                    placeholder="បញ្ចូលពាក្យសម្ងាត់របស់អ្នក"
+                    placeholder="ពាក្យសម្ងាត់ថ្មី"
                     autoComplete="new-password"
                     className="w-full h-full bg-transparent ring-0 border-0 outline-none text-sm pl-10 sm:pl-12 pr-11 text-white placeholder:text-gray-400 focus:ring-0 focus:outline-none"
                     required
@@ -279,7 +220,7 @@ export function RegisterForm() {
                     type={showConfirmPassword ? 'text' : 'password'}
                     value={formData.confirmPassword}
                     onChange={handleConfirmPasswordChange}
-                    placeholder="បញ្ជាក់ពាក្យសម្ងាត់របស់អ្នក"
+                    placeholder="បញ្ជាក់ពាក្យសម្ងាត់ថ្មី"
                     autoComplete="new-password"
                     className="w-full h-full bg-transparent ring-0 border-0 outline-none text-sm pl-10 sm:pl-12 pr-11 text-white placeholder:text-gray-400 focus:ring-0 focus:outline-none"
                     required
@@ -303,33 +244,30 @@ export function RegisterForm() {
             {/* Submit Button */}
             <Button
               type="submit"
-              disabled={registerMutation.isPending}
+              disabled={loading}
               className="w-full h-10 sm:h-11 text-sm font-medium hover:bg-transparent cursor-pointer shadow-none bg-transparent bg-[url('/images/assets/input-frame.png')] bg-no-repeat bg-cover bg-center disabled:opacity-50 disabled:cursor-not-allowed transition-all"
               style={{
                 backgroundSize: '100% 100%',
               }}
             >
-              {registerMutation.isPending ? (
+              {loading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  កំពុងបង្កើតគណនី...
+                  កំពុងកំណត់...
                 </>
               ) : (
-                'បង្កើតគណនី'
+                'កំណត់ពាក្យសម្ងាត់'
               )}
             </Button>
           </form>
 
-          {/* Login Link */}
+          {/* Back to Login Link */}
           <div className="mt-3 sm:mt-4 md:mt-6 text-center">
-            <span className="text-xs sm:text-sm text-gray-600">
-              មានគណនីរួចហើយ?{' '}
-            </span>
             <Link
-              href="/login"
+              href={ROUTES.LOGIN}
               className="text-xs sm:text-sm text-black hover:underline font-semibold transition-colors"
             >
-              ចូល
+              ← ត្រលប់ទៅកាន់ទំព័រចូល
             </Link>
           </div>
         </CardContent>
@@ -337,3 +275,4 @@ export function RegisterForm() {
     </div>
   );
 }
+
