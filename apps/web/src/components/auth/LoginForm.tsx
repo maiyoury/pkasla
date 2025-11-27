@@ -104,7 +104,7 @@ export function LoginForm() {
           localStorage.removeItem("rememberedEmail");
         }
 
-        toast.success("Login successful!");
+        toast.success("ចុូលប្រព័ន្ធជោគជ័យ!");
 
         // Update session to get latest user data
         await updateSession();
@@ -132,19 +132,19 @@ export function LoginForm() {
         }
       }
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Login failed");
+      toast.error(err instanceof Error ? err.message : "ចុូលប្រព័ន្ធមិនជោគជ័យ!");
       setIsLoading(false);
     }
   };
 
   const validateEmail = useCallback((email: string): boolean => {
     if (!email.trim()) {
-      toast.error("Email is required");
+      toast.error("សូមបញ្ចូលអាសយដ្ឋានអ៊ីមែលរបស់អ្នក");
       return false;
     }
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email.trim())) {
-      toast.error("Please enter a valid email address");
+      toast.error("សូមបញ្ចូលអាសយដ្ឋានអ៊ីមែល");
       return false;
     }
     return true;
@@ -152,11 +152,11 @@ export function LoginForm() {
 
   const validatePassword = useCallback((password: string): boolean => {
     if (!password) {
-      toast.error("Password is required");
+      toast.error("សូមបញ្ចូលពាក្យសម្ងាត់របស់អ្នក");
       return false;
     }
     if (password.length < 6) {
-      toast.error("Password must be at least 6 characters");
+      toast.error("ពាក្យសម្ងាត់ត្រូវមានយ៉ាងហោចណាស់ 6 តួអក្សរ");
       return false;
     }
     return true;
@@ -195,7 +195,7 @@ export function LoginForm() {
                 backgroundSize: '100% 100%',
               }}
             >
-              <h1 className="text-red-800 md:text-3xl text-2xl -translate-y-1  font-bold">Login</h1>
+              <h1 className="text-red-800 md:text-3xl text-2xl -translate-y-1  font-bold">ចុូលប្រព័ន្ធ</h1>
             </div>
             <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-5 pt-8 sm:pt-10 md:pt-12" noValidate>
               {/* Email Field */}
@@ -213,7 +213,7 @@ export function LoginForm() {
                       type="email"
                       value={formData.email}
                       onChange={handleEmailChange}
-                      placeholder="Email"
+                      placeholder="អ៊ីមែលរបស់អ្នក"
                       className="w-full h-full bg-transparent border-0 outline-none text-sm pl-10 sm:pl-12 pr-4 text-white placeholder:text-gray-400 focus:ring-0 focus:outline-none"
                       required
                     />
@@ -236,14 +236,14 @@ export function LoginForm() {
                       type={showPassword ? "text" : "password"}
                       value={formData.password}
                       onChange={handlePasswordChange}
-                      placeholder="Enter your password"
-                      className="w-full h-full bg-transparent border-0 outline-none text-sm pl-10 sm:pl-12 pr-11 text-white placeholder:text-gray-400 focus:ring-0 focus:outline-none"
+                      placeholder="បញ្ចូលពាក្យសម្ងាត់របស់អ្នក"
+                      className="w-full h-full bg-transparent ring-0 border-0 outline-none text-sm pl-10 sm:pl-12 pr-11 text-white placeholder:text-gray-400 focus:ring-0 focus:outline-none"
                       required
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-5 sm:right-6 top-1/2 transform -translate-y-1/2 text-white hover:text-gray-700 focus:outline-none transition-colors z-10"
+                      className="absolute right-5 sm:right-6 cursor-pointer top-1/2 transform -translate-y-1/2 text-white hover:text-gray-700 focus:outline-none transition-colors z-10"
                       aria-label={showPassword ? "Hide password" : "Show password"}
                     >
                       {showPassword ? (
@@ -262,7 +262,7 @@ export function LoginForm() {
               <Button
                 type="submit"
                 disabled={isLoading}
-                className="w-full h-10 sm:h-11 text-sm font-medium shadow-none bg-transparent bg-[url('/images/assets/input-frame.png')] bg-no-repeat bg-cover bg-center disabled:opacity-50 disabled:cursor-not-allowed transition-all "
+                className="w-full h-10 sm:h-11 text-sm font-medium hover:bg-transparent cursor-pointer shadow-none bg-transparent bg-[url('/images/assets/input-frame.png')] bg-no-repeat bg-cover bg-center disabled:opacity-50 disabled:cursor-not-allowed transition-all "
                 style={{
                   backgroundSize: '100% 100%',
                 }}
@@ -270,10 +270,10 @@ export function LoginForm() {
                 {isLoading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Signing in...
+                    ចុូលប្រព័ន្ធ...
                   </>
                 ) : (
-                  "Sign In"
+                  "ចូល"
                 )}
               </Button>
             </form>
@@ -286,7 +286,7 @@ export function LoginForm() {
                 variant="outline"
                 onClick={() => handleOAuthSignIn("google")}
                 disabled={!!oauthLoading || isLoading}
-                className="h-10 sm:h-11 w-10 sm:w-11 p-0 shadow-none bg-transparent bg-[url('/images/assets/icon-image-circly.png')] bg-no-repeat bg-cover bg-center disabled:opacity-50 disabled:cursor-not-allowed transition-all border-0"
+                className="h-10 sm:h-11 w-10 sm:w-11 p-0 cursor-pointer hover:bg-transparent shadow-none bg-transparent bg-[url('/images/assets/icon-image-circly.png')] bg-no-repeat bg-cover bg-center disabled:opacity-50 disabled:cursor-not-allowed transition-all border-0"
                 style={{
                   backgroundSize: '100% 100%',
                 }}
@@ -321,7 +321,7 @@ export function LoginForm() {
                 variant="outline"
                 onClick={() => handleOAuthSignIn("github")}
                 disabled={!!oauthLoading || isLoading}
-                className="h-10 sm:h-11 w-10 sm:w-11 p-0 shadow-none bg-transparent bg-[url('/images/assets/icon-image-circly.png')] bg-no-repeat bg-cover bg-center disabled:opacity-50 disabled:cursor-not-allowed transition-all border-0"
+                className="h-10 sm:h-11 w-10 sm:w-11 p-0 cursor-pointer hover:bg-transparent shadow-none bg-transparent bg-[url('/images/assets/icon-image-circly.png')] bg-no-repeat bg-cover bg-center disabled:opacity-50 disabled:cursor-not-allowed transition-all border-0"
                 style={{
                   backgroundSize: '100% 100%',
                 }}
@@ -339,7 +339,7 @@ export function LoginForm() {
                 variant="outline"
                 onClick={() => handleOAuthSignIn("linkedin")}
                 disabled={!!oauthLoading || isLoading}
-                className="h-10 sm:h-11 w-10 sm:w-11 p-0 shadow-none bg-transparent bg-[url('/images/assets/icon-image-circly.png')] bg-no-repeat bg-cover bg-center disabled:opacity-50 disabled:cursor-not-allowed transition-all border-0"
+                className="h-10 sm:h-11 w-10 sm:w-11 p-0 cursor-pointer hover:bg-transparent shadow-none bg-transparent bg-[url('/images/assets/icon-image-circly.png')] bg-no-repeat bg-cover bg-center disabled:opacity-50 disabled:cursor-not-allowed transition-all border-0"
                 style={{
                   backgroundSize: '100% 100%',
                 }}
@@ -355,13 +355,13 @@ export function LoginForm() {
             {/* Register Link */}
             <div className="mt-3 sm:mt-4 md:mt-6 text-center">
               <span className="text-xs sm:text-sm text-gray-600">
-                Don&apos;t have an account?{" "}
+                មិនមានគណនីមែនទេ?{" "}
               </span>
               <Link
                 href="/register"
                 className="text-xs sm:text-sm text-black hover:underline font-semibold transition-colors"
               >
-                Create account
+                បង្កើតគណនី
               </Link>
             </div>
           </CardContent>
