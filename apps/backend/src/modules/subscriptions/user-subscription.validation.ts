@@ -21,5 +21,13 @@ export const getUserSubscriptionsSchema = z.object({
   }),
 });
 
-export type CreateUserSubscriptionInput = z.infer<typeof createUserSubscriptionSchema>['body'];
+export const changeSubscriptionSchema = z.object({
+  body: z.object({
+    planId: z.string().min(1, { message: 'Plan ID is required' }),
+    paymentMethod: z.string().optional(),
+    transactionId: z.string().optional(),
+  }),
+});
 
+export type CreateUserSubscriptionInput = z.infer<typeof createUserSubscriptionSchema>['body'];
+export type ChangeSubscriptionInput = z.infer<typeof changeSubscriptionSchema>['body'];

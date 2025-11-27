@@ -9,6 +9,8 @@ import { guestRouter } from '@/modules/guests';
 import { invitationRouter } from '@/modules/invitations';
 import { subscriptionPlanRouter, userSubscriptionRouter } from '@/modules/subscriptions';
 import { templatePurchaseRouter } from '@/modules/t/template-purchase.router';
+import { paymentRouter } from '@/modules/payments/payment.router';
+import { revenueRouter } from '@/modules/analytics/revenue.router';
 const router = Router();
 
 router.use('/auth', authRouter);
@@ -22,6 +24,8 @@ router.use('/invitations', invitationRouter);
 router.use('/subscription-plans', subscriptionPlanRouter);
 router.use('/subscriptions', userSubscriptionRouter);
 router.use('/template-purchases', templatePurchaseRouter);
+router.use('/payments', paymentRouter);
+router.use('/analytics/revenue', revenueRouter);
 
 export const apiRouter: Router = router;
 

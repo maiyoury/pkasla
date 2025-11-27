@@ -158,6 +158,44 @@ class UserSubscriptionService {
     // null means unlimited
     return null;
   }
+
+  /**
+   * Upgrade or downgrade subscription
+   */
+  async changeSubscription(
+    userId: string,
+    newPlanId: string,
+    paymentMethod?: string,
+    transactionId?: string
+  ): Promise<UserSubscriptionResponse> {
+    // Verify new plan exists
+    const newPlan = await subscriptionPlanRepository.findById(newPlanId);
+    if (!newPlan) {
+      throw new AppError('Subscription plan not found', httpStatus.NOT_FOUND);
+    }
+
+    // Get current active subscription
+    const currentSubscription = await userSubscriptionRepository.findActiveByUserId(userId);
+    
+    if (currentSubscription) {
+      // Cancel current subscription
+      const currentSubId = (currentSubscription as any)._id?.toString() || (currentSubscription as any).id;
+      if (currentSubId) {
+        await userSubscriptionRepository.updateById(currentSubId, {
+          $set: { status: 'cancelled', cancelledAt: new Date() },
+        });
+      }
+    }
+
+    // Create new subscription
+    return await this.create({
+      userId,
+      planId: newPlanId,
+      paymentMethod,
+      transactionId,
+      autoRenew: true,
+    });
+  }
 }
 
 export const userSubscriptionService = new UserSubscriptionService();

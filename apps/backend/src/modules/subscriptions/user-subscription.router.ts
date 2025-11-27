@@ -9,11 +9,13 @@ import {
   getMyActiveSubscriptionHandler,
   cancelSubscriptionHandler,
   getUserSubscriptionsHandler,
+  changeSubscriptionHandler,
 } from './user-subscription.controller';
 import {
   createUserSubscriptionSchema,
   cancelSubscriptionSchema,
   getUserSubscriptionsSchema,
+  changeSubscriptionSchema,
 } from './user-subscription.validation';
 
 const router = Router();
@@ -39,6 +41,13 @@ router.post(
   '/:id/cancel',
   validateRequest(cancelSubscriptionSchema),
   asyncHandler(cancelSubscriptionHandler),
+);
+
+// Change subscription (upgrade/downgrade)
+router.post(
+  '/change',
+  validateRequest(changeSubscriptionSchema),
+  asyncHandler(changeSubscriptionHandler),
 );
 
 // Get subscriptions by user ID (Admin only)

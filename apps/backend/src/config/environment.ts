@@ -55,6 +55,10 @@ const envSchema = z.object({
     .string()
     .optional()
     .transform((val) => Number(val ?? 3600)), // Default 1 hour
+  // Stripe Configuration
+  STRIPE_SECRET_KEY: z.string().optional(),
+  STRIPE_WEBHOOK_SECRET: z.string().optional(),
+  STRIPE_PUBLISHABLE_KEY: z.string().optional(),
 });
 
 const parsedEnv = envSchema.safeParse(process.env);
@@ -98,6 +102,13 @@ export const env = {
     db: parsedEnv.data.REDIS_DB,
     ttl: parsedEnv.data.REDIS_TTL,
   },
+  stripe: parsedEnv.data.STRIPE_SECRET_KEY
+    ? {
+        secretKey: parsedEnv.data.STRIPE_SECRET_KEY,
+        webhookSecret: parsedEnv.data.STRIPE_WEBHOOK_SECRET,
+        publishableKey: parsedEnv.data.STRIPE_PUBLISHABLE_KEY,
+      }
+    : undefined,
   isProduction: parsedEnv.data.NODE_ENV === 'production',
 } as const;
 

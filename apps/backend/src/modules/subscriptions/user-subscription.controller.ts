@@ -64,3 +64,20 @@ export const getUserSubscriptionsHandler = async (req: Request, res: Response) =
   return res.status(httpStatus.OK).json(buildSuccessResponse(subscriptions));
 };
 
+/**
+ * Upgrade or downgrade subscription
+ */
+export const changeSubscriptionHandler = async (req: Request, res: Response) => {
+  if (!req.user) {
+    return res.status(httpStatus.UNAUTHORIZED).json({ error: 'Authentication required' });
+  }
+
+  const subscription = await userSubscriptionService.changeSubscription(
+    req.user.id,
+    req.body.planId,
+    req.body.paymentMethod,
+    req.body.transactionId
+  );
+  return res.status(httpStatus.OK).json(buildSuccessResponse(subscription, 'Subscription changed successfully'));
+};
+
