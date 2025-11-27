@@ -85,3 +85,39 @@ export const createMultipleUploadMiddleware = (
   return upload.array(fieldName, maxCount);
 };
 
+export const createFieldsUploadMiddleware = (
+  fields: string | string[],
+  options: FileFilterOptions = {},
+) => {
+  const config = { ...defaultOptions, ...options };
+
+  const storage = multer.memoryStorage();
+
+  const fileFilter = (_req: Request, file: Express.Multer.File, cb: multer.FileFilterCallback) => {
+    if (config.allowedMimeTypes && !config.allowedMimeTypes.includes(file.mimetype)) {
+      return cb(
+        new AppError(
+          `Invalid file type. Allowed types: ${config.allowedMimeTypes.join(', ')}`,
+          httpStatus.BAD_REQUEST,
+        ),
+      );
+    }
+    cb(null, true);
+  };
+
+  const upload = multer({
+    storage,
+    fileFilter,
+    limits: {
+      fileSize: config.maxSize,
+    },
+  });
+
+  // Convert single field name to array format for multer.fields
+  const fieldsArray = Array.isArray(fields)
+    ? fields.map((name) => ({ name, maxCount: 1 }))
+    : [{ name: fields, maxCount: 1 }];
+
+  return upload.fields(fieldsArray);
+};
+

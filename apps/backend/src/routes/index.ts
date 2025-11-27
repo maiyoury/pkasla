@@ -4,6 +4,9 @@ import { userRouter } from '@/modules/users';
 import { uploadRouter } from '@/modules/upload';
 import { adminRouter } from '@/modules/admin';
 import { templateRouter } from '@/modules/t/template.router';
+import { eventRouter } from '@/modules/events';
+import { guestRouter } from '@/modules/guests';
+import { invitationRouter } from '@/modules/invitations';
 const router = Router();
 
 router.use('/auth', authRouter);
@@ -11,6 +14,9 @@ router.use('/users', userRouter);
 router.use('/upload', uploadRouter);
 router.use('/admin', adminRouter);
 router.use('/templates', templateRouter);
+router.use('/events', eventRouter);
+router.use('/guests', guestRouter);
+router.use('/invitations', invitationRouter);
 
 export const apiRouter: Router = router;
 
