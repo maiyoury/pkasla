@@ -16,7 +16,7 @@ export interface TemplateFormData {
   category: string
   price: number | ''
   isPremium: boolean
-  previewImage: File | null
+  previewImage: File | string | null
 }
 
 export interface TemplateListResponse {

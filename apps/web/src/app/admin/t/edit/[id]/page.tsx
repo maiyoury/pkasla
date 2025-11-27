@@ -17,6 +17,11 @@ export default function EditTemplatePage() {
 
   const handleSubmit = async (data: TemplateFormData) => {
     try {
+      // If previewImage is a string (URL), pass it in the data
+      // If it's a File, pass it separately for FormData upload
+      const previewImageUrl = typeof data.previewImage === 'string' ? data.previewImage : undefined
+      const previewImageFile = data.previewImage instanceof File ? data.previewImage : null
+
       await updateTemplate.mutateAsync({
         id,
         data: {
@@ -25,8 +30,9 @@ export default function EditTemplatePage() {
           category: data.category || undefined,
           price: data.price !== '' ? Number(data.price) : undefined,
           isPremium: data.isPremium,
+          previewImage: previewImageUrl,
         },
-        previewImage: data.previewImage || null,
+        previewImage: previewImageFile,
       })
       router.push('/admin/t')
     } catch (error) {

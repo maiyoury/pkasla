@@ -14,6 +14,7 @@ import {
 } from '@/components/ui/select'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Template, TemplateFormData } from '@/types/template'
+import { api } from '@/lib/axios-client'
 
 interface TemplateFormProps {
   template?: Template
@@ -40,6 +41,9 @@ export function TemplateForm({
   })
   const [preview, setPreview] = useState<string | null>(null)
   const [errors, setErrors] = useState<Record<string, string>>({})
+  const [uploadedImageUrl, setUploadedImageUrl] = useState<string | null>(null)
+  const [isUploading, setIsUploading] = useState(false)
+  const [uploadProgress, setUploadProgress] = useState(0)
 
   useEffect(() => {
     if (template) {
@@ -53,6 +57,7 @@ export function TemplateForm({
       })
       if (template.previewImage) {
         setPreview(template.previewImage)
+        setUploadedImageUrl(template.previewImage)
       }
     }
   }, [template])
@@ -64,32 +69,79 @@ export function TemplateForm({
     }
   }
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
-    if (file) {
-      if (!file.type.startsWith('image/')) {
-        setErrors((prev) => ({ ...prev, previewImage: 'Please select an image file' }))
-        return
+    if (!file) return
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      setErrors((prev) => ({ ...prev, previewImage: 'Please select an image file' }))
+      return
+    }
+
+    // Validate file size
+    if (file.size > 5 * 1024 * 1024) {
+      setErrors((prev) => ({ ...prev, previewImage: 'Image size must be less than 5MB' }))
+      return
+    }
+
+    // Clear previous errors
+    setErrors((prev) => ({ ...prev, previewImage: '' }))
+    
+    // Create preview immediately
+    const reader = new FileReader()
+    reader.onloadend = () => {
+      setPreview(reader.result as string)
+    }
+    reader.readAsDataURL(file)
+
+    // Upload file to server
+    setIsUploading(true)
+    setUploadProgress(0)
+
+    try {
+      const formData = new FormData()
+      formData.append('file', file)
+      formData.append('folder', 'templates')
+
+      const response = await api.upload<{
+        id: string
+        url: string
+        key: string
+        provider: string
+        filename: string
+        mimetype: string
+        size: number
+        folder: string
+        createdAt: string
+      }>('/upload/single', formData, (progress) => {
+        setUploadProgress(progress)
+      })
+
+      if (response.success && response.data) {
+        setUploadedImageUrl(response.data.url)
+        setFormData((prev) => ({ ...prev, previewImage: file }))
+      } else {
+        throw new Error(response.error || 'Failed to upload image')
       }
-      if (file.size > 5 * 1024 * 1024) {
-        setErrors((prev) => ({ ...prev, previewImage: 'Image size must be less than 5MB' }))
-        return
-      }
-      setFormData((prev) => ({ ...prev, previewImage: file }))
-      setErrors((prev) => ({ ...prev, previewImage: '' }))
-      
-      // Create preview
-      const reader = new FileReader()
-      reader.onloadend = () => {
-        setPreview(reader.result as string)
-      }
-      reader.readAsDataURL(file)
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to upload image'
+      setErrors((prev) => ({ ...prev, previewImage: errorMessage }))
+      setPreview(null)
+      setUploadedImageUrl(null)
+    } finally {
+      setIsUploading(false)
+      setUploadProgress(0)
     }
   }
 
   const removeImage = () => {
     setFormData((prev) => ({ ...prev, previewImage: null }))
+    setUploadedImageUrl(null)
     setPreview(template?.previewImage || null)
+    if (template?.previewImage) {
+      setUploadedImageUrl(template.previewImage)
+    }
   }
 
   const validate = (): boolean => {
@@ -118,7 +170,11 @@ export function TemplateForm({
       return
     }
 
-    await onSubmit(formData)
+    // Pass formData with the uploaded URL if available, otherwise pass the File
+    await onSubmit({
+      ...formData,
+      previewImage: uploadedImageUrl || formData.previewImage,
+    })
   }
 
   return (
@@ -218,7 +274,18 @@ export function TemplateForm({
         <Label className="text-sm font-semibold text-black mb-2 block">
           Preview Image
         </Label>
-        {preview ? (
+        {isUploading ? (
+          <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+            <Loader2 className="h-8 w-8 text-gray-400 mx-auto mb-2 animate-spin" />
+            <p className="text-sm text-gray-600">Uploading... {uploadProgress}%</p>
+            <div className="mt-2 w-full bg-gray-200 rounded-full h-2">
+              <div
+                className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                style={{ width: `${uploadProgress}%` }}
+              />
+            </div>
+          </div>
+        ) : preview ? (
           <div className="relative">
             <img
               src={preview}
@@ -231,7 +298,7 @@ export function TemplateForm({
               size="sm"
               onClick={removeImage}
               className="absolute top-2 right-2 h-8 w-8 p-0"
-              disabled={isSubmitting}
+              disabled={isSubmitting || isUploading}
             >
               <X className="h-4 w-4" />
             </Button>
@@ -251,7 +318,7 @@ export function TemplateForm({
               accept="image/*"
               onChange={handleFileChange}
               className="hidden"
-              disabled={isSubmitting}
+              disabled={isSubmitting || isUploading}
             />
             <p className="text-xs text-gray-500 mt-1">PNG, JPG, GIF up to 5MB</p>
           </div>

@@ -13,6 +13,11 @@ export default function NewTemplatePage() {
 
   const handleSubmit = async (data: TemplateFormData) => {
     try {
+      // If previewImage is a string (URL), pass it in the data
+      // If it's a File, pass it separately for FormData upload
+      const previewImageUrl = typeof data.previewImage === 'string' ? data.previewImage : undefined
+      const previewImageFile = data.previewImage instanceof File ? data.previewImage : undefined
+
       await createTemplate.mutateAsync({
         data: {
           name: data.name,
@@ -20,9 +25,9 @@ export default function NewTemplatePage() {
           category: data.category || undefined,
           price: data.price !== '' ? Number(data.price) : undefined,
           isPremium: data.isPremium,
-          previewImage: undefined, // Will be handled by file upload
+          previewImage: previewImageUrl,
         },
-        previewImage: data.previewImage || undefined,
+        previewImage: previewImageFile,
       })
       router.push('/admin/t')
     } catch (error) {
