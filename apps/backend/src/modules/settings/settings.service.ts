@@ -1,6 +1,7 @@
 import httpStatus from 'http-status';
 import { AppError } from '@/common/errors/app-error';
 import { settingsRepository } from './settings.repository';
+import { clearSettingsCache } from './settings.utils';
 import type { SettingsDocument } from './settings.model';
 
 export interface UpdateSettingsDto {
@@ -120,7 +121,12 @@ class SettingsService {
       }
     }
 
-    return await settingsRepository.updateFields(updateData);
+    const updated = await settingsRepository.updateFields(updateData);
+    
+    // Clear cache after update
+    clearSettingsCache();
+    
+    return updated;
   }
 
   /**

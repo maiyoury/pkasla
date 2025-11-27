@@ -6,6 +6,7 @@ import path from 'path';
 import { apiRouter } from './routes';
 import { notFoundHandler } from './common/middlewares/not-found-handler';
 import { errorHandler } from './common/middlewares/error-handler';
+import { checkMaintenanceMode } from './common/middlewares/check-settings';
 import { sessionConfig } from './config/session';
 import { env } from './config/environment';
 
@@ -22,6 +23,9 @@ export const createApp = () => {
   app.use(express.urlencoded({ extended: true }));
   app.use(compression());
   app.use(sessionConfig);
+
+  // Check maintenance mode for all API routes (admins can bypass)
+  app.use('/api/v1', checkMaintenanceMode);
 
   // Serve static files for local uploads
   if (env.storage.provider === 'local' && env.storage.localPath) {

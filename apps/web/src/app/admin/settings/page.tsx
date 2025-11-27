@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import {
   Settings,
   Shield,
@@ -24,105 +24,124 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Separator } from '@/components/ui/separator'
-import toast from 'react-hot-toast'
+import { useSettings, useUpdateSettings, useSystemInfo, type Settings as SettingsType } from '@/hooks/api/useSettings'
 
-interface SettingsFormData {
-  // General Settings
-  siteName: string
-  siteUrl: string
-  siteDescription: string
-  maintenanceMode: boolean
-  allowRegistration: boolean
+// Helper to format uptime
+const formatUptime = (seconds: number): string => {
+  const days = Math.floor(seconds / 86400)
+  const hours = Math.floor((seconds % 86400) / 3600)
+  const minutes = Math.floor((seconds % 3600) / 60)
   
-  // Security Settings
-  sessionTimeout: number
-  maxLoginAttempts: number
-  requireEmailVerification: boolean
-  enable2FA: boolean
-  passwordMinLength: number
-  
-  // Storage Settings
-  storageProvider: 'local' | 'r2'
-  storageLocalPath: string
-  r2AccountId: string
-  r2BucketName: string
-  r2PublicUrl: string
-  
-  // Notification Settings
-  emailEnabled: boolean
-  emailFrom: string
-  emailHost: string
-  emailPort: number
-  emailUser: string
-  notificationOnUserRegistration: boolean
-  notificationOnUserStatusChange: boolean
-  
-  // System Info
-  nodeEnv: string
-  version: string
-  uptime: string
-}
-
-const defaultSettings: SettingsFormData = {
-  siteName: 'PKASLA',
-  siteUrl: 'https://pkasla.com',
-  siteDescription: 'Professional Job Portal',
-  maintenanceMode: false,
-  allowRegistration: true,
-  sessionTimeout: 3600,
-  maxLoginAttempts: 5,
-  requireEmailVerification: false,
-  enable2FA: false,
-  passwordMinLength: 8,
-  storageProvider: 'local',
-  storageLocalPath: 'uploads',
-  r2AccountId: '',
-  r2BucketName: '',
-  r2PublicUrl: '',
-  emailEnabled: false,
-  emailFrom: 'noreply@pkasla.com',
-  emailHost: 'smtp.example.com',
-  emailPort: 587,
-  emailUser: '',
-  notificationOnUserRegistration: true,
-  notificationOnUserStatusChange: true,
-  nodeEnv: 'production',
-  version: '1.0.0',
-  uptime: '0 days',
+  if (days > 0) {
+    return `${days} day${days !== 1 ? 's' : ''} ${hours} hour${hours !== 1 ? 's' : ''}`
+  }
+  if (hours > 0) {
+    return `${hours} hour${hours !== 1 ? 's' : ''} ${minutes} minute${minutes !== 1 ? 's' : ''}`
+  }
+  return `${minutes} minute${minutes !== 1 ? 's' : ''}`
 }
 
 export default function AdminSettingsPage() {
-  const [settings, setSettings] = useState<SettingsFormData>(defaultSettings)
-  const [isSaving, setIsSaving] = useState(false)
   const [activeTab, setActiveTab] = useState('general')
+  
+  // Fetch settings from API
+  const { data: settings, isLoading: isLoadingSettings, error: settingsError } = useSettings()
+  const { data: systemInfo } = useSystemInfo()
+  const updateSettingsMutation = useUpdateSettings()
+
+  // Local state for form (will be synced with API data)
+  const [formData, setFormData] = useState<Partial<SettingsType>>({})
+
+  // Sync form data when settings are loaded
+  useEffect(() => {
+    if (settings) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setFormData(settings)
+    }
+  }, [settings])
 
   const handleInputChange = (
-    field: keyof SettingsFormData,
-    value: string | number | boolean
+    field: keyof SettingsType,
+    value: string | number | boolean | undefined
   ) => {
-    setSettings((prev) => ({
+    setFormData((prev) => ({
       ...prev,
       [field]: value,
     }))
   }
 
   const handleSave = async () => {
-    setIsSaving(true)
     try {
-      // TODO: Replace with actual API call
-      // await api.put('/admin/settings', settings)
-      
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000))
-      
-      toast.success('Settings saved successfully')
+      await updateSettingsMutation.mutateAsync(formData)
     } catch (error) {
-      toast.error('Failed to save settings')
+      // Error is handled by the mutation's onError callback
       console.error('Failed to save settings:', error)
-    } finally {
-      setIsSaving(false)
     }
   }
+
+  const handleReset = () => {
+    if (settings) {
+      setFormData(settings)
+    }
+  }
+
+  // Show loading state
+  if (isLoadingSettings) {
+    return (
+      <div>
+        <div className="mb-6 md:mb-8">
+          <h1 className="text-xl md:text-2xl font-semibold text-black">
+            System Settings
+          </h1>
+          <p className="text-xs text-gray-600 mt-1">
+            Configure system-wide settings and preferences
+          </p>
+        </div>
+        <div className="flex items-center justify-center py-12">
+          <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
+          <span className="ml-2 text-xs text-gray-600">Loading settings...</span>
+        </div>
+      </div>
+    )
+  }
+
+  // Show error state
+  if (settingsError) {
+    return (
+      <div>
+        <div className="mb-6 md:mb-8">
+          <h1 className="text-xl md:text-2xl font-semibold text-black">
+            System Settings
+          </h1>
+          <p className="text-xs text-gray-600 mt-1">
+            Configure system-wide settings and preferences
+          </p>
+        </div>
+        <Card className="border border-gray-200">
+          <CardContent className="py-12">
+            <div className="text-center">
+              <p className="text-xs text-red-600 mb-4">
+                {settingsError instanceof Error
+                  ? settingsError.message
+                  : 'Failed to load settings'}
+              </p>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => window.location.reload()}
+                className="text-xs h-8"
+              >
+                Retry
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
+
+  // Use formData with fallback to empty values
+  const currentSettings = formData || {}
 
   return (
     <div>
@@ -177,7 +196,7 @@ export default function AdminSettingsPage() {
                 </Label>
                 <Input
                   id="siteName"
-                  value={settings.siteName}
+                  value={currentSettings.siteName || ''}
                   onChange={(e) => handleInputChange('siteName', e.target.value)}
                   className="text-xs"
                   placeholder="Enter site name"
@@ -191,7 +210,7 @@ export default function AdminSettingsPage() {
                 <Input
                   id="siteUrl"
                   type="url"
-                  value={settings.siteUrl}
+                  value={currentSettings.siteUrl || ''}
                   onChange={(e) => handleInputChange('siteUrl', e.target.value)}
                   className="text-xs"
                   placeholder="https://example.com"
@@ -204,7 +223,7 @@ export default function AdminSettingsPage() {
                 </Label>
                 <Input
                   id="siteDescription"
-                  value={settings.siteDescription}
+                  value={currentSettings.siteDescription || ''}
                   onChange={(e) =>
                     handleInputChange('siteDescription', e.target.value)
                   }
@@ -226,7 +245,7 @@ export default function AdminSettingsPage() {
                 </div>
                 <Switch
                   id="maintenanceMode"
-                  checked={settings.maintenanceMode}
+                  checked={currentSettings.maintenanceMode}
                   onCheckedChange={(checked) =>
                     handleInputChange('maintenanceMode', checked)
                   }
@@ -244,7 +263,7 @@ export default function AdminSettingsPage() {
                 </div>
                 <Switch
                   id="allowRegistration"
-                  checked={settings.allowRegistration}
+                  checked={currentSettings.allowRegistration}
                   onCheckedChange={(checked) =>
                     handleInputChange('allowRegistration', checked)
                   }
@@ -273,7 +292,7 @@ export default function AdminSettingsPage() {
                 <Input
                   id="sessionTimeout"
                   type="number"
-                  value={settings.sessionTimeout}
+                  value={currentSettings.sessionTimeout?.toString() || ''}
                   onChange={(e) =>
                     handleInputChange('sessionTimeout', parseInt(e.target.value) || 0)
                   }
@@ -293,7 +312,7 @@ export default function AdminSettingsPage() {
                 <Input
                   id="maxLoginAttempts"
                   type="number"
-                  value={settings.maxLoginAttempts}
+                  value={currentSettings.maxLoginAttempts?.toString() || ''}
                   onChange={(e) =>
                     handleInputChange('maxLoginAttempts', parseInt(e.target.value) || 0)
                   }
@@ -313,7 +332,7 @@ export default function AdminSettingsPage() {
                 <Input
                   id="passwordMinLength"
                   type="number"
-                  value={settings.passwordMinLength}
+                  value={currentSettings.passwordMinLength?.toString() || ''}
                   onChange={(e) =>
                     handleInputChange('passwordMinLength', parseInt(e.target.value) || 0)
                   }
@@ -336,7 +355,7 @@ export default function AdminSettingsPage() {
                 </div>
                 <Switch
                   id="requireEmailVerification"
-                  checked={settings.requireEmailVerification}
+                  checked={currentSettings.requireEmailVerification}
                   onCheckedChange={(checked) =>
                     handleInputChange('requireEmailVerification', checked)
                   }
@@ -354,7 +373,7 @@ export default function AdminSettingsPage() {
                 </div>
                 <Switch
                   id="enable2FA"
-                  checked={settings.enable2FA}
+                  checked={currentSettings.enable2FA}
                   onCheckedChange={(checked) =>
                     handleInputChange('enable2FA', checked)
                   }
@@ -381,7 +400,7 @@ export default function AdminSettingsPage() {
                   Storage Provider
                 </Label>
                 <Select
-                  value={settings.storageProvider}
+                  value={currentSettings.storageProvider || 'local'}
                   onValueChange={(value) =>
                     handleInputChange('storageProvider', value as 'local' | 'r2')
                   }
@@ -396,14 +415,14 @@ export default function AdminSettingsPage() {
                 </Select>
               </div>
 
-              {settings.storageProvider === 'local' && (
+              {currentSettings.storageProvider === 'local' && (
                 <div className="space-y-2">
                   <Label htmlFor="storageLocalPath" className="text-xs font-medium">
                     Local Storage Path
                   </Label>
                   <Input
                     id="storageLocalPath"
-                    value={settings.storageLocalPath}
+                    value={currentSettings.storageLocalPath || ''}
                     onChange={(e) =>
                       handleInputChange('storageLocalPath', e.target.value)
                     }
@@ -413,7 +432,7 @@ export default function AdminSettingsPage() {
                 </div>
               )}
 
-              {settings.storageProvider === 'r2' && (
+              {currentSettings.storageProvider === 'r2' && (
                 <>
                   <div className="space-y-2">
                     <Label htmlFor="r2AccountId" className="text-xs font-medium">
@@ -421,7 +440,7 @@ export default function AdminSettingsPage() {
                     </Label>
                     <Input
                       id="r2AccountId"
-                      value={settings.r2AccountId}
+                      value={currentSettings.r2AccountId || ''}
                       onChange={(e) =>
                         handleInputChange('r2AccountId', e.target.value)
                       }
@@ -436,7 +455,7 @@ export default function AdminSettingsPage() {
                     </Label>
                     <Input
                       id="r2BucketName"
-                      value={settings.r2BucketName}
+                      value={currentSettings.r2BucketName || ''}
                       onChange={(e) =>
                         handleInputChange('r2BucketName', e.target.value)
                       }
@@ -452,7 +471,7 @@ export default function AdminSettingsPage() {
                     <Input
                       id="r2PublicUrl"
                       type="url"
-                      value={settings.r2PublicUrl}
+                      value={currentSettings.r2PublicUrl || ''}
                       onChange={(e) =>
                         handleInputChange('r2PublicUrl', e.target.value)
                       }
@@ -489,14 +508,14 @@ export default function AdminSettingsPage() {
                 </div>
                 <Switch
                   id="emailEnabled"
-                  checked={settings.emailEnabled}
+                  checked={currentSettings.emailEnabled}
                   onCheckedChange={(checked) =>
                     handleInputChange('emailEnabled', checked)
                   }
                 />
               </div>
 
-              {settings.emailEnabled && (
+              {currentSettings.emailEnabled && (
                 <>
                   <Separator />
                   <div className="space-y-2">
@@ -506,7 +525,7 @@ export default function AdminSettingsPage() {
                     <Input
                       id="emailFrom"
                       type="email"
-                      value={settings.emailFrom}
+                      value={currentSettings.emailFrom || ''}
                       onChange={(e) =>
                         handleInputChange('emailFrom', e.target.value)
                       }
@@ -521,7 +540,7 @@ export default function AdminSettingsPage() {
                     </Label>
                     <Input
                       id="emailHost"
-                      value={settings.emailHost}
+                      value={currentSettings.emailHost || ''}
                       onChange={(e) =>
                         handleInputChange('emailHost', e.target.value)
                       }
@@ -538,7 +557,7 @@ export default function AdminSettingsPage() {
                       <Input
                         id="emailPort"
                         type="number"
-                        value={settings.emailPort}
+                        value={currentSettings.emailPort?.toString() || ''}
                         onChange={(e) =>
                           handleInputChange('emailPort', parseInt(e.target.value) || 587)
                         }
@@ -553,7 +572,7 @@ export default function AdminSettingsPage() {
                       </Label>
                       <Input
                         id="emailUser"
-                        value={settings.emailUser}
+                        value={currentSettings.emailUser || ''}
                         onChange={(e) =>
                           handleInputChange('emailUser', e.target.value)
                         }
@@ -579,7 +598,7 @@ export default function AdminSettingsPage() {
                     </div>
                     <Switch
                       id="notificationOnUserRegistration"
-                      checked={settings.notificationOnUserRegistration}
+                      checked={currentSettings.notificationOnUserRegistration}
                       onCheckedChange={(checked) =>
                         handleInputChange('notificationOnUserRegistration', checked)
                       }
@@ -600,7 +619,7 @@ export default function AdminSettingsPage() {
                     </div>
                     <Switch
                       id="notificationOnUserStatusChange"
-                      checked={settings.notificationOnUserStatusChange}
+                      checked={currentSettings.notificationOnUserStatusChange}
                       onCheckedChange={(checked) =>
                         handleInputChange('notificationOnUserStatusChange', checked)
                       }
@@ -630,7 +649,7 @@ export default function AdminSettingsPage() {
                     Environment
                   </Label>
                   <p className="text-xs text-black font-medium">
-                    {settings.nodeEnv}
+                    {systemInfo?.nodeEnv || 'N/A'}
                   </p>
                 </div>
 
@@ -639,7 +658,7 @@ export default function AdminSettingsPage() {
                     Version
                   </Label>
                   <p className="text-xs text-black font-medium">
-                    {settings.version}
+                    {systemInfo?.version || 'N/A'}
                   </p>
                 </div>
 
@@ -648,7 +667,7 @@ export default function AdminSettingsPage() {
                     Uptime
                   </Label>
                   <p className="text-xs text-black font-medium">
-                    {settings.uptime}
+                    {systemInfo?.uptime ? formatUptime(systemInfo.uptime) : 'N/A'}
                   </p>
                 </div>
               </div>
@@ -672,18 +691,18 @@ export default function AdminSettingsPage() {
         <div className="flex justify-end gap-2 pt-4 border-t border-gray-200">
           <Button
             variant="outline"
-            onClick={() => setSettings(defaultSettings)}
+            onClick={handleReset}
             className="text-xs h-8"
-            disabled={isSaving}
+            disabled={updateSettingsMutation.isPending}
           >
             Reset
           </Button>
           <Button
             onClick={handleSave}
-            disabled={isSaving}
+            disabled={updateSettingsMutation.isPending}
             className="text-xs h-8"
           >
-            {isSaving ? (
+            {updateSettingsMutation.isPending ? (
               <>
                 <Loader2 className="h-3 w-3 mr-2 animate-spin" />
                 Saving...

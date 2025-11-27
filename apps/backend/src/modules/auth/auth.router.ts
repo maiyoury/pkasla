@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { asyncHandler } from '@/utils/async-handler';
 import { validateRequest } from '@/common/middlewares/validate-request';
 import { authenticate } from '@/common/middlewares/authenticate';
+import { checkRegistrationAllowed } from '@/common/middlewares/check-settings';
 import {
   loginSchema,
   refreshSchema,
@@ -25,7 +26,13 @@ import {
 
 const router = Router();
 
-router.post('/register', validateRequest(registerSchema), asyncHandler(registerHandler));
+// Check if registration is allowed before allowing registration
+router.post(
+  '/register',
+  checkRegistrationAllowed,
+  validateRequest(registerSchema),
+  asyncHandler(registerHandler)
+);
 router.post('/login', validateRequest(loginSchema), asyncHandler(loginHandler));
 router.post('/login/oauth', validateRequest(providerLoginSchema), asyncHandler(providerLoginHandler));
 router.post('/logout', authenticate, asyncHandler(logoutHandler));
