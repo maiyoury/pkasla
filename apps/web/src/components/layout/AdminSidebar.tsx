@@ -33,7 +33,7 @@ const MENU_ITEMS: readonly MenuItem[] = [
   { href: '/admin', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/admin/users', label: 'Users', icon: Users },
   { href: '/admin/subscriptions', label: 'Subscriptions', icon: UserCheck },
-  { href: '/admin/template', label: 'Template', icon: Component },
+  { href: '/admin/t', label: 'Template', icon: Component },
   { href: '/admin/settings', label: 'Settings', icon: Settings },
 ] as const
 

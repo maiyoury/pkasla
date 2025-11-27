@@ -16,6 +16,7 @@ import {
   adminQuerySchema,
 } from './admin.validation';
 import { settingsRouter } from '@/modules/settings';
+import { templateRouter } from '@/modules/t';
 
 const router = Router();
 
@@ -47,6 +48,9 @@ router
 
 // Settings routes
 router.use('/settings', settingsRouter);
+
+// Template routes
+router.use('/t', templateRouter);
 
 // Cache Management
 router.route('/cache/clear').post(clearCacheHandler);
