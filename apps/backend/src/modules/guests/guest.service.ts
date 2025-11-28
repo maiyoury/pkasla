@@ -1,4 +1,5 @@
 import httpStatus from 'http-status';
+import { Types } from 'mongoose';
 import { AppError } from '@/common/errors/app-error';
 import { guestRepository } from './guest.repository';
 import { eventService } from '@/modules/events/event.service';
@@ -149,7 +150,16 @@ class GuestService {
       }
     }
 
-    const guest = await guestRepository.create(payload);
+    // Convert string IDs to ObjectId for repository
+    const { userId, eventId, ...rest } = payload;
+    const createPayload: Partial<GuestDocument> = {
+      ...rest,
+      eventId: new Types.ObjectId(eventId),
+    };
+    if (userId) {
+      createPayload.userId = new Types.ObjectId(userId);
+    }
+    const guest = await guestRepository.create(createPayload);
     
     // Increment guest count
     await eventService.incrementGuestCount(payload.eventId, 1);
