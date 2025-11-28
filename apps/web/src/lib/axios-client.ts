@@ -1,41 +1,11 @@
 import axios, { type AxiosInstance, type AxiosRequestConfig, type AxiosResponse } from 'axios';
 import type { ApiResponse } from '@/types/axios';
-import { useAuthStore } from '@/store/auth';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
 
 /**
- * Get auth token from store
- */
-function getAuthToken(): string | null {
-  if (typeof window === 'undefined') return null;
-  const tokens = useAuthStore.getState().tokens;
-  const token = tokens?.accessToken || null;
-  // Validate token format (basic check - should be a JWT)
-  if (token && token.split('.').length !== 3) {
-    console.warn('Invalid token format detected');
-    return null;
-  }
-  return token;
-}
-
-/**
- * Get refresh token from store
- */
-function getRefreshToken(): string | null {
-  if (typeof window === 'undefined') return null;
-  const tokens = useAuthStore.getState().tokens;
-  const token = tokens?.refreshToken || null;
-  // Validate token format (basic check - should be a JWT)
-  if (token && token.split('.').length !== 3) {
-    console.warn('Invalid refresh token format detected');
-    return null;
-  }
-  return token;
-}
-
-/**
  * Create Axios instance with default configuration
+ * withCredentials: true enables sending HTTP-only cookies with requests
  */
 export const axiosInstance: AxiosInstance = axios.create({
   baseURL: API_BASE_URL,
@@ -43,22 +13,17 @@ export const axiosInstance: AxiosInstance = axios.create({
     'Content-Type': 'application/json',
   },
   timeout: 30000,
+  withCredentials: true, // Enable sending cookies (HTTP-only cookies for auth)
 });
 
 /**
- * Request interceptor - Add auth token to requests
+ * Request interceptor - Cookies are automatically sent with requests
+ * No need to manually add Authorization header - backend reads from HTTP-only cookies
  */
 axiosInstance.interceptors.request.use(
   (config) => {
-    // Get token from storage
-    const token = getAuthToken();
-    if (token) {
-      // Ensure Authorization header is set correctly
-      config.headers.Authorization = `Bearer ${token}`;
-    } else {
-      // Remove Authorization header if no token
-      delete config.headers.Authorization;
-    }
+    // Cookies are automatically sent via withCredentials: true
+    // Backend will read accessToken from cookies
     return config;
   },
   (error) => {
@@ -96,69 +61,37 @@ axiosInstance.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
-    // Handle 401 Unauthorized - try to refresh token
+    // Handle 401 Unauthorized - try to refresh token using cookies
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
 
       try {
-        const refreshToken = getRefreshToken();
-        if (!refreshToken) {
-          // No refresh token, clear everything and redirect
-          if (typeof window !== 'undefined') {
-            useAuthStore.getState().logout();
-            window.location.href = '/login';
-          }
-          return Promise.reject(error);
-        }
-
-        // Try to refresh the token - use base axios to avoid interceptors
+        // Refresh token endpoint reads refreshToken from HTTP-only cookie
+        // No need to send token in body - cookies are sent automatically
         const refreshResponse = await axios.post(
           `${API_BASE_URL}/auth/refresh`,
-          { refreshToken },
+          {}, // Empty body - backend reads refreshToken from cookie
           {
             headers: {
               'Content-Type': 'application/json',
             },
+            withCredentials: true, // Ensure cookies are sent
           }
         );
 
-        // Backend returns: { success: true, data: { tokens: { accessToken, refreshToken } } }
-        let accessToken: string | undefined;
-        let newRefreshToken: string | undefined;
-
-        if (refreshResponse.data?.success && refreshResponse.data.data) {
-          const responseData = refreshResponse.data.data;
-          // Handle structure: { tokens: { accessToken, refreshToken } }
-          if (responseData.tokens) {
-            accessToken = responseData.tokens.accessToken;
-            newRefreshToken = responseData.tokens.refreshToken;
-          }
-          // Fallback: direct tokens in data
-          else if (responseData.accessToken) {
-            accessToken = responseData.accessToken;
-            newRefreshToken = responseData.refreshToken;
-          }
-        }
-
-        if (accessToken) {
-          // Store new tokens in store (which also updates localStorage)
-          useAuthStore.getState().setTokens({
-            accessToken,
-            refreshToken: newRefreshToken || refreshToken,
-          });
-          
-          // Retry original request with new token
-          originalRequest.headers.Authorization = `Bearer ${accessToken}`;
+        // Backend sets new cookies automatically, so we just retry the original request
+        if (refreshResponse.data?.success) {
+          // Retry original request - new cookies will be sent automatically
           return axiosInstance(originalRequest);
         } else {
           throw new Error('Invalid refresh token response');
         }
       } catch (refreshError) {
-        // Refresh failed, clear tokens and redirect to login
-        if (typeof window !== 'undefined') {
-          useAuthStore.getState().logout();
-          window.location.href = '/login';
-        }
+        // Refresh failed, redirect to login
+        // Backend will clear cookies on logout endpoint
+        // if (typeof window !== 'undefined') {
+        //   window.location.href = '/login';
+        // }
         return Promise.reject(refreshError);
       }
     }

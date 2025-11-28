@@ -1,5 +1,6 @@
 import compression from 'compression';
 import cors from 'cors';
+import cookieParser from 'cookie-parser';
 import express from 'express';
 import helmet from 'helmet';
 import { apiRouter } from './routes';
@@ -30,6 +31,7 @@ export const createApp = () => {
   
   app.use(express.json());
   app.use(express.urlencoded({ extended: true }));
+  app.use(cookieParser());
   app.use(compression());
   app.use(sessionConfig);
 

@@ -20,6 +20,10 @@ interface AuthState {
 /**
  * Auth store that syncs with NextAuth session
  * This store provides a reactive interface for auth state while using NextAuth as the source of truth
+ * 
+ * Note: Authentication is handled via HTTP-only cookies set by the backend.
+ * Tokens in the store are optional and only used for NextAuth session management.
+ * API requests use cookies automatically (via withCredentials: true in axios).
  */
 export const useAuthStore = create<AuthState>((set) => ({
   user: null,
@@ -29,10 +33,12 @@ export const useAuthStore = create<AuthState>((set) => ({
   /**
    * Sync auth state from NextAuth session
    * This should be called whenever the session changes
+   * Note: Tokens are optional - authentication uses HTTP-only cookies
    */
   syncFromSession: (session: Session | null) => {
     if (session?.user) {
       const user = session.user as User;
+      // Tokens are optional - cookies handle authentication
       const tokens: AuthTokens | null = 
         session.accessToken && session.refreshToken
           ? {
@@ -84,6 +90,7 @@ export const useAuthStore = create<AuthState>((set) => ({
   /**
    * Set tokens (for backward compatibility)
    * Note: This doesn't persist to NextAuth - tokens come from session
+   * Note: Authentication uses HTTP-only cookies, tokens here are optional
    */
   setTokens: (tokens) => {
     set({ tokens });

@@ -1,5 +1,5 @@
 import httpStatus from 'http-status';
-import type { Request } from 'express';
+import type { Request, Response } from 'express';
 import type { z } from 'zod';
 import { AppError } from '@/common/errors/app-error';
 import { userService } from '../users/user.service';
@@ -19,27 +19,27 @@ import { TokenBlacklistModel } from './token-blacklist.model';
 import { registerSchema, loginSchema, refreshSchema, providerLoginSchema } from './auth.validation';
 import type { UserResponse } from '../users/user.service';
 import type { OAuthProvider } from '../users/user.types';
+import { setAuthCookies, clearAuthCookies, getRefreshTokenFromCookie, getAccessTokenFromCookie } from '@/utils/cookies';
 
 type RegisterInput = z.infer<typeof registerSchema>['body'];
 type LoginInput = z.infer<typeof loginSchema>['body'];
 type RefreshInput = z.infer<typeof refreshSchema>['body'];
 type ProviderLoginInput = z.infer<typeof providerLoginSchema>['body'];
 
-const buildAuthResponse = (
-  user: UserResponse,
-  tokens: { accessToken: string; refreshToken: string },
-) => ({
+const buildAuthResponse = (user: UserResponse) => ({
   user,
-  tokens,
 });
 
 class AuthService {
-  async register(payload: RegisterInput, req: Request) {
+  async register(payload: RegisterInput, req: Request, res: Response) {
     const password = await hashPassword(payload.password);
     const user = await userService.create({ ...payload, password });
     const tokens = this.generateTokens(user);
     
-    // Store tokens in session
+    // Set HTTP-only cookies
+    setAuthCookies(res, tokens.accessToken, tokens.refreshToken);
+    
+    // Store tokens in session for backward compatibility
     if (req.session) {
       req.session.userId = user.id;
       req.session.email = user.email;
@@ -50,10 +50,10 @@ class AuthService {
       req.session.tokenExpiresAt = this.getTokenExpiration();
     }
     
-    return buildAuthResponse(user, tokens);
+    return buildAuthResponse(user);
   }
 
-  async login(payload: LoginInput, req: Request) {
+  async login(payload: LoginInput, req: Request, res: Response) {
     const userWithTwoFactor = await userService.findByEmailWithTwoFactor(payload.email);
     if (!userWithTwoFactor) {
       throw new AppError('Invalid credentials', httpStatus.UNAUTHORIZED);
@@ -85,6 +85,10 @@ class AuthService {
 
     // No 2FA - complete login
     const tokens = this.generateTokens(user);
+    
+    // Set HTTP-only cookies
+    setAuthCookies(res, tokens.accessToken, tokens.refreshToken);
+    
     if (req.session) {
       req.session.userId = user.id;
       req.session.email = user.email;
@@ -94,10 +98,10 @@ class AuthService {
       req.session.refreshToken = tokens.refreshToken;
       req.session.tokenExpiresAt = this.getTokenExpiration();
     }
-    return buildAuthResponse(user, tokens);
+    return buildAuthResponse(user);
   }
 
-  async verifyTwoFactorLogin(token: string, req: Request) {
+  async verifyTwoFactorLogin(token: string, req: Request, res: Response) {
     if (!req.session?.tempUserId || !req.session?.twoFactorRequired || !req.session?.tempEmail) {
       throw new AppError('Two-factor authentication session expired', httpStatus.UNAUTHORIZED);
     }
@@ -134,6 +138,10 @@ class AuthService {
     }
 
     const tokens = this.generateTokens(user);
+    
+    // Set HTTP-only cookies
+    setAuthCookies(res, tokens.accessToken, tokens.refreshToken);
+    
     if (req.session) {
       req.session.userId = user.id;
       req.session.email = user.email;
@@ -148,7 +156,7 @@ class AuthService {
     }
 
     return {
-      ...buildAuthResponse(user, tokens),
+      ...buildAuthResponse(user),
       usedBackupCode,
     };
   }
@@ -225,26 +233,36 @@ class AuthService {
     return { message: 'Two-factor authentication disabled successfully' };
   }
 
-  async refresh(payload: RefreshInput, req: Request) {
+  async refresh(payload: RefreshInput, req: Request, res: Response) {
     try {
+      // Get refresh token from cookie (preferred) or body (fallback for backward compatibility)
+      const refreshToken = getRefreshTokenFromCookie(req) || payload.refreshToken;
+      
+      if (!refreshToken) {
+        throw new AppError('Refresh token required', httpStatus.UNAUTHORIZED);
+      }
+
       // Check if token is blacklisted
-      const isBlacklisted = await this.isTokenBlacklisted(payload.refreshToken);
+      const isBlacklisted = await this.isTokenBlacklisted(refreshToken);
       if (isBlacklisted) {
         throw new AppError('Token has been revoked', httpStatus.UNAUTHORIZED);
       }
 
-      const decoded = verifyRefreshToken(payload.refreshToken);
+      const decoded = verifyRefreshToken(refreshToken);
       const user = await userService.findById(decoded.sub);
       if (!user) {
         throw new AppError('Account not found', httpStatus.UNAUTHORIZED);
       }
 
       // Blacklist the old refresh token
-      await this.blacklistToken(payload.refreshToken);
+      await this.blacklistToken(refreshToken);
 
       const tokens = this.generateTokens(user);
       
-      // Store tokens in session
+      // Set HTTP-only cookies
+      setAuthCookies(res, tokens.accessToken, tokens.refreshToken);
+      
+      // Store tokens in session for backward compatibility
       if (req.session) {
         req.session.userId = user.id;
         req.session.email = user.email;
@@ -255,7 +273,7 @@ class AuthService {
         req.session.tokenExpiresAt = this.getTokenExpiration();
       }
 
-      return buildAuthResponse(user, tokens);
+      return buildAuthResponse(user);
     } catch (error) {
       if (error instanceof AppError) {
         throw error;
@@ -264,7 +282,7 @@ class AuthService {
     }
   }
 
-  async providerLogin(payload: ProviderLoginInput, req: Request) {
+  async providerLogin(payload: ProviderLoginInput, req: Request, res: Response) {
     const { provider, providerId, accessToken, email, name, avatar } = payload;
     let user = await userService.findByProvider(provider, providerId);
 
@@ -319,8 +337,13 @@ class AuthService {
       throw new AppError('Failed to authenticate user', httpStatus.INTERNAL_SERVER_ERROR);
     }
 
-    // Generate tokens and set session
+    // Generate tokens
     const tokens = this.generateTokens(user);
+    
+    // Set HTTP-only cookies
+    setAuthCookies(res, tokens.accessToken, tokens.refreshToken);
+    
+    // Store tokens in session for backward compatibility
     if (req.session) {
       req.session.userId = user.id;
       req.session.email = user.email;
@@ -331,16 +354,12 @@ class AuthService {
       req.session.tokenExpiresAt = this.getTokenExpiration();
     }
 
-    return buildAuthResponse(user, tokens);
+    return buildAuthResponse(user);
   }
 
-  async logout(req: Request) {
-    if (!req.session) {
-      throw new AppError('No active session', httpStatus.BAD_REQUEST);
-    }
-
-    const accessToken = req.session.accessToken;
-    const refreshToken = req.session.refreshToken;
+  async logout(req: Request, res: Response) {
+    const accessToken = req.session?.accessToken || getAccessTokenFromCookie(req);
+    const refreshToken = req.session?.refreshToken || getRefreshTokenFromCookie(req);
 
     // Blacklist tokens if they exist
     if (accessToken) {
@@ -350,15 +369,22 @@ class AuthService {
       await this.blacklistToken(refreshToken);
     }
 
+    // Clear HTTP-only cookies
+    clearAuthCookies(res);
+
     // Destroy session
     return new Promise<void>((resolve, reject) => {
-      req.session?.destroy((err) => {
-        if (err) {
-          reject(new AppError('Failed to logout', httpStatus.INTERNAL_SERVER_ERROR));
-        } else {
-          resolve();
-        }
-      });
+      if (req.session) {
+        req.session.destroy((err) => {
+          if (err) {
+            reject(new AppError('Failed to logout', httpStatus.INTERNAL_SERVER_ERROR));
+          } else {
+            resolve();
+          }
+        });
+      } else {
+        resolve();
+      }
     });
   }
 

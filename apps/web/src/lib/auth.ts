@@ -8,6 +8,8 @@ import type { User, UserRole } from '@/types';
 declare module 'next-auth' {
   interface Session {
     user: User & DefaultSession['user'];
+    // Tokens are optional - HTTP-only cookies handle authentication
+    // These are kept for backward compatibility if needed
     accessToken?: string;
     refreshToken?: string;
   }
@@ -22,12 +24,20 @@ declare module 'next-auth' {
     avatar?: string;
     createdAt: Date | string;
     updatedAt: Date | string;
+    // Tokens are optional - HTTP-only cookies handle authentication
     accessToken?: string;
     refreshToken?: string;
   }
 }
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
+
+// Cookie names - must match backend cookie names
+export const ACCESS_TOKEN_COOKIE = 'accessToken';
+export const REFRESH_TOKEN_COOKIE = 'refreshToken';
+
+// Cookie configuration to match backend settings
+const isProduction = process.env.NODE_ENV === 'production';
 
 export const authConfig: NextAuthConfig = {
   providers: [
@@ -43,11 +53,21 @@ export const authConfig: NextAuthConfig = {
         }
 
         try {
+          // Note: This authorize function runs server-side in NextAuth
+          // When cookies are set by the backend, they're in the server-side response
+          // For cookies to reach the browser, login should typically happen client-side first
+          // (via axios with withCredentials: true), which sets cookies, then NextAuth signIn is called
+          // 
+          // However, we still make the fetch call here to verify credentials and get user data
+          // The backend will set cookies in the response, but they may not reach the browser
+          // in this server-side context. Client-side login (via useRegister/useLogin hooks) 
+          // should be used to ensure cookies are properly set in the browser.
           const response = await fetch(`${API_BASE_URL}/auth/login`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
             },
+            credentials: 'include', // Enable sending/receiving cookies
             body: JSON.stringify({
               email: credentials.email,
               password: credentials.password,
@@ -64,11 +84,13 @@ export const authConfig: NextAuthConfig = {
           const user = authData.user;
           const tokens = authData.tokens;
 
-          if (!user || !tokens) {
+          if (!user) {
             return null;
           }
 
-          // Return user with tokens
+          // Backend sets HTTP-only cookies automatically
+          // Tokens are optional in NextAuth session (cookies handle authentication)
+          // We still store them for backward compatibility if needed
           return {
             id: user.id,
             email: user.email,
@@ -79,8 +101,9 @@ export const authConfig: NextAuthConfig = {
             avatar: user.avatar,
             createdAt: user.createdAt,
             updatedAt: user.updatedAt,
-            accessToken: tokens.accessToken,
-            refreshToken: tokens.refreshToken,
+            // Tokens are optional - HTTP-only cookies handle authentication
+            accessToken: tokens?.accessToken,
+            refreshToken: tokens?.refreshToken,
           };
         } catch (error) {
           console.error('Auth error:', error);
@@ -122,11 +145,14 @@ export const authConfig: NextAuthConfig = {
         };
 
         try {
+          // Backend sets HTTP-only cookies in response
+          // The browser will receive and store these cookies automatically
           const response = await fetch(`${API_BASE_URL}/auth/login/oauth`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
             },
+            credentials: 'include', // Enable sending/receiving cookies
             body: JSON.stringify(requestPayload),
           });
           // Read response as text first to see raw response
@@ -154,7 +180,6 @@ export const authConfig: NextAuthConfig = {
             const apiUser = authData.user;
             const tokens = authData.tokens;
 
-
             // Update user object with API response
             user.id = apiUser.id;
             user.role = apiUser.role;
@@ -162,8 +187,14 @@ export const authConfig: NextAuthConfig = {
             user.avatar = apiUser.avatar || user.image;
             user.createdAt = apiUser.createdAt;
             user.updatedAt = apiUser.updatedAt;
-            (user as User & { accessToken?: string; refreshToken?: string }).accessToken = tokens.accessToken;
-            (user as User & { accessToken?: string; refreshToken?: string }).refreshToken = tokens.refreshToken;
+            
+            // Backend sets HTTP-only cookies automatically
+            // Tokens are optional - stored for backward compatibility
+            if (tokens) {
+              (user as User & { accessToken?: string; refreshToken?: string }).accessToken = tokens.accessToken;
+              (user as User & { accessToken?: string; refreshToken?: string }).refreshToken = tokens.refreshToken;
+            }
+            
             console.log('[NextAuth] ✅ Allowing sign-in');
             return true;
           } else {
@@ -235,6 +266,36 @@ export const authConfig: NextAuthConfig = {
   session: {
     strategy: 'jwt',
     maxAge: 30 * 24 * 60 * 60, // 30 days
+  },
+  cookies: {
+    // Configure NextAuth session cookie to match backend cookie settings
+    sessionToken: {
+      name: `${isProduction ? '__Secure-' : ''}next-auth.session-token`,
+      options: {
+        httpOnly: true,
+        sameSite: isProduction ? 'strict' : 'lax',
+        path: '/',
+        secure: isProduction, // HTTPS only in production
+      },
+    },
+    callbackUrl: {
+      name: `${isProduction ? '__Secure-' : ''}next-auth.callback-url`,
+      options: {
+        httpOnly: true,
+        sameSite: isProduction ? 'strict' : 'lax',
+        path: '/',
+        secure: isProduction,
+      },
+    },
+    csrfToken: {
+      name: `${isProduction ? '__Host-' : ''}next-auth.csrf-token`,
+      options: {
+        httpOnly: true,
+        sameSite: isProduction ? 'strict' : 'lax',
+        path: '/',
+        secure: isProduction,
+      },
+    },
   },
   secret: process.env.NEXTAUTH_SECRET,
 };

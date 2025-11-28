@@ -5,17 +5,17 @@ import { buildSuccessResponse, useResponseError } from '@/helpers/http-response'
 import { AppError } from '@/common/errors/app-error';
 
 export const registerHandler = async (req: Request, res: Response) => {
-  const result = await authService.register(req.body, req);
+  const result = await authService.register(req.body, req, res);
   return res.status(httpStatus.CREATED).json(buildSuccessResponse(result));
 };
 
 export const loginHandler = async (req: Request, res: Response) => {
-  const result = await authService.login(req.body, req);
+  const result = await authService.login(req.body, req, res);
   return res.status(httpStatus.OK).json(buildSuccessResponse(result));
 };
 
 export const verifyTwoFactorLoginHandler = async (req: Request, res: Response) => {
-  const result = await authService.verifyTwoFactorLogin(req.body.token, req);
+  const result = await authService.verifyTwoFactorLogin(req.body.token, req, res);
   return res.status(httpStatus.OK).json(buildSuccessResponse(result));
 };
 
@@ -44,20 +44,19 @@ export const disableTwoFactorHandler = async (req: Request, res: Response) => {
 };
 
 export const refreshTokenHandler = async (req: Request, res: Response) => {
-  const result = await authService.refresh(req.body, req);
-  // For refresh token, we need to return tokens in the expected format
-  return res.status(httpStatus.OK).json(buildSuccessResponse({ tokens: result.tokens }));
+  const result = await authService.refresh(req.body, req, res);
+  return res.status(httpStatus.OK).json(buildSuccessResponse(result));
 };
 
 export const logoutHandler = async (req: Request, res: Response) => {
-  await authService.logout(req);
+  await authService.logout(req, res);
   return res.status(httpStatus.OK).json(buildSuccessResponse({ message: 'Logged out successfully' }));
 };
 
 export const providerLoginHandler = async (req: Request, res: Response) => {
 
   try {
-    const result = await authService.providerLogin(req.body, req);
+    const result = await authService.providerLogin(req.body, req, res);
     return res.status(httpStatus.OK).json(buildSuccessResponse(result));
   } catch (error) {
     console.error('[AuthController] ❌ Provider login error:', error);

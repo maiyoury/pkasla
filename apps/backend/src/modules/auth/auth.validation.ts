@@ -25,7 +25,7 @@ export const loginSchema = z.object({
 
 export const refreshSchema = z.object({
   body: z.object({
-    refreshToken: z.string().min(10),
+    refreshToken: z.string().min(10).optional(), // Optional since we can read from cookie
   }),
 });
 

@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useSession, signIn, signOut } from 'next-auth/react';
-import type { User, RegisterDto } from '@/types';
+import type { User, RegisterDto, LoginDto } from '@/types';
 import { api } from '@/lib/axios-client';
 import { useAuthStore } from '@/store';
 
@@ -35,6 +35,44 @@ export function useMe() {
 }
 
 /**
+ * Login mutation - logs in via backend API (sets cookies) then signs in with NextAuth
+ * This ensures backend cookies are set in the browser before NextAuth session is created
+ */
+export function useLogin() {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: async (data: LoginDto) => {
+      // First, call backend login API client-side to set HTTP-only cookies
+      // This must happen client-side so cookies are set in the browser
+      const response = await api.post<{ user: User }>('/auth/login', data);
+      if (!response.success) throw new Error(response.error);
+      
+      const userData = response.data;
+      if (!userData) {
+        throw new Error('Login failed - no user data returned');
+      }
+      
+      // After backend cookies are set, sign in with NextAuth for session management
+      const signInResult = await signIn('credentials', {
+        email: data.email,
+        password: data.password,
+        redirect: false,
+      });
+      
+      if (signInResult?.error) {
+        throw new Error(signInResult.error);
+      }
+      
+      return userData;
+    },
+    onSuccess: (user) => {
+      queryClient.setQueryData(authKeys.me(), user);
+    },
+  });
+}
+
+/**
  * Register mutation - registers user then signs them in with NextAuth
  */
 export function useRegister() {
@@ -42,7 +80,7 @@ export function useRegister() {
   
   return useMutation({
     mutationFn: async (data: RegisterDto) => {
-      // Register user via API
+      // Register user via API (this sets backend cookies)
       const response = await api.post<{ data: { user: User } }>('/auth/register', data);
       if (!response.success) throw new Error(response.error);
       
@@ -72,40 +110,19 @@ export function useRegister() {
 
 /**
  * Refresh token mutation
- * Note: NextAuth handles token refresh automatically, but this can be used for manual refresh
+ * Uses HTTP-only cookies - refreshToken is read from cookie by backend
+ * Backend automatically sets new cookies on successful refresh
  */
 export function useRefreshToken() {
-  const { update } = useSession();
-  
   return useMutation({
-    mutationFn: async (refreshToken: string) => {
-      const response = await api.post<{ tokens: { accessToken: string; refreshToken: string } }>(
-        '/auth/refresh',
-        { refreshToken }
-      );
+    mutationFn: async () => {
+      // Backend reads refreshToken from HTTP-only cookie
+      // No need to send token in body - cookies are sent automatically via withCredentials
+      const response = await api.post<{ user: User }>('/auth/refresh', {});
       if (!response.success) throw new Error(response.error);
       
-      // Response structure may vary, adjust based on your API
-      const responseData = response.data as 
-        | { tokens?: { accessToken: string; refreshToken: string } }
-        | { data?: { tokens?: { accessToken: string; refreshToken: string } } };
-      
-      const tokens = 
-        'tokens' in responseData && responseData.tokens
-          ? responseData.tokens
-          : 'data' in responseData && responseData.data?.tokens
-          ? responseData.data.tokens
-          : null;
-      
-      // Update NextAuth session with new tokens
-      if (tokens) {
-        await update({
-          accessToken: tokens.accessToken,
-          refreshToken: tokens.refreshToken,
-        });
-      }
-      
-      return tokens;
+      // Backend sets new cookies automatically, so we just return success
+      return response.data;
     },
   });
 }

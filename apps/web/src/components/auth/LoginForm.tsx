@@ -7,6 +7,7 @@ import Link from "next/link";
 import toast from "react-hot-toast";
 import { ROUTES } from "@/constants";
 import type { LoginDto, User } from "@/types";
+import { useLogin } from "@/hooks/api/useAuth";
 import {
   Card,
   CardContent,
@@ -19,6 +20,7 @@ export function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { update: updateSession } = useSession();
+  const loginMutation = useLogin();
 
   // Initialize form data with remembered email if available
   const getInitialFormData = (): LoginDto & { rememberMe: boolean } => {
@@ -80,59 +82,51 @@ export function LoginForm() {
 
     try {
       const callbackUrl = searchParams.get("callbackUrl") || "/";
-      const result = await signIn("credentials", {
+      
+      // Use useLogin hook which:
+      // 1. Calls backend API client-side to set HTTP-only cookies (accessToken, refreshToken)
+      // 2. Then signs in with NextAuth for session management
+      await loginMutation.mutateAsync({
         email: trimmedEmail,
         password: formData.password,
-        redirect: false,
       });
 
-      if (result?.error) {
-        toast.error(
-          result.error === "CredentialsSignin"
-            ? "Invalid email or password"
-            : result.error
-        );
-        setIsLoading(false);
-        return;
+      // Handle remember me
+      if (formData.rememberMe) {
+        localStorage.setItem("rememberedEmail", trimmedEmail);
+      } else {
+        localStorage.removeItem("rememberedEmail");
       }
 
-      if (result?.ok) {
-        // Handle remember me
-        if (formData.rememberMe) {
-          localStorage.setItem("rememberedEmail", trimmedEmail);
-        } else {
-          localStorage.removeItem("rememberedEmail");
+      toast.success("ចុូលប្រព័ន្ធជោគជ័យ!");
+
+      // Update session to get latest user data
+      await updateSession();
+
+      // Get user role for redirect
+      try {
+        const sessionResponse = await fetch("/api/auth/session");
+        const sessionData = await sessionResponse.json();
+        const user = sessionData?.user as User | undefined;
+
+        // Determine redirect path
+        let redirectPath = callbackUrl;
+        
+        // If callbackUrl is home or root, redirect based on role
+        if (callbackUrl === "/" || callbackUrl === ROUTES.HOME) {
+          redirectPath = user?.role === "admin" ? ROUTES.ADMIN : ROUTES.DASHBOARD;
         }
 
-        toast.success("ចុូលប្រព័ន្ធជោគជ័យ!");
-
-        // Update session to get latest user data
-        await updateSession();
-
-        // Get user role for redirect
-        try {
-          const sessionResponse = await fetch("/api/auth/session");
-          const sessionData = await sessionResponse.json();
-          const user = sessionData?.user as User | undefined;
-
-          // Determine redirect path
-          let redirectPath = callbackUrl;
-          
-          // If callbackUrl is home or root, redirect based on role
-          if (callbackUrl === "/" || callbackUrl === ROUTES.HOME) {
-            redirectPath = user?.role === "admin" ? ROUTES.ADMIN : ROUTES.DASHBOARD;
-          }
-
-          router.push(redirectPath);
-          router.refresh();
-        } catch {
-          // Fallback: redirect to home, middleware will handle role-based redirect
-          router.push(callbackUrl);
-          router.refresh();
-        }
+        router.push(redirectPath);
+        router.refresh();
+      } catch {
+        // Fallback: redirect to home, middleware will handle role-based redirect
+        router.push(callbackUrl);
+        router.refresh();
       }
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "ចុូលប្រព័ន្ធមិនជោគជ័យ!");
+    } finally {
       setIsLoading(false);
     }
   };
