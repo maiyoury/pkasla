@@ -59,6 +59,12 @@ const envSchema = z.object({
   STRIPE_SECRET_KEY: z.string().optional(),
   STRIPE_WEBHOOK_SECRET: z.string().optional(),
   STRIPE_PUBLISHABLE_KEY: z.string().optional(),
+  // Bakong KHQR Configuration
+  BAKONG_API_URL: z.string().url().optional(),
+  BAKONG_ACCESS_TOKEN: z.string().optional(),
+  BAKONG_MERCHANT_ACCOUNT_ID: z.string().optional(),
+  BAKONG_WEBHOOK_SECRET: z.string().optional(),
+  BAKONG_ENVIRONMENT: z.enum(['sit', 'production']).default('sit'),
 });
 
 const parsedEnv = envSchema.safeParse(process.env);
@@ -107,6 +113,18 @@ export const env = {
         secretKey: parsedEnv.data.STRIPE_SECRET_KEY,
         webhookSecret: parsedEnv.data.STRIPE_WEBHOOK_SECRET,
         publishableKey: parsedEnv.data.STRIPE_PUBLISHABLE_KEY,
+      }
+    : undefined,
+  bakong: parsedEnv.data.BAKONG_ACCESS_TOKEN
+    ? {
+        apiUrl: parsedEnv.data.BAKONG_API_URL || 
+          (parsedEnv.data.BAKONG_ENVIRONMENT === 'production' 
+            ? 'https://api-bakong.nbc.org.kh' 
+            : 'https://sit-api-bakong.nbc.org.kh'),
+        accessToken: parsedEnv.data.BAKONG_ACCESS_TOKEN,
+        merchantAccountId: parsedEnv.data.BAKONG_MERCHANT_ACCOUNT_ID,
+        webhookSecret: parsedEnv.data.BAKONG_WEBHOOK_SECRET,
+        environment: parsedEnv.data.BAKONG_ENVIRONMENT,
       }
     : undefined,
   isProduction: parsedEnv.data.NODE_ENV === 'production',
