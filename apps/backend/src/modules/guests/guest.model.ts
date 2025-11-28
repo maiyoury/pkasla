@@ -41,7 +41,6 @@ const guestSchema = new Schema<GuestDocument>(
     eventId: {
       type: Schema.Types.ObjectId,
       ref: 'Event',
-      required: true,
       index: true,
     },
     userId: {
@@ -87,7 +86,7 @@ const guestSchema = new Schema<GuestDocument>(
 guestSchema.index({ eventId: 1, status: 1 });
 guestSchema.index({ eventId: 1, email: 1 });
 guestSchema.index({ eventId: 1, phone: 1 });
-guestSchema.index({ userId: 1, eventId: 1 }, { unique: true, sparse: true });
+// guestSchema.index({ userId: 1, eventId: 1 }, { unique: true, sparse: true });
 
 guestSchema.set('toJSON', {
   versionKey: false,
