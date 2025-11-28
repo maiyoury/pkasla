@@ -23,6 +23,11 @@ const nextConfig: NextConfig = {
         port: '4000',
         pathname: '/uploads/**',
       },
+      {
+        protocol: 'https',
+        hostname: 'pub-09e3e90eed9b4e6198abb65caba89c7e.r2.dev',
+      },
+    
     ],
   },
 };
