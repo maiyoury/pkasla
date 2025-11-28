@@ -1,6 +1,7 @@
 'use client'
 
-import React from 'react'
+import React, { useMemo } from 'react'
+import { type ColumnDef } from '@tanstack/react-table'
 import { Download, Edit, Trash2, User, FileText, Calendar, DollarSign } from 'lucide-react'
 import { Card, CardContent, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -10,6 +11,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import { DataTable } from '@/components/ui/data-table'
 
 interface Payment {
   id: string
@@ -62,6 +64,72 @@ export default function Payments({
     }
     return methodMap[method] || method
   }
+
+  const columns = useMemo<ColumnDef<Payment>[]>(
+    () => [
+      {
+        accessorKey: 'guestName',
+        header: 'ឈ្មោះ',
+        cell: ({ row }) => (
+          <p className="text-xs sm:text-sm font-semibold text-black">{row.original.guestName}</p>
+        ),
+      },
+      {
+        accessorKey: 'amount',
+        header: 'ចំនួនចំណងដៃ',
+        cell: ({ row }) => (
+          <p className="text-xs sm:text-sm text-black">
+            {formatCurrency(row.original.amount, row.original.currency)}
+          </p>
+        ),
+      },
+      {
+        accessorKey: 'method',
+        header: 'តាមរយៈ',
+        cell: ({ row }) => (
+          <p className="text-xs sm:text-sm text-black">{getMethodLabel(row.original.method)}</p>
+        ),
+      },
+      {
+        accessorKey: 'createdAt',
+        header: 'ពេលវេលា',
+        cell: ({ row }) => (
+          <p className="text-xs sm:text-sm text-black">{formatDateKhmer(row.original.createdAt)}</p>
+        ),
+      },
+      {
+        id: 'actions',
+        header: () => <div className="text-right"></div>,
+        cell: ({ row }) => (
+          <div className="flex items-center justify-end gap-1 sm:gap-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-xs h-7 w-7 p-0"
+              onClick={(e) => {
+                e.stopPropagation()
+                console.log('Edit payment', row.original.id)
+              }}
+            >
+              <Edit className="h-3.5 w-3.5" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-xs h-7 w-7 p-0 text-red-600 hover:text-red-700"
+              onClick={(e) => {
+                e.stopPropagation()
+                console.log('Delete payment', row.original.id)
+              }}
+            >
+              <Trash2 className="h-3.5 w-3.5" />
+            </Button>
+          </div>
+        ),
+      },
+    ],
+    []
+  )
 
   return (
     <div className="space-y-6">
@@ -129,94 +197,38 @@ export default function Payments({
       </div>
 
       {/* Payments Table */}
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <CardTitle className="text-lg font-semibold text-black">តារាងចំណងដៃ</CardTitle>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm" className="text-xs h-9">
-                <Download className="h-3.5 w-3.5 mr-1.5" />
-                ទាញយក
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem>Excel</DropdownMenuItem>
-              <DropdownMenuItem>PDF</DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-
-        <Card className="border border-gray-200 shadow-none">
-          <CardContent className="p-0">
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b border-gray-200">
-                    <th className="p-3 text-left text-sm font-semibold text-black">ឈ្មោះ</th>
-                    <th className="p-3 text-left text-sm font-semibold text-black">ចំនួនចំណងដៃ</th>
-                    <th className="p-3 text-left text-sm font-semibold text-black">តាមរយៈ</th>
-                    <th className="p-3 text-left text-sm font-semibold text-black">ពេលវេលា</th>
-                    <th className="p-3 text-right text-sm font-semibold text-black"></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {payments.length > 0 ? (
-                    payments.map((payment) => (
-                      <tr key={payment.id} className="border-b border-gray-200 last:border-b-0">
-                        <td className="p-3">
-                          <p className="text-sm font-semibold text-black">{payment.guestName}</p>
-                        </td>
-                        <td className="p-3">
-                          <p className="text-sm text-black">
-                            {formatCurrency(payment.amount, payment.currency)}
-                          </p>
-                        </td>
-                        <td className="p-3">
-                          <p className="text-sm text-black">{getMethodLabel(payment.method)}</p>
-                        </td>
-                        <td className="p-3">
-                          <p className="text-sm text-black">{formatDateKhmer(payment.createdAt)}</p>
-                        </td>
-                        <td className="p-3">
-                          <div className="flex items-center justify-end gap-2">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="text-xs h-7 w-7 p-0"
-                              onClick={() => {
-                                // Handle edit
-                                console.log('Edit payment', payment.id)
-                              }}
-                            >
-                              <Edit className="h-3.5 w-3.5" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="text-xs h-7 w-7 p-0 text-red-600 hover:text-red-700"
-                              onClick={() => {
-                                // Handle delete
-                                console.log('Delete payment', payment.id)
-                              }}
-                            >
-                              <Trash2 className="h-3.5 w-3.5" />
-                            </Button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))
-                  ) : (
-                    <tr>
-                      <td colSpan={5} className="p-8 text-center">
-                        <p className="text-sm text-gray-600">មិនទាន់មានចំណងដៃ</p>
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
+      <Card className="border border-gray-200 shadow-none p-0">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+            <CardTitle className="text-lg font-semibold text-black">តារាងចំណងដៃ</CardTitle>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm" className="text-xs h-9">
+                  <Download className="h-3.5 w-3.5 mr-1.5" />
+                  ទាញយក
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem>Excel</DropdownMenuItem>
+                <DropdownMenuItem>PDF</DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+            <DataTable
+              columns={columns}
+              data={payments}
+              searchKey="guestName"
+              searchPlaceholder="ស្វែងរកចំណងដៃ..."
+              fixedHeader={true}
+              fixedColumns={1}
+              enableFiltering={true}
+              enableSorting={true}
+              enableColumnVisibility={false}
+              showRowCount={false}
+              emptyMessage="មិនទាន់មានចំណងដៃ"
+            />
             {payments.length > 0 && (
-              <div className="p-3 border-t border-gray-200 text-center">
+              <div className="mt-4 pt-3 border-t border-gray-200 text-center">
                 <p className="text-xs text-gray-600">
                   សរុប {payments.length} / {payments.length} ចំណងដៃ
                 </p>
@@ -224,7 +236,6 @@ export default function Payments({
             )}
           </CardContent>
         </Card>
-      </div>
     </div>
   )
 }

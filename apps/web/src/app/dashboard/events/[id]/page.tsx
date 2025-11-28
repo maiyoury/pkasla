@@ -314,10 +314,10 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
       >
         <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/40 to-black/60 z-0" />
        <Card className="shadow-none border-none bg-transparent z-10 absolute inset-0 w-full h-full">
-         <div className="flex items-start justify-between gap-4 px-4">
-            <div className="flex-1 space-y-2">
-              <div className="flex items-center gap-3 flex-wrap">
-                <CardTitle className="text-2xl md:text-3xl font-bold text-white drop-shadow-lg">{event.title}</CardTitle>
+         <div className="flex items-start justify-between gap-2 sm:gap-4 px-3 sm:px-4 py-3 sm:py-4">
+            <div className="flex-1 space-y-2 min-w-0">
+              <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
+                <CardTitle className="text-xl sm:text-2xl md:text-3xl font-bold text-white drop-shadow-lg break-words">{event.title}</CardTitle>
                 <Badge variant={getStatusColor(event.status)} className="capitalize text-xs px-2.5 py-1 bg-white/10 backdrop-blur-sm border-white/20 text-white">
                   {event.status}
                 </Badge>
@@ -358,8 +358,8 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
             </DropdownMenu>
           </div>
            {/* box content info */}
-         <div className="px-4">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+         <div className="px-3 sm:px-4 pb-3 sm:pb-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
             <div className="bg-white/10 backdrop-blur-sm rounded-lg p-3 border border-white/20 hover:bg-white/15 transition-colors">
               <div className="flex items-center gap-2 mb-2">
                 <Calendar className="h-4 w-4 text-white/90" />
@@ -398,9 +398,9 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
          {/* Description with divider */}
          {event.description && (
            <>
-             <div className="px-4">
-             <div className="border-t border-white/20 mb-4"></div>
-               <p className="text-sm md:text-base text-white/95 drop-shadow-md">{event.description}</p>
+             <div className="px-3 sm:px-4">
+             <div className="border-t border-white/20 mb-3 sm:mb-4"></div>
+               <p className="text-xs sm:text-sm md:text-base text-white/95 drop-shadow-md break-words">{event.description}</p>
              </div>
            </>
          )}
@@ -409,7 +409,7 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
       {/* Tabs Section */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         {/* Desktop/Tablet Tabs - Hidden on mobile */}
-        <TabsList className="hidden md:grid w-full grid-cols-4 lg:grid-cols-6 gap-2 mb-4">
+        <TabsList className="hidden md:grid w-full md:grid-cols-4 lg:grid-cols-6 gap-2 mb-4">
           <TabsTrigger value="overview" className="text-xs">
             <Info className="h-3.5 w-3.5 mr-1.5" />
             ទូទៅ

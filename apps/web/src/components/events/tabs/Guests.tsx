@@ -1,9 +1,9 @@
 'use client'
 
-import React from 'react'
-import { Search, Filter, Plus, CheckCircle2, Eye, QrCode, MoreVertical } from 'lucide-react'
+import React, { useMemo } from 'react'
+import { type ColumnDef } from '@tanstack/react-table'
+import { Filter, Plus, CheckCircle2, Eye, QrCode, MoreVertical, Download } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -13,6 +13,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import { DataTable } from '@/components/ui/data-table'
 import GiftPaymentDrawer from '@/components/guests/GiftPaymentDrawer'
 import CreateGuestDrawer from '@/components/guests/CreateGuestDrawer'
 import ViewGiftDrawer from '@/components/guests/ViewGiftDrawer'
@@ -65,8 +66,6 @@ interface GuestsProps {
 
 export default function Guests({
   displayGuests,
-  searchQuery,
-  onSearchChange,
   filteredGuests,
   isGuestDrawerOpen,
   onGuestDrawerOpenChange,
@@ -80,203 +79,243 @@ export default function Guests({
   eventId,
   router,
   createGuestMutation,
-  updateGuestMutation,
   deleteGuestMutation,
   getTagColor,
 }: GuestsProps) {
+
+  const columns = useMemo<ColumnDef<DisplayGuest>[]>(
+    () => [
+      {
+        id: 'select',
+        header: ({ table }) => (
+          <Checkbox
+            checked={table.getIsAllPageRowsSelected()}
+            onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+            aria-label="Select all"
+          />
+        ),
+        cell: ({ row }) => (
+          <Checkbox
+            checked={row.getIsSelected()}
+            onCheckedChange={(value) => row.toggleSelected(!!value)}
+            aria-label="Select row"
+            onClick={(e) => e.stopPropagation()}
+          />
+        ),
+        enableSorting: false,
+        enableHiding: false,
+        size: 48,
+      },
+      {
+        accessorKey: 'name',
+        header: 'ឈ្មោះ',
+        cell: ({ row }) => (
+          <div>
+            <p className="text-xs sm:text-sm font-semibold text-black">{row.original.name}</p>
+            {row.original.email && (
+              <p className="text-[10px] sm:text-xs text-gray-500">{row.original.email}</p>
+            )}
+            {row.original.phone && (
+              <p className="text-[10px] sm:text-xs text-gray-500">{row.original.phone}</p>
+            )}
+          </div>
+        ),
+      },
+      {
+        accessorKey: 'tag',
+        header: 'ស្លាក',
+        cell: ({ row }) => (
+          row.original.tag ? (
+            <Badge className={`${getTagColor(row.original.tag.color)} text-xs border`}>
+              {row.original.tag.label}
+            </Badge>
+          ) : (
+            <span className="text-xs text-gray-400">-</span>
+          )
+        ),
+      },
+      {
+        id: 'actions',
+        header: () => <div className="text-right">Action</div>,
+        cell: ({ row }) => {
+          const guest = row.original
+          return (
+            <div className="flex items-center justify-end gap-1 sm:gap-2 flex-wrap">
+              {guest.hasGivenGift ? (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="text-[10px] sm:text-xs h-7 bg-green-50 text-green-700 border-green-200 hover:bg-green-100"
+                >
+                  <CheckCircle2 className="h-3 w-3 sm:h-3.5 sm:w-3.5 mr-0.5 sm:mr-1" />
+                  <span className="hidden sm:inline">រួចរាល់</span>
+                </Button>
+              ) : (
+                <GiftPaymentDrawer
+                  guestName={guest.name}
+                  guestId={guest.id}
+                  open={selectedGuestForGift?.id === guest.id}
+                  onOpenChange={(open) => {
+                    if (!open) {
+                      onSelectedGuestForGiftChange(null)
+                    } else {
+                      onSelectedGuestForGiftChange(guest)
+                    }
+                  }}
+                  onSave={() => {
+                    onGiftPayment(guest.id)
+                  }}
+                  trigger={
+                    <Button variant="outline" size="sm" className="text-[10px] sm:text-xs h-7">
+                      <span className="hidden sm:inline">ចង់ដៃ</span>
+                      <span className="sm:hidden">ចង់</span>
+                    </Button>
+                  }
+                />
+              )}
+              {guest.hasGivenGift && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-xs h-7 w-7 p-0"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    onSelectedGuestForViewChange(guest)
+                  }}
+                  disabled={!guest.hasGivenGift}
+                >
+                  <Eye className="h-3.5 w-3.5" />
+                </Button>
+              )}
+              {guest.hasGivenGift && selectedGuestForView?.id === guest.id && (
+                <ViewGiftDrawer
+                  guestName={guest.name}
+                  gift={{
+                    id: guest.id,
+                    date: new Date(guest.updatedAt).toLocaleDateString('km-KH', {
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit'
+                    }),
+                    type: 'បានចង់ដៃ',
+                  }}
+                  open={selectedGuestForView?.id === guest.id}
+                  onOpenChange={(open) => {
+                    if (!open) {
+                      onSelectedGuestForViewChange(null)
+                    }
+                  }}
+                />
+              )}
+              <Button variant="ghost" size="sm" className="text-xs h-7 w-7 p-0 hidden sm:flex">
+                <QrCode className="h-3.5 w-3.5" />
+              </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className="text-xs h-7 w-7 p-0"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <MoreVertical className="h-3.5 w-3.5" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem 
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      router.push(`/dashboard/events/${eventId}/guests/${guest.id}/edit`)
+                    }}
+                  >
+                    Edit
+                  </DropdownMenuItem>
+                  <DropdownMenuItem 
+                    className="text-red-600"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      onDeleteGuest(guest.id)
+                    }}
+                    disabled={deleteGuestMutation.isPending}
+                  >
+                    {deleteGuestMutation.isPending ? 'Deleting...' : 'Delete'}
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+          )
+        },
+      },
+    ],
+    [selectedGuestForGift, selectedGuestForView, getTagColor, eventId, router, onSelectedGuestForGiftChange, onGiftPayment, onSelectedGuestForViewChange, onDeleteGuest, deleteGuestMutation.isPending]
+  )
+
   return (
     <div className="space-y-4">
-      {/* Title */}
-      <h2 className="text-lg font-semibold text-black text-center">តារាងភ្ញៀវកិត្តយស</h2>
       
-      {/* Search and Action Bar */}
-      <div className="flex items-center gap-3 flex-wrap">
-        <div className="flex-1 min-w-[200px]">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-            <Input
-              placeholder="ស្វែងរក"
-              value={searchQuery}
-              onChange={(e) => onSearchChange(e.target.value)}
-              className="pl-9 h-9 text-sm"
-            />
-          </div>
-        </div>
-        <Button variant="outline" size="sm" className="text-xs h-9">
-          <Filter className="h-3.5 w-3.5 mr-1.5" />
-          ស្លាក
-        </Button>
-        <Button variant="outline" size="sm" className="text-xs h-9">
-          នាំចូល
-        </Button>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="outline" size="sm" className="text-xs h-9">
-              ទាញយក
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent>
-            <DropdownMenuItem>Excel</DropdownMenuItem>
-            <DropdownMenuItem>PDF</DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-        <CreateGuestDrawer
-          open={isGuestDrawerOpen}
-          onOpenChange={onGuestDrawerOpenChange}
-          onSave={onCreateGuest}
-          trigger={
-            <Button size="sm" className="text-xs h-9" disabled={createGuestMutation.isPending}>
-              <Plus className="h-3.5 w-3.5 mr-1.5" />
-              {createGuestMutation.isPending ? 'Creating...' : 'បង្កើតភ្ញៀវថ្មី'}
-            </Button>
-          }
-        />
-      </div>
 
       {/* Table */}
-      <Card className="border border-gray-200 shadow-none">
-        <CardContent className="p-0">
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-gray-200">
-                  <th className="w-12 p-3 text-left">
-                    <Checkbox />
-                  </th>
-                  <th className="p-3 text-left text-sm font-semibold text-black">
-                    <div className="flex items-center gap-1">
-                      ឈ្មោះ
-                      <span className="text-gray-400">↕</span>
-                    </div>
-                  </th>
-                  <th className="p-3 text-left text-sm font-semibold text-black">ស្លាក</th>
-                  <th className="p-3 text-right text-sm font-semibold text-black">Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredGuests.map((guest) => (
-                  <tr key={guest.id} className="border-b border-gray-200 last:border-b-0">
-                    <td className="p-3">
-                      <Checkbox />
-                    </td>
-                    <td className="p-3">
-                      <p className="text-sm font-semibold text-black">{guest.name}</p>
-                      {guest.email && (
-                        <p className="text-xs text-gray-500">{guest.email}</p>
-                      )}
-                      {guest.phone && (
-                        <p className="text-xs text-gray-500">{guest.phone}</p>
-                      )}
-                    </td>
-                    <td className="p-3">
-                      {guest.tag ? (
-                        <Badge className={`${getTagColor(guest.tag.color)} text-xs border`}>
-                          {guest.tag.label}
-                        </Badge>
-                      ) : (
-                        <span className="text-xs text-gray-400">-</span>
-                      )}
-                    </td>
-                    <td className="p-3">
-                      <div className="flex items-center justify-end gap-2">
-                        {guest.hasGivenGift ? (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="text-xs h-7 bg-green-50 text-green-700 border-green-200 hover:bg-green-100"
-                          >
-                            <CheckCircle2 className="h-3.5 w-3.5 mr-1" />
-                            រួចរាល់
-                          </Button>
-                        ) : (
-                          <GiftPaymentDrawer
-                            guestName={guest.name}
-                            guestId={guest.id}
-                            open={selectedGuestForGift?.id === guest.id}
-                            onOpenChange={(open) => {
-                              if (!open) {
-                                onSelectedGuestForGiftChange(null)
-                              } else {
-                                onSelectedGuestForGiftChange(guest)
-                              }
-                            }}
-                            onSave={() => {
-                              onGiftPayment(guest.id)
-                            }}
-                            trigger={
-                              <Button variant="outline" size="sm" className="text-xs h-7">
-                                ចង់ដៃ
-                              </Button>
-                            }
-                          />
-                        )}
-                        {guest.hasGivenGift && (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="text-xs h-7 w-7 p-0"
-                            onClick={() => {
-                              onSelectedGuestForViewChange(guest)
-                            }}
-                            disabled={!guest.hasGivenGift}
-                          >
-                            <Eye className="h-3.5 w-3.5" />
-                          </Button>
-                        )}
-                        {guest.hasGivenGift && selectedGuestForView?.id === guest.id && (
-                          <ViewGiftDrawer
-                            guestName={guest.name}
-                            gift={{
-                              id: guest.id,
-                              date: new Date(guest.updatedAt).toLocaleDateString('km-KH', {
-                                year: 'numeric',
-                                month: 'long',
-                                day: 'numeric',
-                                hour: '2-digit',
-                                minute: '2-digit'
-                              }),
-                              type: 'បានចង់ដៃ',
-                            }}
-                            open={selectedGuestForView?.id === guest.id}
-                            onOpenChange={(open) => {
-                              if (!open) {
-                                onSelectedGuestForViewChange(null)
-                              }
-                            }}
-                          />
-                        )}
-                        <Button variant="ghost" size="sm" className="text-xs h-7 w-7 p-0">
-                          <QrCode className="h-3.5 w-3.5" />
-                        </Button>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="sm" className="text-xs h-7 w-7 p-0">
-                              <MoreVertical className="h-3.5 w-3.5" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem 
-                              onClick={() => router.push(`/dashboard/events/${eventId}/guests/${guest.id}/edit`)}
-                            >
-                              Edit
-                            </DropdownMenuItem>
-                            <DropdownMenuItem 
-                              className="text-red-600"
-                              onClick={() => onDeleteGuest(guest.id)}
-                              disabled={deleteGuestMutation.isPending}
-                            >
-                              {deleteGuestMutation.isPending ? 'Deleting...' : 'Delete'}
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-          <div className="p-3 border-t border-gray-200 text-center">
+      <Card className="border border-gray-200 shadow-none p-0">
+      
+        <CardContent className="p-4">
+          {/* Title */}
+      <h2 className="text-lg font-semibold text-black text-center">តារាងភ្ញៀវកិត្តយស</h2>
+      
+      {/* Action Bar */}
+      <div className="flex items-center justify-end gap-2 sm:gap-3 flex-wrap">
+          <Button variant="outline" size="sm" className="text-xs h-9 hidden sm:flex">
+            <Filter className="h-3.5 w-3.5 mr-1.5" />
+            <span className="hidden md:inline">ស្លាក</span>
+          </Button>
+          <Button variant="outline" size="sm" className="text-xs h-9 hidden sm:flex">
+            <span className="hidden md:inline">នាំចូល</span>
+          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm" className="text-xs h-9">
+                <span className="hidden sm:inline">ទាញយក</span>
+                <Download className="h-3.5 w-3.5 sm:ml-1.5" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              <DropdownMenuItem>Excel</DropdownMenuItem>
+              <DropdownMenuItem>PDF</DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+          <CreateGuestDrawer
+            open={isGuestDrawerOpen}
+            onOpenChange={onGuestDrawerOpenChange}
+            onSave={onCreateGuest}
+            trigger={
+              <Button size="sm" className="text-xs h-9" disabled={createGuestMutation.isPending}>
+                <Plus className="h-3.5 w-3.5 mr-1 sm:mr-1.5" />
+                <span className="hidden sm:inline">{createGuestMutation.isPending ? 'Creating...' : 'បង្កើតភ្ញៀវថ្មី'}</span>
+                <span className="sm:hidden">បង្កើត</span>
+              </Button>
+            }
+          />
+        </div>
+          <DataTable
+            columns={columns}
+            data={filteredGuests}
+            searchKey="name"
+            searchPlaceholder="ស្វែងរកភ្ញៀវ..."
+            fixedHeader={true}
+            fixedColumns={1}
+            enableFiltering={true}
+            enableSorting={true}
+            enablePagination={true}
+            enableRowSelection={true}
+            enableColumnVisibility={true}
+            pageSize={10}
+            size="middle"
+            scroll={{ y: 400 }}
+            showRowCount={true}
+            emptyMessage="មិនទាន់មានភ្ញៀវ"
+          />
+          <div className="mt-4 pt-3 border-t border-gray-200 text-center">
             <p className="text-xs text-gray-600">សរុប {filteredGuests.length} / {displayGuests.length} នាក់</p>
           </div>
         </CardContent>
