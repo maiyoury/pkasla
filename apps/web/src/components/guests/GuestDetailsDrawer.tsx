@@ -47,6 +47,8 @@ interface GuestDetailsDrawerProps {
   router: ReturnType<typeof import('next/navigation').useRouter>
   deleteGuestMutation: { isPending: boolean }
   getTagColor: (color?: string) => string
+  onEditGuest?: (guest: import('@/types/guest').Guest) => void
+  onOpenEditDrawer?: () => void
 }
 
 export default function GuestDetailsDrawer({
@@ -63,6 +65,8 @@ export default function GuestDetailsDrawer({
   router,
   deleteGuestMutation,
   getTagColor,
+  onEditGuest,
+  onOpenEditDrawer,
 }: GuestDetailsDrawerProps) {
   // Fetch gift data for the guest
   const { data: guestGifts = [] } = useGiftsByGuest(guest?.id || '')
@@ -235,7 +239,26 @@ export default function GuestDetailsDrawer({
                   size="sm"
                   className="text-xs"
                   onClick={() => {
-                    router.push(`/dashboard/events/${eventId}/guests/${guest.id}/edit`)
+                    if (onEditGuest && guest) {
+                      // Convert DisplayGuest to Guest type for the drawer
+                      const guestToEdit: import('@/types/guest').Guest = {
+                        id: guest.id,
+                        name: guest.name,
+                        email: guest.email,
+                        phone: guest.phone,
+                        eventId: typeof guest.eventId === 'string' 
+                          ? guest.eventId 
+                          : guest.eventId.id,
+                        status: guest.status,
+                        hasGivenGift: guest.hasGivenGift,
+                        createdAt: guest.createdAt,
+                        updatedAt: guest.updatedAt,
+                      }
+                      onEditGuest(guestToEdit)
+                      onOpenEditDrawer?.()
+                    } else {
+                      router.push(`/dashboard/events/${eventId}/guests/${guest.id}/edit`)
+                    }
                   }}
                 >
                   កែប្រែ

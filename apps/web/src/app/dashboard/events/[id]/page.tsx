@@ -92,6 +92,7 @@ export default function EventDetailPage({
   const updateEventMutation = useUpdateEvent();
 
   const [isGuestDrawerOpen, setIsGuestDrawerOpen] = useState(false);
+  const [editingGuest, setEditingGuest] = useState<GuestType | null>(null);
   const [isTabsDrawerOpen, setIsTabsDrawerOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedGuestForGift, setSelectedGuestForGift] =
@@ -633,7 +634,14 @@ export default function EventDetailPage({
             onSearchChange={setSearchQuery}
             filteredGuests={filteredGuests}
             isGuestDrawerOpen={isGuestDrawerOpen}
-            onGuestDrawerOpenChange={setIsGuestDrawerOpen}
+            onGuestDrawerOpenChange={(open) => {
+              setIsGuestDrawerOpen(open)
+              if (!open) {
+                setEditingGuest(null)
+              }
+            }}
+            editingGuest={editingGuest}
+            onEditingGuestChange={setEditingGuest}
             selectedGuestForGift={selectedGuestForGift}
             onSelectedGuestForGiftChange={(guest) =>
               setSelectedGuestForGift(guest)

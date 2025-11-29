@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { Guest } from '@/types/guest'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -29,6 +30,8 @@ interface GuestsProps {
   filteredGuests: DisplayGuest[]
   isGuestDrawerOpen: boolean
   onGuestDrawerOpenChange: (open: boolean) => void
+  editingGuest?: Guest | null
+  onEditingGuestChange?: (guest: Guest | null) => void
   selectedGuestForGift: DisplayGuest | null
   onSelectedGuestForGiftChange: (guest: DisplayGuest | null) => void
   selectedGuestForView: DisplayGuest | null
@@ -57,6 +60,8 @@ export default function Guests({
   filteredGuests,
   isGuestDrawerOpen,
   onGuestDrawerOpenChange,
+  editingGuest,
+  onEditingGuestChange,
   selectedGuestForGift,
   onSelectedGuestForGiftChange,
   selectedGuestForView,
@@ -211,7 +216,19 @@ export default function Guests({
                   <DropdownMenuItem 
                     onClick={(e) => {
                       e.stopPropagation()
-                      router.push(`/dashboard/events/${eventId}/guests/${guest.id}/edit`)
+                      // Find the full guest object from displayGuests
+                      const fullGuest = displayGuests.find(g => g.id === guest.id)
+                      if (fullGuest && onEditingGuestChange) {
+                        // Convert DisplayGuest to Guest type for the drawer
+                        const guestToEdit = {
+                          ...fullGuest,
+                          eventId: typeof fullGuest.eventId === 'string' 
+                            ? fullGuest.eventId 
+                            : fullGuest.eventId.id,
+                        } as Guest
+                        onEditingGuestChange(guestToEdit)
+                        onGuestDrawerOpenChange(true)
+                      }
                     }}
                   >
                     Edit
@@ -233,7 +250,7 @@ export default function Guests({
         },
       },
     ],
-    [selectedGuestForGift, selectedGuestForView, selectedGuestGift, getTagColor, eventId, router, onSelectedGuestForGiftChange, onGiftPayment, onSelectedGuestForViewChange, onDeleteGuest, deleteGuestMutation.isPending]
+    [selectedGuestForGift, selectedGuestForView, selectedGuestGift, getTagColor, onSelectedGuestForGiftChange, onGiftPayment, onSelectedGuestForViewChange, onDeleteGuest, deleteGuestMutation.isPending, displayGuests, onEditingGuestChange, onGuestDrawerOpenChange]
   )
 
   // Handle bulk delete
@@ -296,13 +313,31 @@ export default function Guests({
                 </Button>
                 <CreateGuestDrawer
                   open={isGuestDrawerOpen}
-                  onOpenChange={onGuestDrawerOpenChange}
+                  onOpenChange={(open) => {
+                    onGuestDrawerOpenChange(open)
+                    if (!open && onEditingGuestChange) {
+                      onEditingGuestChange(null)
+                    }
+                  }}
+                  guest={editingGuest || undefined}
                   onSuccess={() => {
-                    // Guest creation is handled by CreateGuestDrawer internally
+                    // Guest creation/update is handled by CreateGuestDrawer internally
                     // This callback is just for notification purposes
+                    if (onEditingGuestChange) {
+                      onEditingGuestChange(null)
+                    }
                   }}
                   trigger={
-                    <Button size="sm" className="text-xs h-9" disabled={createGuestMutation.isPending}>
+                    <Button 
+                      size="sm" 
+                      className="text-xs h-9" 
+                      disabled={createGuestMutation.isPending}
+                      onClick={() => {
+                        if (onEditingGuestChange) {
+                          onEditingGuestChange(null)
+                        }
+                      }}
+                    >
                       <Plus className="h-3.5 w-3.5 mr-1 sm:mr-1.5" />
                       <span className="hidden sm:inline">{createGuestMutation.isPending ? 'Creating...' : 'បង្កើតភ្ញៀវថ្មី'}</span>
                       <span className="sm:hidden">បង្កើត</span>
@@ -343,6 +378,14 @@ export default function Guests({
         router={router}
         deleteGuestMutation={deleteGuestMutation}
         getTagColor={getTagColor}
+        onEditGuest={(guest) => {
+          if (onEditingGuestChange) {
+            onEditingGuestChange(guest)
+          }
+        }}
+        onOpenEditDrawer={() => {
+          onGuestDrawerOpenChange(true)
+        }}
       />
     </div>
   )

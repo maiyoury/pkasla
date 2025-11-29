@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
-import { X, MapPin, Loader2 } from 'lucide-react'
+import { X, MapPin, Loader2, Upload } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -23,6 +23,7 @@ import {
 } from '@/components/ui/drawer'
 import { useCreateGuest, useUpdateGuest } from '@/hooks/api/useGuest'
 import { useMyEvents } from '@/hooks/api/useEvent'
+import { api } from '@/lib/axios-client'
 import type { Guest, GuestStatus, CreateGuestDto, UpdateGuestDto } from '@/types/guest'
 import toast from 'react-hot-toast'
 
@@ -74,6 +75,13 @@ export default function GuestDrawer({
     status: 'pending',
   })
   const [showAddress, setShowAddress] = useState(false)
+  const [photoFile, setPhotoFile] = useState<File | null>(null)
+  const [photoPreview, setPhotoPreview] = useState<string | undefined>(undefined)
+  const [photoUploadState, setPhotoUploadState] = useState<{
+    isUploading: boolean
+    progress: number
+    error?: string
+  } | undefined>(undefined)
 
   // Load guest data when in edit mode
   useEffect(() => {
@@ -94,6 +102,9 @@ export default function GuestDrawer({
         photo: guest.photo || '',
         status: guest.status || 'pending',
       })
+      setPhotoPreview(guest.photo || undefined)
+      setPhotoFile(null)
+      setPhotoUploadState(undefined)
       setShowAddress(!!(guest.address || guest.province))
     } else {
       // Reset form for create mode
@@ -110,6 +121,9 @@ export default function GuestDrawer({
         photo: '',
         status: 'pending',
       })
+      setPhotoPreview(undefined)
+      setPhotoFile(null)
+      setPhotoUploadState(undefined)
       setShowAddress(false)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -119,6 +133,100 @@ export default function GuestDrawer({
     setFormData((prev) => ({ ...prev, [field]: value }))
   }
 
+  const handlePhotoUpload = async (file: File | null) => {
+    if (!file) {
+      setPhotoFile(null)
+      setPhotoPreview(undefined)
+      setPhotoUploadState(undefined)
+      setFormData((prev) => ({ ...prev, photo: '' }))
+      return
+    }
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      setPhotoUploadState({
+        isUploading: false,
+        progress: 0,
+        error: 'Please select an image file',
+      })
+      return
+    }
+
+    // Validate file size (5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      setPhotoUploadState({
+        isUploading: false,
+        progress: 0,
+        error: 'Image size must be less than 5MB',
+      })
+      return
+    }
+
+    // Create preview immediately
+    const reader = new FileReader()
+    reader.onloadend = () => {
+      setPhotoPreview(reader.result as string)
+    }
+    reader.readAsDataURL(file)
+
+    // Set file
+    setPhotoFile(file)
+
+    // Clear previous errors
+    setPhotoUploadState({
+      isUploading: true,
+      progress: 0,
+    })
+
+    // Upload file to server
+    try {
+      const uploadFormData = new FormData()
+      uploadFormData.append('file', file)
+      uploadFormData.append('folder', 'guests')
+
+      const response = await api.upload<{
+        id: string
+        url: string
+        key: string
+        provider: string
+        filename: string
+        mimetype: string
+        size: number
+        folder: string
+        createdAt: string
+      }>(
+        '/upload/single',
+        uploadFormData,
+        (progress) => {
+          setPhotoUploadState({
+            isUploading: true,
+            progress,
+          })
+        }
+      )
+
+      if (response.success && response.data) {
+        setFormData((prev) => ({ ...prev, photo: response.data!.url }))
+        setPhotoUploadState({
+          isUploading: false,
+          progress: 100,
+        })
+      } else {
+        throw new Error(response.error || 'Failed to upload image')
+      }
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to upload image'
+      setPhotoUploadState({
+        isUploading: false,
+        progress: 0,
+        error: errorMessage,
+      })
+      setPhotoFile(null)
+      setPhotoPreview(undefined)
+      setFormData((prev) => ({ ...prev, photo: '' }))
+    }
+  }
+
   const handleSave = async () => {
     if (!formData.name) {
       toast.error('Name is required')
@@ -126,6 +234,12 @@ export default function GuestDrawer({
     }
     if (!formData.eventId) {
       toast.error('Event is required')
+      return
+    }
+
+    // Check if photo is still uploading
+    if (photoUploadState?.isUploading) {
+      toast.error('Please wait for photo upload to complete')
       return
     }
 
@@ -307,18 +421,18 @@ export default function GuestDrawer({
               />
             </div>
 
-            {/* Photo URL */}
+            {/* Photo Upload */}
             <div>
-              <Label htmlFor="photo" className="text-sm font-semibold text-black mb-2 block">
-                រូបភាព (URL)
+              <Label className="text-sm font-semibold text-black mb-2 block">
+                រូបភាព <span className="text-xs font-normal text-gray-600">*(មិនចាំបាច់)</span>
               </Label>
-              <Input
-                id="photo"
-                type="url"
-                value={formData.photo}
-                onChange={(e) => handleInputChange('photo', e.target.value)}
-                placeholder="https://example.com/photo.jpg"
-                className="h-10"
+              <GuestPhotoUpload
+                file={photoFile}
+                preview={photoPreview}
+                onFileChange={handlePhotoUpload}
+                accept="image/png,image/jpeg,image/jpg,image/gif,image/webp"
+                uploadState={photoUploadState}
+                fieldName="photo"
                 disabled={isLoading}
               />
             </div>
@@ -447,6 +561,154 @@ export default function GuestDrawer({
         </div>
       </DrawerContent>
     </Drawer>
+  )
+}
+
+// Guest Photo Upload Component
+function GuestPhotoUpload({
+  file,
+  preview,
+  onFileChange,
+  accept,
+  uploadState,
+  fieldName,
+  disabled,
+}: {
+  file: File | null
+  preview?: string
+  onFileChange: (file: File | null) => void
+  accept: string
+  uploadState?: { isUploading: boolean; progress: number; error?: string }
+  fieldName: string
+  disabled?: boolean
+}) {
+  const [isDragging, setIsDragging] = useState(false)
+  const [objectUrl, setObjectUrl] = useState<string | null>(null)
+
+  // Clean up object URL on unmount or when file changes
+  React.useEffect(() => {
+    if (file && !preview) {
+      const url = URL.createObjectURL(file)
+      setObjectUrl(url)
+      return () => {
+        URL.revokeObjectURL(url)
+      }
+    } else {
+      if (objectUrl) {
+        URL.revokeObjectURL(objectUrl)
+        setObjectUrl(null)
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [file, preview])
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault()
+    setIsDragging(true)
+  }
+
+  const handleDragLeave = () => {
+    setIsDragging(false)
+  }
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault()
+    setIsDragging(false)
+    const droppedFile = e.dataTransfer.files[0]
+    if (droppedFile && droppedFile.type.startsWith('image/')) {
+      onFileChange(droppedFile)
+    }
+  }
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFile = e.target.files?.[0]
+    if (selectedFile) {
+      onFileChange(selectedFile)
+    }
+    e.target.value = ''
+  }
+
+  const displayImage = preview || objectUrl
+
+  return (
+    <div
+      className={`border-2 border-dashed rounded-lg p-4 text-center transition-colors ${
+        isDragging ? 'border-red-500 bg-red-50' : 'border-gray-300 bg-gray-50'
+      } ${uploadState?.error ? 'border-red-500' : ''} ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+      onDragOver={handleDragOver}
+      onDragLeave={handleDragLeave}
+      onDrop={handleDrop}
+    >
+      <input
+        type="file"
+        id={`file-${fieldName}`}
+        accept={accept}
+        onChange={handleFileSelect}
+        className="hidden"
+        disabled={uploadState?.isUploading || disabled}
+      />
+      {displayImage ? (
+        <div className="space-y-3">
+          <div className="relative">
+            <img
+              src={displayImage}
+              alt="Photo preview"
+              className="w-full h-32 object-cover rounded-lg"
+            />
+            {uploadState?.isUploading && (
+              <div className="absolute inset-0 bg-black/50 rounded-lg flex items-center justify-center">
+                <div className="text-center">
+                  <Loader2 className="h-6 w-6 animate-spin text-white mx-auto mb-2" />
+                  <p className="text-xs text-white">{uploadState.progress}%</p>
+                </div>
+              </div>
+            )}
+          </div>
+          <div className="flex items-center justify-between">
+            <div className="flex-1 min-w-0">
+              <p className="text-sm text-gray-700 truncate">{file?.name || 'Uploaded'}</p>
+              {uploadState?.error && (
+                <p className="text-xs text-red-600 mt-1">{uploadState.error}</p>
+              )}
+              {uploadState?.isUploading && (
+                <div className="w-full bg-gray-200 rounded-full h-1.5 mt-2">
+                  <div
+                    className="bg-red-500 h-1.5 rounded-full transition-all"
+                    style={{ width: `${uploadState.progress}%` }}
+                  />
+                </div>
+              )}
+            </div>
+            {!uploadState?.isUploading && !disabled && (
+              <button
+                type="button"
+                onClick={() => onFileChange(null)}
+                className="text-red-500 hover:text-red-600 ml-2"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            )}
+          </div>
+          {!uploadState?.isUploading && !disabled && (
+            <label
+              htmlFor={`file-${fieldName}`}
+              className="text-xs text-red-500 cursor-pointer hover:underline block"
+            >
+              Click to change
+            </label>
+          )}
+        </div>
+      ) : (
+        <label htmlFor={`file-${fieldName}`} className={`cursor-pointer ${disabled ? 'pointer-events-none' : ''}`}>
+          <Upload className="h-8 w-8 text-gray-400 mx-auto mb-2" />
+          <p className="text-sm text-red-500 font-medium mb-1">Click to upload or drag and drop</p>
+          <p className="text-xs text-gray-500">PNG, JPG, GIF, WEBP up to 5MB</p>
+          {uploadState?.error && (
+            <p className="text-xs text-red-600 mt-1">{uploadState.error}</p>
+          )}
+        </label>
+      )}
+    </div>
   )
 }
 
