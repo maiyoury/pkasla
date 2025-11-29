@@ -4,12 +4,9 @@ import React, { useMemo, useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
-import { Calendar as CalendarComponent } from '@/components/ui/calendar'
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Calendar as CalendarIcon, Clock, Edit, Trash2, Save, Plus } from 'lucide-react'
+import { DatePicker, TimePicker } from '@/components/pickers'
+import { Clock, Edit, Trash2, Save, Plus } from 'lucide-react'
 import { format } from 'date-fns'
-import { cn } from '@/lib/utils'
 
 type ScheduleItem = {
   id: string
@@ -203,64 +200,23 @@ export default function Schedules() {
         {/* Create / Edit form */}
         <div className="rounded-lg border border-gray-200">
           <div className="p-4 space-y-3">
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               {/* Date Picker */}
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className={cn(
-                      "w-full justify-start text-left font-normal text-sm",
-                      !selectedDate && "text-muted-foreground"
-                    )}
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {selectedDate ? (
-                      format(selectedDate, "dd/MM/yyyy")
-                    ) : (
-                      <span>ជ្រើសរើសកាលបរិច្ឆេទ</span>
-                    )}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <CalendarComponent
-                    date={selectedDate}
-                    onDateChange={setSelectedDate}
-                  />
-                </PopoverContent>
-              </Popover>
+              <DatePicker
+                date={selectedDate}
+                onDateChange={setSelectedDate}
+                placeholder="ជ្រើសរើសកាលបរិច្ឆេទ"
+              />
 
               {/* Time Picker */}
-              <div className="flex items-center gap-1">
-                <Clock className="h-4 w-4 text-gray-500 shrink-0" />
-                <div className="flex items-center gap-1 flex-1">
-                  <Select value={selectedHour} onValueChange={setSelectedHour}>
-                    <SelectTrigger className="flex-1 text-sm h-9">
-                      <SelectValue placeholder="ម៉ោង" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {Array.from({ length: 24 }, (_, i) => (
-                        <SelectItem key={i} value={String(i)}>
-                          {String(i).padStart(2, '0')}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <span className="text-gray-500">:</span>
-                  <Select value={selectedMinute} onValueChange={setSelectedMinute}>
-                    <SelectTrigger className="flex-1 text-sm h-9">
-                      <SelectValue placeholder="នាទី" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {Array.from({ length: 60 }, (_, i) => (
-                        <SelectItem key={i} value={String(i)}>
-                          {String(i).padStart(2, '0')}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
+              <TimePicker
+                hour={selectedHour}
+                minute={selectedMinute}
+                onHourChange={setSelectedHour}
+                onMinuteChange={setSelectedMinute}
+                hourPlaceholder="ម៉ោង"
+                minutePlaceholder="នាទី"
+              />
             </div>
 
             <div>
