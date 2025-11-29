@@ -18,7 +18,7 @@ export const createApp = () => {
   // Configure CORS first
   const corsOptions = {
     credentials: true,
-    origin: process.env.CORS_ORIGIN || true,
+    origin: env.cors.origin || (env.isDevelopment ? true : false),
     exposedHeaders: ['Content-Type', 'Content-Length'],
   };
   app.use(cors(corsOptions));
@@ -43,7 +43,8 @@ export const createApp = () => {
     app.use('/uploads', (req, res, next) => {
       // Set CORS headers for static files
       const origin = req.headers.origin;
-      if (origin && (process.env.CORS_ORIGIN === '*' || process.env.CORS_ORIGIN?.includes(origin) || !process.env.CORS_ORIGIN)) {
+      const corsOrigin = env.cors.origin;
+      if (origin && (corsOrigin === '*' || corsOrigin?.includes(origin) || (!corsOrigin && env.isDevelopment))) {
         res.setHeader('Access-Control-Allow-Origin', origin);
         res.setHeader('Access-Control-Allow-Credentials', 'true');
       }

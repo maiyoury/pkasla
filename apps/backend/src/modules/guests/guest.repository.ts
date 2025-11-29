@@ -1,4 +1,5 @@
 import type { FilterQuery, UpdateQuery } from 'mongoose';
+import type { DeleteResult } from 'mongodb';
 import { GuestModel, type GuestDocument } from './guest.model';
 
 export class GuestRepository {
@@ -54,7 +55,7 @@ export class GuestRepository {
     return GuestModel.findByIdAndDelete(id);
   }
 
-  deleteByEventId(eventId: string) {
+  deleteByEventId(eventId: string): Promise<DeleteResult> {
     return GuestModel.deleteMany({ eventId });
   }
 

@@ -1,9 +1,38 @@
 import dotenv from 'dotenv';
+import fs from 'fs';
 import path from 'path';
 import { z } from 'zod';
 
-const envFile = process.env.ENV_FILE ?? path.resolve(process.cwd(), '.env');
+// Determine NODE_ENV first (before loading env files)
+const nodeEnv = process.env.NODE_ENV || 'development';
+
+// Load environment-specific .env file
+// Priority: ENV_FILE > .env.{NODE_ENV} > .env
+const cwd = process.cwd();
+let envFile = process.env.ENV_FILE;
+
+if (!envFile) {
+  const envSpecificFile = path.resolve(cwd, `.env.${nodeEnv}`);
+  const defaultFile = path.resolve(cwd, '.env');
+  
+  // Try to load environment-specific file first, fallback to .env
+  try {
+    if (fs.existsSync(envSpecificFile)) {
+      envFile = envSpecificFile;
+    } else {
+      envFile = defaultFile;
+    }
+  } catch {
+    envFile = defaultFile;
+  }
+}
+
+// Load the determined .env file
 dotenv.config({ path: envFile });
+
+// Also load .env.local if it exists (for local overrides, should be in .gitignore)
+const localEnvFile = path.resolve(cwd, '.env.local');
+dotenv.config({ path: localEnvFile, override: false });
 
 const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
@@ -65,6 +94,11 @@ const envSchema = z.object({
   BAKONG_MERCHANT_ACCOUNT_ID: z.string().optional(),
   BAKONG_WEBHOOK_SECRET: z.string().optional(),
   BAKONG_ENVIRONMENT: z.enum(['sit', 'production']).default('sit'),
+  // API Configuration
+  API_BASE_URL: z.string().url().optional(),
+  API_URL: z.string().url().optional(), // Alias for API_BASE_URL
+  // CORS Configuration
+  CORS_ORIGIN: z.string().optional(), // Comma-separated list of allowed origins, or '*' for all, or leave empty for same-origin
 });
 
 const parsedEnv = envSchema.safeParse(process.env);
@@ -127,6 +161,16 @@ export const env = {
         environment: parsedEnv.data.BAKONG_ENVIRONMENT,
       }
     : undefined,
+  api: {
+    baseUrl: parsedEnv.data.API_BASE_URL || parsedEnv.data.API_URL || 
+      (parsedEnv.data.NODE_ENV === 'production' 
+        ? `https://api.yourdomain.com` 
+        : `http://localhost:${parsedEnv.data.PORT || 4000}`),
+  },
+  cors: {
+    origin: parsedEnv.data.CORS_ORIGIN,
+  },
   isProduction: parsedEnv.data.NODE_ENV === 'production',
+  isDevelopment: parsedEnv.data.NODE_ENV === 'development',
 } as const;
 
