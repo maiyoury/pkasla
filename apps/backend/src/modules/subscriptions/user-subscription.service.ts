@@ -5,6 +5,7 @@ import { userSubscriptionRepository } from './user-subscription.repository';
 import { subscriptionPlanRepository } from './subscription-plan.repository';
 import type { UserSubscriptionDocument } from './user-subscription.model';
 import type { SubscriptionPlanResponse } from './subscription-plan.service';
+import { revenueService } from '@/modules/analytics/revenue.service';
 
 export interface CreateUserSubscriptionInput {
   userId: string;
@@ -85,6 +86,10 @@ class UserSubscriptionService {
     if (!safeSubscription) {
       throw new AppError('Unable to create subscription', httpStatus.INTERNAL_SERVER_ERROR);
     }
+
+    // Invalidate revenue cache when a subscription is created
+    await revenueService.invalidateCache();
+
     return safeSubscription;
   }
 
@@ -132,6 +137,10 @@ class UserSubscriptionService {
     if (!safeSubscription) {
       throw new AppError('Unable to cancel subscription', httpStatus.INTERNAL_SERVER_ERROR);
     }
+
+    // Invalidate revenue cache when a subscription is cancelled
+    await revenueService.invalidateCache();
+
     return safeSubscription;
   }
 

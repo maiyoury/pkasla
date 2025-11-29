@@ -5,6 +5,8 @@ import { authorize } from '@/common/middlewares/authorize';
 import {
   getDashboardHandler,
   getUserMetricsHandler,
+  getRevenueStatsHandler,
+  getAnalyticsDashboardHandler,
   listUsersHandler,
   updateUserStatusHandler,
   updateUserRoleHandler,
@@ -32,6 +34,14 @@ router
 router
   .route('/analytics/users')
   .get(getUserMetricsHandler);
+
+router
+  .route('/analytics/revenue/stats')
+  .get(getRevenueStatsHandler);
+
+router
+  .route('/analytics/dashboard')
+  .get(getAnalyticsDashboardHandler);
 
 // User Management
 router

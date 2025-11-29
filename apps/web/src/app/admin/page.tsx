@@ -1,12 +1,18 @@
 'use client'
 
 import React, { useMemo } from 'react'
-import Link from 'next/link'
-import { Users, Settings, MessageSquare, ShoppingCart, UserCheck, Loader2 } from 'lucide-react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, PieChart, Pie, Cell, BarChart, Bar, Tooltip, ResponsiveContainer } from 'recharts'
+import { Users, MessageSquare, ShoppingCart, UserCheck } from 'lucide-react'
+import { Card, CardContent } from '@/components/ui/card'
 import { useDashboardMetrics, useUserMetrics } from '@/hooks/api/useAdmin'
+import {
+  DashboardHeader,
+  DashboardKPICards,
+  UserGrowthChart,
+  UserRolesRadarChart,
+  UserStatusDonutChart,
+  UsersByRoleBarChart,
+  QuickActionsCards,
+} from '@/components/admin/dashboard'
 
 export default function AdminPage() {
   const { data: dashboardMetrics, isLoading: isLoadingDashboard, error: dashboardError } = useDashboardMetrics()
@@ -124,314 +130,20 @@ export default function AdminPage() {
   }
 
   return (
-    <div>
-      <div className="mb-6 md:mb-8">
-        <h1 className="text-xl md:text-2xl font-semibold text-black">Dashboard</h1>
-        <p className="text-xs text-gray-600 mt-1">Overview of system statistics and management</p>
+    <div className="space-y-6">
+      <DashboardHeader />
+
+      <DashboardKPICards kpiData={kpiData} isLoading={isLoading} />
+
+      <UserGrowthChart data={lineChartData} isLoading={isLoading} />
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <UserRolesRadarChart data={radarData} isLoading={isLoading} />
+        <UserStatusDonutChart data={donutData} isLoading={isLoading} />
+        <UsersByRoleBarChart data={barChartData} isLoading={isLoading} />
       </div>
 
-      {/* KPI Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 mb-4 md:mb-6">
-        {isLoading ? (
-          Array.from({ length: 4 }).map((_, index) => (
-            <Card key={index} className="border border-gray-200">
-              <CardContent className="p-3 md:p-4">
-                <div className="flex items-center justify-center h-16">
-                  <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
-                </div>
-              </CardContent>
-            </Card>
-          ))
-        ) : (
-          kpiData.map((kpi, index) => {
-            const Icon = kpi.icon
-            return (
-              <Card key={index} className="border border-gray-200">
-                <CardContent className="p-3 md:p-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex-1 min-w-0">
-                      <p className="text-xs text-gray-600 mb-1 truncate">{kpi.label}</p>
-                      <p className="text-base md:text-lg font-semibold text-black truncate">{kpi.value}</p>
-                    </div>
-                    <Icon className={`h-6 w-6 md:h-8 md:w-8 shrink-0 ml-2 ${kpi.color}`} />
-                  </div>
-                </CardContent>
-              </Card>
-            )
-          })
-        )}
-      </div>
-
-      {/* Main Line Chart */}
-      <Card className="mb-4 md:mb-6 border border-gray-200">
-        <CardHeader className="pb-3">
-          <CardTitle className="text-sm font-semibold text-black">User Growth Trend</CardTitle>
-        </CardHeader>
-        <CardContent className="p-3 md:p-6">
-          <div className="h-[250px] md:h-[300px] w-full">
-            {isLoading ? (
-              <div className="flex items-center justify-center h-full">
-                <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
-              </div>
-            ) : lineChartData.length > 0 ? (
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={lineChartData} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
-                  <CartesianGrid strokeDasharray="3 3" className="stroke-gray-200" />
-                  <XAxis 
-                    dataKey="day" 
-                    tickLine={false}
-                    axisLine={false}
-                    tickMargin={8}
-                    tick={{ fontSize: 10 }}
-                    className="text-xs"
-                  />
-                  <YAxis 
-                    tickLine={false}
-                    axisLine={false}
-                    tickMargin={8}
-                    tick={{ fontSize: 10 }}
-                    className="text-xs"
-                    width={40}
-                  />
-                  <Tooltip />
-                  <Line 
-                    type="monotone" 
-                    dataKey="expected" 
-                    stroke="hsl(var(--chart-1))" 
-                    strokeWidth={2}
-                    dot={{ r: 3 }}
-                    name="Expected"
-                  />
-                  <Line 
-                    type="monotone" 
-                    dataKey="actual" 
-                    stroke="hsl(var(--chart-2))" 
-                    strokeWidth={2}
-                    dot={{ r: 3 }}
-                    name="Actual"
-                  />
-                </LineChart>
-              </ResponsiveContainer>
-            ) : (
-              <div className="flex items-center justify-center h-full text-gray-400 text-sm">
-                No data available
-              </div>
-            )}
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Bottom Charts Row */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
-        {/* Radar Chart */}
-        <Card className="border border-gray-200">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-semibold text-black">User Roles Overview</CardTitle>
-          </CardHeader>
-          <CardContent className="p-3 md:p-6">
-            <div className="h-[200px] md:h-[250px] w-full">
-              {isLoading ? (
-                <div className="flex items-center justify-center h-full">
-                  <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
-                </div>
-              ) : radarData.length > 0 ? (
-                <ResponsiveContainer width="100%" height="100%">
-                  <RadarChart data={radarData} margin={{ top: 10, right: 10, bottom: 10, left: 10 }}>
-                    <PolarGrid className="stroke-gray-200" />
-                    <PolarAngleAxis 
-                      dataKey="subject" 
-                      tick={{ fontSize: 9 }}
-                      className="text-xs"
-                    />
-                    <PolarRadiusAxis 
-                      angle={90} 
-                      domain={[0, 150]}
-                      tick={{ fontSize: 9 }}
-                      className="text-xs"
-                    />
-                    <Radar 
-                      name="Current" 
-                      dataKey="A" 
-                      stroke="hsl(var(--chart-1))" 
-                      fill="hsl(var(--chart-1))" 
-                      fillOpacity={0.6}
-                    />
-                    <Radar 
-                      name="Target" 
-                      dataKey="B" 
-                      stroke="hsl(var(--chart-2))" 
-                      fill="hsl(var(--chart-2))" 
-                      fillOpacity={0.6}
-                    />
-                    <Tooltip />
-                  </RadarChart>
-                </ResponsiveContainer>
-              ) : (
-                <div className="flex items-center justify-center h-full text-gray-400 text-sm">
-                  No data available
-                </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Donut Chart */}
-        <Card className="border border-gray-200">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-semibold text-black">User Status Distribution</CardTitle>
-          </CardHeader>
-          <CardContent className="p-3 md:p-6">
-            <div className="h-[200px] md:h-[250px] w-full">
-              {isLoading ? (
-                <div className="flex items-center justify-center h-full">
-                  <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
-                </div>
-              ) : donutData.length > 0 ? (
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={donutData}
-                      cx="50%"
-                      cy="50%"
-                      innerRadius={40}
-                      outerRadius={70}
-                      paddingAngle={2}
-                      dataKey="value"
-                    >
-                      {donutData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.color} />
-                      ))}
-                    </Pie>
-                    <Tooltip />
-                  </PieChart>
-                </ResponsiveContainer>
-              ) : (
-                <div className="flex items-center justify-center h-full text-gray-400 text-sm">
-                  No data available
-                </div>
-              )}
-            </div>
-            {donutData.length > 0 && (
-              <div className="flex flex-wrap justify-center gap-2 md:gap-4 mt-3 md:mt-4">
-                {donutData.map((item, index) => (
-                  <div key={index} className="flex items-center gap-1.5 md:gap-2">
-                    <div 
-                      className="w-2.5 h-2.5 md:w-3 md:h-3 rounded-full shrink-0" 
-                      style={{ backgroundColor: item.color }}
-                    />
-                    <span className="text-xs text-gray-600">{item.name}</span>
-                  </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Bar Chart */}
-        <Card className="border border-gray-200 md:col-span-2 lg:col-span-1">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-semibold text-black">Users by Role</CardTitle>
-          </CardHeader>
-          <CardContent className="p-3 md:p-6">
-            <div className="h-[200px] md:h-[250px] w-full">
-              {isLoading ? (
-                <div className="flex items-center justify-center h-full">
-                  <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
-                </div>
-              ) : barChartData.length > 0 ? (
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={barChartData} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
-                    <CartesianGrid strokeDasharray="3 3" className="stroke-gray-200" />
-                    <XAxis 
-                      dataKey="name" 
-                      tickLine={false}
-                      axisLine={false}
-                      tickMargin={8}
-                      tick={{ fontSize: 10 }}
-                      className="text-xs"
-                    />
-                    <YAxis 
-                      tickLine={false}
-                      axisLine={false}
-                      tickMargin={8}
-                      tick={{ fontSize: 10 }}
-                      className="text-xs"
-                      width={40}
-                    />
-                    <Tooltip />
-                    <Bar 
-                      dataKey="value" 
-                      fill="hsl(var(--chart-1))" 
-                      radius={[4, 4, 0, 0]}
-                    />
-                  </BarChart>
-                </ResponsiveContainer>
-              ) : (
-                <div className="flex items-center justify-center h-full text-gray-400 text-sm">
-                  No data available
-                </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Management Cards */}
-      <div className="mt-4 md:mt-6">
-        <h2 className="text-base md:text-lg font-semibold text-black mb-3 md:mb-4">Quick Actions</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
-          <Card className="border border-gray-200">
-            <CardHeader className="pb-3">
-              <div className="flex items-center gap-2 mb-2">
-                <Users className="h-4 w-4 text-black" />
-                <CardTitle className="text-sm font-semibold text-black">User Management</CardTitle>
-              </div>
-              <CardDescription className="text-xs">View and manage all users</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Link href="/admin/users">
-                <Button variant="outline" className="w-full text-xs h-8" size="sm">
-                  Manage Users
-                </Button>
-              </Link>
-            </CardContent>
-          </Card>
-
-          <Card className="border border-gray-200">
-            <CardHeader className="pb-3">
-              <div className="flex items-center gap-2 mb-2">
-                <UserCheck className="h-4 w-4 text-black" />
-                <CardTitle className="text-sm font-semibold text-black">User Subscriptions</CardTitle>
-              </div>
-              <CardDescription className="text-xs">Manage user subscriptions and plans</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Link href="/admin/user_subscrip">
-                <Button variant="outline" className="w-full text-xs h-8" size="sm">
-                  View Subscriptions
-                </Button>
-              </Link>
-            </CardContent>
-          </Card>
-
-          <Card className="border border-gray-200">
-            <CardHeader className="pb-3">
-              <div className="flex items-center gap-2 mb-2">
-                <Settings className="h-4 w-4 text-black" />
-                <CardTitle className="text-sm font-semibold text-black">System Settings</CardTitle>
-              </div>
-              <CardDescription className="text-xs">Configure system settings</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Link href="/admin/settings">
-                <Button variant="outline" className="w-full text-xs h-8" size="sm">
-                  Settings
-                </Button>
-              </Link>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
+      <QuickActionsCards />
     </div>
   )
 }

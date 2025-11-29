@@ -5,6 +5,7 @@ import { UserDocument } from '@/modules/users/user.model';
 import { sanitizeUser } from '@/modules/users/user.service';
 import { cacheService } from '@/common/services/cache.service';
 import { clearSettingsCache } from '@/modules/settings/settings.utils';
+import { analyticsService } from './analytics.service';
 
 class AdminService {
  
@@ -15,7 +16,12 @@ class AdminService {
       throw new AppError('User not found', httpStatus.NOT_FOUND);
     }
 
-    return userRepository.updateById(userId, { status });
+    const result = await userRepository.updateById(userId, { status });
+    
+    // Invalidate analytics cache when user status changes
+    await analyticsService.invalidateCache();
+    
+    return result;
   }
 
   async updateUserRole(userId: string, role: 'admin' | 'recruiter' | 'candidate') {
@@ -24,7 +30,12 @@ class AdminService {
       throw new AppError('User not found', httpStatus.NOT_FOUND);
     }
 
-    return userRepository.updateById(userId, { role });
+    const result = await userRepository.updateById(userId, { role });
+    
+    // Invalidate analytics cache when user role changes
+    await analyticsService.invalidateCache();
+    
+    return result;
   }
 
   async listUsers(page: number = 1, limit: number = 20, filters?: {

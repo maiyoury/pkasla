@@ -1,4 +1,17 @@
 import { UserModel } from '@/modules/users/user.model';
+import { cacheService } from '@/common/services/cache.service';
+
+// Cache keys
+const CACHE_KEYS = {
+  SITE_METRICS: 'analytics:site-metrics',
+  USER_METRICS: 'analytics:user-metrics',
+} as const;
+
+// Cache TTLs in seconds
+const CACHE_TTL = {
+  SITE_METRICS: 300, // 5 minutes
+  USER_METRICS: 300, // 5 minutes
+} as const;
 
 export interface SiteMetrics {
   totalUsers: number;
@@ -40,82 +53,100 @@ export interface ApplicationMetrics {
 
 class AnalyticsService {
   async getSiteMetrics(): Promise<SiteMetrics> {
-    const [
-      totalUsers,
-      activeUsers,
-    ] = await Promise.all([
-      UserModel.countDocuments(),
-      UserModel.countDocuments({ status: 'active' }),
-      UserModel.countDocuments({ role: 'candidate' }),
-      UserModel.countDocuments({ role: 'recruiter' }),
-      UserModel.countDocuments({ role: 'recruiter', companyApprovalStatus: 'pending' }),
-    ]);
+    return cacheService.getOrSet(
+      CACHE_KEYS.SITE_METRICS,
+      async () => {
+        const [
+          totalUsers,
+          activeUsers,
+        ] = await Promise.all([
+          UserModel.countDocuments(),
+          UserModel.countDocuments({ status: 'active' }),
+        ]);
 
-
-    return {
-      totalUsers,
-      activeUsers,
-      activeUsersCount: activeUsers,
-    };
+        return {
+          totalUsers,
+          activeUsers,
+          activeUsersCount: activeUsers,
+        };
+      },
+      CACHE_TTL.SITE_METRICS,
+    );
   }
 
 
   async getUserMetrics(): Promise<UserMetrics> {
-    const [
-      total,
-      active,
-      pending,
-      suspended,
-      byRole,
-      companyApprovals,
-    ] = await Promise.all([
-      UserModel.countDocuments(),
-      UserModel.countDocuments({ status: 'active' }),
-      UserModel.countDocuments({ status: 'pending' }),
-      UserModel.countDocuments({ status: 'suspended' }),
-      UserModel.aggregate([
-        {
-          $group: {
-            _id: '$role',
-            count: { $sum: 1 },
+    return cacheService.getOrSet(
+      CACHE_KEYS.USER_METRICS,
+      async () => {
+        const [
+          total,
+          active,
+          pending,
+          suspended,
+          byRole,
+          companyApprovals,
+        ] = await Promise.all([
+          UserModel.countDocuments(),
+          UserModel.countDocuments({ status: 'active' }),
+          UserModel.countDocuments({ status: 'pending' }),
+          UserModel.countDocuments({ status: 'suspended' }),
+          UserModel.aggregate([
+            {
+              $group: {
+                _id: '$role',
+                count: { $sum: 1 },
+              },
+            },
+          ]),
+          UserModel.aggregate([
+            {
+              $match: { role: 'recruiter' },
+            },
+            {
+              $group: {
+                _id: '$companyApprovalStatus',
+                count: { $sum: 1 },
+              },
+            },
+          ]),
+        ]);
+
+        const roleMap: Record<string, number> = {};
+        byRole.forEach((item: any) => {
+          roleMap[item._id] = item.count;
+        });
+
+        const approvalMap: Record<string, number> = {};
+        companyApprovals.forEach((item: any) => {
+          approvalMap[item._id || 'pending'] = item.count;
+        });
+
+        return {
+          total,
+          active,
+          pending,
+          suspended,
+          byRole: roleMap,
+          companyApprovals: {
+            pending: approvalMap.pending || 0,
+            approved: approvalMap.approved || 0,
+            rejected: approvalMap.rejected || 0,
           },
-        },
-      ]),
-      UserModel.aggregate([
-        {
-          $match: { role: 'recruiter' },
-        },
-        {
-          $group: {
-            _id: '$companyApprovalStatus',
-            count: { $sum: 1 },
-          },
-        },
-      ]),
-    ]);
-
-    const roleMap: Record<string, number> = {};
-    byRole.forEach((item: any) => {
-      roleMap[item._id] = item.count;
-    });
-
-    const approvalMap: Record<string, number> = {};
-    companyApprovals.forEach((item: any) => {
-      approvalMap[item._id || 'pending'] = item.count;
-    });
-
-    return {
-      total,
-      active,
-      pending,
-      suspended,
-      byRole: roleMap,
-      companyApprovals: {
-        pending: approvalMap.pending || 0,
-        approved: approvalMap.approved || 0,
-        rejected: approvalMap.rejected || 0,
+        };
       },
-    };
+      CACHE_TTL.USER_METRICS,
+    );
+  }
+
+  /**
+   * Invalidate analytics cache
+   */
+  async invalidateCache(): Promise<void> {
+    await Promise.all([
+      cacheService.del(CACHE_KEYS.SITE_METRICS),
+      cacheService.del(CACHE_KEYS.USER_METRICS),
+    ]);
   }
 }
 

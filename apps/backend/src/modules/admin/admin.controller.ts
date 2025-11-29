@@ -4,6 +4,7 @@ import { buildSuccessResponse } from '@/helpers/http-response';
 import { asyncHandler } from '@/utils/async-handler';
 import { adminService } from './admin.service';
 import { analyticsService } from './analytics.service';
+import { revenueService } from '@/modules/analytics/revenue.service';
 
 // Dashboard & Analytics
 export const getDashboardHandler = asyncHandler(async (req: Request, res: Response) => {
@@ -14,6 +15,27 @@ export const getDashboardHandler = asyncHandler(async (req: Request, res: Respon
 export const getUserMetricsHandler = asyncHandler(async (req: Request, res: Response) => {
   const metrics = await analyticsService.getUserMetrics();
   return res.status(httpStatus.OK).json(buildSuccessResponse(metrics));
+});
+
+export const getRevenueStatsHandler = asyncHandler(async (req: Request, res: Response) => {
+  const stats = await revenueService.getRevenueStats();
+  return res.status(httpStatus.OK).json(buildSuccessResponse(stats));
+});
+
+export const getAnalyticsDashboardHandler = asyncHandler(async (req: Request, res: Response) => {
+  const [siteMetrics, userMetrics, revenueStats] = await Promise.all([
+    analyticsService.getSiteMetrics(),
+    analyticsService.getUserMetrics(),
+    revenueService.getRevenueStats(),
+  ]);
+
+  return res.status(httpStatus.OK).json(
+    buildSuccessResponse({
+      siteMetrics,
+      userMetrics,
+      revenueStats,
+    })
+  );
 });
 
 // User Management

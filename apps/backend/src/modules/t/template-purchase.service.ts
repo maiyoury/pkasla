@@ -4,6 +4,7 @@ import { AppError } from '@/common/errors/app-error';
 import { templatePurchaseRepository } from './template-purchase.repository';
 import { templateRepository } from './template.repository';
 import type { TemplatePurchaseDocument } from './template-purchase.model';
+import { revenueService } from '@/modules/analytics/revenue.service';
 
 export interface CreateTemplatePurchaseInput {
   userId: string;
@@ -76,6 +77,10 @@ class TemplatePurchaseService {
     if (!safePurchase) {
       throw new AppError('Unable to create purchase', httpStatus.INTERNAL_SERVER_ERROR);
     }
+
+    // Invalidate revenue cache when a purchase is made
+    await revenueService.invalidateCache();
+
     return safePurchase;
   }
 
