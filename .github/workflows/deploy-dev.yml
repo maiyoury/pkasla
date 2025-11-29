@@ -1,17 +1,17 @@
-name: Deploy to Production
+name: Deploy to Development
 
 on:
   push:
-    branches: [main]
+    branches: [dev/1.0.0]
   workflow_dispatch:
 
 concurrency:
-  group: production-deploy
+  group: dev-deploy
   cancel-in-progress: false
 
 jobs:
   build:
-    name: Build Applications
+    name: Build Applications (Dev)
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -35,49 +35,35 @@ jobs:
         run: pnpm run build
         env:
           NODE_ENV: production
-          NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL }}
-
-      - name: Upload build artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: build-artifacts
-          path: |
-            apps/backend/dist
-            apps/web/.next
-          retention-days: 1
+          NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL_DEV || secrets.NEXT_PUBLIC_API_URL }}
 
   deploy:
-    name: Deploy to Server
+    name: Deploy to Dev Server
     needs: build
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Download build artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: build-artifacts
-
       - name: Deploy via SSH
         uses: appleboy/ssh-action@v1.0.0
         with:
-          host: ${{ secrets.VULTR_IP }}
+          host: ${{ secrets.VULTR_IP_DEV || secrets.VULTR_IP }}
           username: ${{ secrets.VULTR_USERNAME || 'root' }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: ${{ secrets.VULTR_SSH_PORT || '22' }}
           script: |
             set -e
             
-            echo "🚀 Starting deployment..."
+            echo "🚀 Starting development deployment..."
             
             # Navigate to project directory
-            cd ${{ secrets.VULTR_PROJECT_PATH || '/www/wwwroot/turborepo/pkasla-pro' }}
+            cd ${{ secrets.VULTR_PROJECT_PATH_DEV || '/www/wwwroot/turborepo/pkasla-pro' }}
             
             # Pull latest changes
             echo "📥 Pulling latest changes..."
             git fetch origin
-            git reset --hard origin/main
+            git reset --hard origin/dev/1.0.0
             
             # Enable corepack and install dependencies
             echo "📦 Installing dependencies..."
@@ -93,16 +79,16 @@ jobs:
             
             # Restart applications with PM2
             echo "🔄 Restarting applications..."
-            if pm2 list | grep -q "backend"; then
-              pm2 restart backend
+            if pm2 list | grep -q "backend-dev"; then
+              pm2 restart backend-dev
             else
-              pm2 start ecosystem.config.js --only backend
+              pm2 start ecosystem.config.js --only backend-dev
             fi
             
-            if pm2 list | grep -q "web"; then
-              pm2 restart web
+            if pm2 list | grep -q "web-dev"; then
+              pm2 restart web-dev
             else
-              pm2 start ecosystem.config.js --only web
+              pm2 start ecosystem.config.js --only web-dev
             fi
             
             # Save PM2 configuration
@@ -111,10 +97,5 @@ jobs:
             # Show PM2 status
             pm2 status
             
-            echo "✅ Deployment completed successfully!"
+            echo "✅ Development deployment completed successfully!"
 
-      - name: Deployment Status
-        if: failure()
-        run: |
-          echo "❌ Deployment failed!"
-          exit 1
