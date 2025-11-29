@@ -2,7 +2,7 @@
 
 import React, { useMemo } from 'react'
 import { type ColumnDef } from '@tanstack/react-table'
-import { Filter, Plus, CheckCircle2, Eye, QrCode, MoreVertical, Download } from 'lucide-react'
+import { Filter, Plus, CheckCircle2, Eye, QrCode, MoreVertical, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Card, CardContent } from '@/components/ui/card'
@@ -252,51 +252,24 @@ export default function Guests({
     [selectedGuestForGift, selectedGuestForView, getTagColor, eventId, router, onSelectedGuestForGiftChange, onGiftPayment, onSelectedGuestForViewChange, onDeleteGuest, deleteGuestMutation.isPending]
   )
 
+  // Handle bulk delete
+  const handleBulkDelete = async (selectedGuests: DisplayGuest[]) => {
+    if (selectedGuests.length === 0) return
+    if (confirm(`តើអ្នកពិតជាចង់លុប ${selectedGuests.length} ភ្ញៀវនេះមែនទេ?`)) {
+      for (const guest of selectedGuests) {
+        await onDeleteGuest(guest.id)
+      }
+    }
+  }
+
   return (
     <div className="space-y-4">
-      
-
       {/* Table */}
       <Card className="border border-gray-200 shadow-none p-0">
-      
         <CardContent className="p-4">
           {/* Title */}
-      <h2 className="text-lg font-semibold text-black text-center">តារាងភ្ញៀវកិត្តយស</h2>
-      
-      {/* Action Bar */}
-      <div className="flex items-center justify-end gap-2 sm:gap-3 flex-wrap">
-          <Button variant="outline" size="sm" className="text-xs h-9 hidden sm:flex">
-            <Filter className="h-3.5 w-3.5 mr-1.5" />
-            <span className="hidden md:inline">ស្លាក</span>
-          </Button>
-          <Button variant="outline" size="sm" className="text-xs h-9 hidden sm:flex">
-            <span className="hidden md:inline">នាំចូល</span>
-          </Button>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm" className="text-xs h-9">
-                <span className="hidden sm:inline">ទាញយក</span>
-                <Download className="h-3.5 w-3.5 sm:ml-1.5" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent>
-              <DropdownMenuItem>Excel</DropdownMenuItem>
-              <DropdownMenuItem>PDF</DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-          <CreateGuestDrawer
-            open={isGuestDrawerOpen}
-            onOpenChange={onGuestDrawerOpenChange}
-            onSave={onCreateGuest}
-            trigger={
-              <Button size="sm" className="text-xs h-9" disabled={createGuestMutation.isPending}>
-                <Plus className="h-3.5 w-3.5 mr-1 sm:mr-1.5" />
-                <span className="hidden sm:inline">{createGuestMutation.isPending ? 'Creating...' : 'បង្កើតភ្ញៀវថ្មី'}</span>
-                <span className="sm:hidden">បង្កើត</span>
-              </Button>
-            }
-          />
-        </div>
+          <h2 className="text-lg font-semibold text-black text-center mb-4">តារាងភ្ញៀវកិត្តយស</h2>
+          
           <DataTable
             columns={columns}
             data={filteredGuests}
@@ -309,12 +282,49 @@ export default function Guests({
             enablePagination={true}
             enableRowSelection={true}
             enableColumnVisibility={true}
+            enableExport={true}
+            exportOptions={{
+              filename: `guests-${eventId}`,
+              formats: ['csv', 'json'],
+            }}
+            bulkActions={[
+              {
+                label: 'លុបដែលបានជ្រើស',
+                icon: <Trash2 className="h-4 w-4" />,
+                onClick: handleBulkDelete,
+                variant: 'destructive',
+              },
+            ]}
+            renderToolbarBefore={() => (
+              <div className="flex items-center gap-2 flex-wrap">
+                <Button variant="outline" size="sm" className="text-xs h-9 hidden sm:flex">
+                  <Filter className="h-3.5 w-3.5 mr-1.5" />
+                  <span className="hidden md:inline">ស្លាក</span>
+                </Button>
+                <Button variant="outline" size="sm" className="text-xs h-9 hidden sm:flex">
+                  <span className="hidden md:inline">នាំចូល</span>
+                </Button>
+                <CreateGuestDrawer
+                  open={isGuestDrawerOpen}
+                  onOpenChange={onGuestDrawerOpenChange}
+                  onSave={onCreateGuest}
+                  trigger={
+                    <Button size="sm" className="text-xs h-9" disabled={createGuestMutation.isPending}>
+                      <Plus className="h-3.5 w-3.5 mr-1 sm:mr-1.5" />
+                      <span className="hidden sm:inline">{createGuestMutation.isPending ? 'Creating...' : 'បង្កើតភ្ញៀវថ្មី'}</span>
+                      <span className="sm:hidden">បង្កើត</span>
+                    </Button>
+                  }
+                />
+              </div>
+            )}
             pageSize={10}
             size="middle"
             scroll={{ y: 400 }}
-            showRowCount={true}
+            showRowCount={false}
             emptyMessage="មិនទាន់មានភ្ញៀវ"
           />
+          
           <div className="mt-4 pt-3 border-t border-gray-200 text-center">
             <p className="text-xs text-gray-600">សរុប {filteredGuests.length} / {displayGuests.length} នាក់</p>
           </div>

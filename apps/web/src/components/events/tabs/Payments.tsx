@@ -2,15 +2,9 @@
 
 import React, { useMemo, useState, useCallback } from 'react'
 import { type ColumnDef } from '@tanstack/react-table'
-import { Download, Edit, Trash2, User, FileText, Calendar, DollarSign, Loader2 } from 'lucide-react'
-import { Card, CardContent, CardTitle } from '@/components/ui/card'
+import { Edit, Trash2, User, FileText, Calendar, DollarSign, Loader2 } from 'lucide-react'
+import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
 import { DataTable } from '@/components/ui/data-table'
 import { useGiftsByEvent } from '@/hooks/api/useGift'
 import { useDeleteGift } from '@/hooks/api/useGift'
@@ -294,35 +288,28 @@ export default function Payments({ eventId }: PaymentsProps) {
 
       {/* Payments Table */}
       <Card className="border border-gray-200 shadow-none p-0">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-            <CardTitle className="text-lg font-semibold text-black">តារាងចំណងដៃ</CardTitle>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm" className="text-xs h-9">
-                  <Download className="h-3.5 w-3.5 mr-1.5" />
-                  ទាញយក
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem>Excel</DropdownMenuItem>
-                <DropdownMenuItem>PDF</DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-            <DataTable
-              columns={columns}
-              data={payments}
-              searchKey="guestName"
-              searchPlaceholder="ស្វែងរកចំណងដៃ..."
-              fixedHeader={true}
-              fixedColumns={1}
-              enableFiltering={true}
-              enableSorting={true}
-              enableColumnVisibility={false}
-              showRowCount={false}
-              emptyMessage="មិនទាន់មានចំណងដៃ"
-            />
+        <CardContent className="p-4">
+          {/* Title */}
+          <h2 className="text-lg font-semibold text-black text-center mb-4">តារាងចំណងដៃ</h2>
+          
+          <DataTable
+            columns={columns}
+            data={payments}
+            searchKey="guestName"
+            searchPlaceholder="ស្វែងរកចំណងដៃ..."
+            fixedHeader={true}
+            fixedColumns={1}
+            enableFiltering={true}
+            enableSorting={true}
+            enableColumnVisibility={false}
+            enableExport={true}
+            exportOptions={{
+              filename: `payments-${eventId}`,
+              formats: ['csv', 'json'],
+            }}
+            showRowCount={false}
+            emptyMessage="មិនទាន់មានចំណងដៃ"
+          />
             {payments.length > 0 && (
               <div className="mt-4 pt-3 border-t border-gray-200 text-center">
                 <p className="text-xs text-gray-600">

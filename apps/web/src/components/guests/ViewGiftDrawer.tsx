@@ -55,9 +55,13 @@ export default function ViewGiftDrawer({
   }
 
   const eventTitle =
-    typeof gift.eventId === 'string'
+    !gift.eventId
       ? 'Unknown Event'
-      : gift.eventId.title
+      : typeof gift.eventId === 'string'
+      ? 'Unknown Event'
+      : (gift.eventId && typeof gift.eventId === 'object' && 'title' in gift.eventId)
+      ? gift.eventId.title
+      : 'Unknown Event'
 
   return (
     <Drawer open={open} onOpenChange={onOpenChange} direction="right">
@@ -79,34 +83,40 @@ export default function ViewGiftDrawer({
         </DrawerHeader>
         <div className="px-4 py-6 overflow-y-auto flex-1 space-y-6">
           {/* Amount - Highlighted */}
-          <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
-            <div className="flex items-center gap-3 mb-2">
-              <DollarSign className="h-5 w-5 text-gray-600" />
-              <p className="text-xs font-semibold text-gray-600">ចំនួនទឹកប្រាក់</p>
+          {gift.amount !== undefined && gift.currency && (
+            <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+              <div className="flex items-center gap-3 mb-2">
+                <DollarSign className="h-5 w-5 text-gray-600" />
+                <p className="text-xs font-semibold text-gray-600">ចំនួនទឹកប្រាក់</p>
+              </div>
+              <p className="text-2xl font-bold text-black">
+                {formatCurrency(gift.amount, gift.currency)}
+              </p>
             </div>
-            <p className="text-2xl font-bold text-black">
-              {formatCurrency(gift.amount, gift.currency)}
-            </p>
-          </div>
+          )}
 
           {/* Payment Method */}
-          <div>
-            <div className="flex items-center gap-2 mb-2">
-              {gift.paymentMethod === 'khqr' ? (
-                <QrCode className="h-4 w-4 text-gray-600" />
-              ) : (
-                <CreditCard className="h-4 w-4 text-gray-600" />
-              )}
-              <p className="text-xs font-semibold text-black">វិធីសាស្ត្រទូទាត់</p>
+          {gift.paymentMethod && (
+            <div>
+              <div className="flex items-center gap-2 mb-2">
+                {gift.paymentMethod === 'khqr' ? (
+                  <QrCode className="h-4 w-4 text-gray-600" />
+                ) : (
+                  <CreditCard className="h-4 w-4 text-gray-600" />
+                )}
+                <p className="text-xs font-semibold text-black">វិធីសាស្ត្រទូទាត់</p>
+              </div>
+              <p className="text-sm text-gray-700">{getPaymentMethodLabel(gift.paymentMethod)}</p>
             </div>
-            <p className="text-sm text-gray-700">{getPaymentMethodLabel(gift.paymentMethod)}</p>
-          </div>
+          )}
 
           {/* Currency */}
-          <div>
-            <p className="text-xs font-semibold text-black mb-2">រូបិយប័ណ្ណ</p>
-            <p className="text-sm text-gray-700">{getCurrencyLabel(gift.currency)}</p>
-          </div>
+          {gift.currency && (
+            <div>
+              <p className="text-xs font-semibold text-black mb-2">រូបិយប័ណ្ណ</p>
+              <p className="text-sm text-gray-700">{getCurrencyLabel(gift.currency)}</p>
+            </div>
+          )}
 
           {/* Event */}
           <div>
@@ -118,10 +128,12 @@ export default function ViewGiftDrawer({
           </div>
 
           {/* Date */}
-          <div>
-            <p className="text-xs font-semibold text-black mb-2">កាលបរិច្ឆេទ</p>
-            <p className="text-sm text-gray-700">{formatDate(gift.createdAt)}</p>
-          </div>
+          {gift.createdAt && (
+            <div>
+              <p className="text-xs font-semibold text-black mb-2">កាលបរិច្ឆេទ</p>
+              <p className="text-sm text-gray-700">{formatDate(gift.createdAt)}</p>
+            </div>
+          )}
 
           {/* Note */}
           {gift.note && (

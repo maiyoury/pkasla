@@ -14,7 +14,7 @@ import {
   type VisibilityState,
   type RowSelectionState,
 } from '@tanstack/react-table'
-import { ArrowUpDown, ArrowUp, ArrowDown, Search, X, ChevronLeft, ChevronRight, Columns, Loader2 } from 'lucide-react'
+import { ArrowUpDown, ArrowUp, ArrowDown, Search, X, ChevronLeft, ChevronRight, Columns, Loader2, Download, FileText, FileSpreadsheet } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import {
@@ -29,6 +29,7 @@ import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
+  DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import {
@@ -39,6 +40,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { cn } from '@/lib/utils'
+import type { Table as TanStackTable } from '@tanstack/react-table'
 
 export type TableSize = 'small' | 'middle' | 'large'
 
@@ -55,6 +57,7 @@ export interface DataTableProps<TData, TValue> {
   enablePagination?: boolean
   enableRowSelection?: boolean
   enableColumnVisibility?: boolean
+  enableExport?: boolean
   pageSize?: number
   pageSizeOptions?: number[]
   emptyMessage?: string
@@ -64,6 +67,7 @@ export interface DataTableProps<TData, TValue> {
   className?: string
   headerClassName?: string
   bodyClassName?: string
+  tableClassName?: string
   onRowClick?: (row: TData) => void
   onRowSelectionChange?: (selectedRows: TData[]) => void
   onChange?: (pagination: any, filters: any, sorter: any, extra: any) => void
@@ -79,6 +83,28 @@ export interface DataTableProps<TData, TValue> {
     onChange?: (selectedRowKeys: string[], selectedRows: TData[]) => void
     getCheckboxProps?: (record: TData) => { disabled?: boolean }
   }
+  // Custom render props
+  renderToolbarBefore?: (table: TanStackTable<TData>) => React.ReactNode
+  renderToolbarAfter?: (table: TanStackTable<TData>) => React.ReactNode
+  renderHeader?: (table: TanStackTable<TData>) => React.ReactNode
+  renderFooter?: (table: TanStackTable<TData>) => React.ReactNode
+  renderEmpty?: () => React.ReactNode
+  renderRow?: (row: TData, index: number, table: TanStackTable<TData>) => React.ReactNode
+  // Bulk actions
+  bulkActions?: Array<{
+    label: string
+    icon?: React.ReactNode
+    onClick: (selectedRows: TData[]) => void
+    variant?: 'default' | 'destructive' | 'outline' | 'secondary' | 'ghost' | 'link'
+  }>
+  // Export options
+  exportOptions?: {
+    filename?: string
+    onExport?: (data: TData[], format: 'csv' | 'json') => void
+    formats?: ('csv' | 'json')[]
+  }
+  // Table instance access
+  tableRef?: React.RefObject<TanStackTable<TData>>
 }
 
 export function DataTable<TData, TValue>({
@@ -94,6 +120,7 @@ export function DataTable<TData, TValue>({
   enablePagination = true,
   enableRowSelection = false,
   enableColumnVisibility = true,
+  enableExport = false,
   pageSize: initialPageSize = 10,
   pageSizeOptions = [10, 20, 30, 50, 100],
   emptyMessage = 'No results found.',
@@ -103,13 +130,23 @@ export function DataTable<TData, TValue>({
   className,
   headerClassName,
   bodyClassName,
+  tableClassName,
   onRowClick,
   onRowSelectionChange,
   onChange,
-  showRowCount = true,
+  showRowCount = false,
   maxHeight,
   scroll,
   rowSelection: rowSelectionConfig,
+  renderToolbarBefore,
+  renderToolbarAfter,
+  renderHeader,
+  renderFooter,
+  renderEmpty,
+  renderRow,
+  bulkActions,
+  exportOptions,
+  tableRef,
 }: DataTableProps<TData, TValue>) {
   // Use dataSource if provided (Ant Design compatibility), otherwise use data
   const tableData = dataSource || data
@@ -310,35 +347,119 @@ export function DataTable<TData, TValue>({
 
   const filteredRowCount = table.getFilteredRowModel().rows.length
   const totalRowCount = data.length
+  const selectedRows = table.getFilteredSelectedRowModel().rows.map((row) => row.original)
+  const selectedCount = selectedRows.length
+
+  // Export functions
+  const handleExportCSV = () => {
+    const visibleColumns = table.getVisibleLeafColumns()
+    const headers = visibleColumns.map((col) => col.id || col.columnDef.id || '')
+    const rows = table.getFilteredRowModel().rows.map((row) =>
+      visibleColumns.map((col) => {
+        const cell = row.getValue(col.id || '')
+        return cell != null ? String(cell).replace(/"/g, '""') : ''
+      })
+    )
+
+    const csvContent = [
+      headers.map((h) => `"${h}"`).join(','),
+      ...rows.map((row) => row.map((cell) => `"${cell}"`).join(',')),
+    ].join('\n')
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+    const link = document.createElement('a')
+    const url = URL.createObjectURL(blob)
+    link.setAttribute('href', url)
+    link.setAttribute('download', `${exportOptions?.filename || 'export'}.csv`)
+    link.style.visibility = 'hidden'
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+
+    if (exportOptions?.onExport) {
+      exportOptions.onExport(table.getFilteredRowModel().rows.map((r) => r.original), 'csv')
+    }
+  }
+
+  const handleExportJSON = () => {
+    const data = table.getFilteredRowModel().rows.map((row) => row.original)
+    const jsonContent = JSON.stringify(data, null, 2)
+    const blob = new Blob([jsonContent], { type: 'application/json' })
+    const link = document.createElement('a')
+    const url = URL.createObjectURL(blob)
+    link.setAttribute('href', url)
+    link.setAttribute('download', `${exportOptions?.filename || 'export'}.json`)
+    link.style.visibility = 'hidden'
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+
+    if (exportOptions?.onExport) {
+      exportOptions.onExport(data, 'json')
+    }
+  }
+
+  // Expose table instance via ref
+  React.useImperativeHandle(tableRef, () => table, [table])
 
   return (
     <div className={cn('space-y-4', className)}>
+      {/* Custom Header */}
+      {renderHeader && (
+        <div className="mb-4">
+          {renderHeader(table)}
+        </div>
+      )}
+
       {/* Toolbar: Search, Column Visibility, Row Count */}
       <div className="flex items-center justify-between gap-2 flex-wrap">
-        {/* Search */}
-        {enableFiltering && searchKey && (
-          <div className="relative flex-1 max-w-sm">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-            <Input
-              placeholder={searchPlaceholder}
-              value={globalFilter ?? ''}
-              onChange={(e) => setGlobalFilter(e.target.value)}
-              className={cn('pl-9 pr-9', sizeClass.input)}
-            />
-            {globalFilter && (
-              <Button
-                variant="ghost"
-                size="sm"
-                className="absolute right-1 top-1/2 transform -translate-y-1/2 h-7 w-7 p-0"
-                onClick={() => setGlobalFilter('')}
-              >
-                <X className="h-4 w-4" />
-              </Button>
-            )}
-          </div>
-        )}
+        <div className="flex items-center gap-2 flex-wrap flex-1">
+          {/* Custom Toolbar Before */}
+          {renderToolbarBefore && renderToolbarBefore(table)}
 
-        {/* Right side: Column Visibility & Row Count */}
+          {/* Bulk Actions */}
+          {isRowSelectionEnabled && selectedCount > 0 && bulkActions && bulkActions.length > 0 && (
+            <div className="flex items-center gap-2">
+              {bulkActions.map((action, index) => (
+                <Button
+                  key={index}
+                  variant={action.variant || 'outline'}
+                  size="sm"
+                  className={cn(sizeClass.button, 'text-xs')}
+                  onClick={() => action.onClick(selectedRows)}
+                >
+                  {action.icon && <span className="mr-1.5">{action.icon}</span>}
+                  {action.label}
+                </Button>
+              ))}
+            </div>
+          )}
+
+          {/* Search */}
+          {enableFiltering && searchKey && (
+            <div className="relative flex-1 max-w-sm">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <Input
+                placeholder={searchPlaceholder}
+                value={globalFilter ?? ''}
+                onChange={(e) => setGlobalFilter(e.target.value)}
+                className={cn('pl-9 pr-9', sizeClass.input)}
+              />
+              {globalFilter && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="absolute right-1 top-1/2 transform -translate-y-1/2 h-7 w-7 p-0"
+                  onClick={() => setGlobalFilter('')}
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Right side: Column Visibility, Export & Row Count */}
         <div className="flex items-center gap-2">
           {showRowCount && (
             <div className="text-xs text-gray-600 hidden sm:block">
@@ -348,13 +469,39 @@ export function DataTable<TData, TValue>({
             </div>
           )}
 
+          {/* Export */}
+          {enableExport && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm" className={cn(sizeClass.button, 'text-xs')}>
+                  <Download className="h-4 w-4 mr-2" />
+                  <span className="hidden sm:inline">Export</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-40">
+                {(!exportOptions?.formats || exportOptions.formats.includes('csv')) && (
+                  <DropdownMenuItem onClick={handleExportCSV}>
+                    <FileSpreadsheet className="h-4 w-4 mr-2" />
+                    Export CSV
+                  </DropdownMenuItem>
+                )}
+                {(!exportOptions?.formats || exportOptions.formats.includes('json')) && (
+                  <DropdownMenuItem onClick={handleExportJSON}>
+                    <FileText className="h-4 w-4 mr-2" />
+                    Export JSON
+                  </DropdownMenuItem>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
+
           {/* Column Visibility Toggle */}
           {enableColumnVisibility && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" size="sm" className={cn(sizeClass.button, 'text-xs')}>
                   <Columns className="h-4 w-4 mr-2" />
-                  Columns
+                  <span className="hidden sm:inline">Columns</span>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-48">
@@ -374,11 +521,14 @@ export function DataTable<TData, TValue>({
               </DropdownMenuContent>
             </DropdownMenu>
           )}
+
+          {/* Custom Toolbar After */}
+          {renderToolbarAfter && renderToolbarAfter(table)}
         </div>
       </div>
 
       {/* Table Container with Fixed Header */}
-      <div className="relative rounded-md border border-gray-200">
+      <div className={cn('relative rounded-md border border-gray-200', tableClassName)}>
         <div
           className={cn(
             'overflow-auto',
@@ -445,46 +595,58 @@ export function DataTable<TData, TValue>({
                   </TableCell>
                 </TableRow>
               ) : table.getRowModel().rows?.length ? (
-                table.getRowModel().rows.map((row) => (
-                  <TableRow
-                    key={row.id}
-                    data-state={row.getIsSelected() && 'selected'}
-                    className={cn(
-                      'border-b border-gray-200 last:border-b-0',
-                      onRowClick && 'cursor-pointer hover:bg-gray-50',
-                      enableRowSelection && row.getIsSelected() && 'bg-gray-50'
-                    )}
-                    onClick={() => onRowClick?.(row.original)}
-                  >
-                    {row.getVisibleCells().map((cell, index) => (
-                      <TableCell
-                        key={cell.id}
-                        className={cn(
-                          sizeClass.cell,
-                          fixedColumns > 0 &&
-                            index < fixedColumns &&
-                            'sticky left-0 z-10 bg-white border-r border-gray-200'
-                        )}
-                        style={
-                          fixedColumns > 0 && index < fixedColumns
-                            ? {
-                                left: index === 0 ? 0 : `${index * 150}px`, // Adjust based on column width
-                              }
-                            : undefined
-                        }
-                      >
-                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                      </TableCell>
-                    ))}
-                  </TableRow>
-                ))
+                table.getRowModel().rows.map((row, rowIndex) => {
+                  // Custom row rendering
+                  if (renderRow) {
+                    return (
+                      <React.Fragment key={row.id}>
+                        {renderRow(row.original, rowIndex, table)}
+                      </React.Fragment>
+                    )
+                  }
+
+                  // Default row rendering
+                  return (
+                    <TableRow
+                      key={row.id}
+                      data-state={row.getIsSelected() && 'selected'}
+                      className={cn(
+                        'border-b border-gray-200 last:border-b-0',
+                        onRowClick && 'cursor-pointer hover:bg-gray-50',
+                        enableRowSelection && row.getIsSelected() && 'bg-gray-50'
+                      )}
+                      onClick={() => onRowClick?.(row.original)}
+                    >
+                      {row.getVisibleCells().map((cell, index) => (
+                        <TableCell
+                          key={cell.id}
+                          className={cn(
+                            sizeClass.cell,
+                            fixedColumns > 0 &&
+                              index < fixedColumns &&
+                              'sticky left-0 z-10 bg-white border-r border-gray-200'
+                          )}
+                          style={
+                            fixedColumns > 0 && index < fixedColumns
+                              ? {
+                                  left: index === 0 ? 0 : `${index * 150}px`, // Adjust based on column width
+                                }
+                              : undefined
+                          }
+                        >
+                          {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                        </TableCell>
+                      ))}
+                    </TableRow>
+                  )
+                })
               ) : (
                 <TableRow>
                   <TableCell
                     colSpan={columns.length}
                     className="h-24 text-center"
                   >
-                    <p className="text-sm text-gray-600">{emptyMessage}</p>
+                    {renderEmpty ? renderEmpty() : <p className="text-sm text-gray-600">{emptyMessage}</p>}
                   </TableCell>
                 </TableRow>
               )}
@@ -577,6 +739,13 @@ export function DataTable<TData, TValue>({
               ? `Showing ${filteredRowCount} of ${totalRowCount} results`
               : `Total: ${totalRowCount} results`}
           </div>
+        </div>
+      )}
+
+      {/* Custom Footer */}
+      {renderFooter && (
+        <div className="mt-4">
+          {renderFooter(table)}
         </div>
       )}
     </div>
