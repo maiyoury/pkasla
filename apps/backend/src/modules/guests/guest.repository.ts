@@ -1,5 +1,5 @@
 import type { FilterQuery, UpdateQuery } from 'mongoose';
-import type { DeleteResult } from 'mongodb';
+import type { DeleteResult } from 'mongoose';
 import { GuestModel, type GuestDocument } from './guest.model';
 
 export class GuestRepository {

@@ -1,5 +1,5 @@
 import type { FilterQuery, UpdateQuery } from 'mongoose';
-import type { DeleteResult } from 'mongodb';
+import type { DeleteResult } from 'mongoose';
 import { InvitationModel, type InvitationDocument } from './invitation.model';
 
 export class InvitationRepository {
