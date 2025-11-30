@@ -202,16 +202,19 @@ class TemplateService {
   }
 
   /**
-   * Get all unique categories
+   * Get all unique categories (event types)
    */
   async getCategories(): Promise<string[]> {
-    // const templates = await templateRepository.list({});
-    // console.log("🚀 ~ TemplateService ~ getCategories ~ templates:", templates)
-    // const categories = templates
-    //   .map((t) => (t as any).category)
-    //   // .filter((c): c is string => Boolean(c));
-    // console.log("🚀 ~ TemplateService ~ getCategories ~ categories:", categories)
-    return ["Wedding","Birthday","Anniversary","Engagement","Graduation","Retirement","Baby Shower","Holiday","Seasonal","Other"];
+    // Return event types formatted for templates
+    // Map event types to template-friendly category names
+    return [
+      'Wedding',
+      'Engagement',
+      'Hand-cutting',
+      'Birthday',
+      'Anniversary',
+      'Other'
+    ];
   }
 }
 

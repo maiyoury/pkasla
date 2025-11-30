@@ -13,18 +13,19 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Checkbox } from '@/components/ui/checkbox'
-import { useCreateEvent, useUpdateEvent } from '@/hooks/api/useEvent'
+import { useCreateEvent, useUpdateEvent, useEventCategories } from '@/hooks/api/useEvent'
 import { api } from '@/lib/axios-client'
 import { Event } from '@/types/event'
 
-const eventTypes = [
-  { value: 'wedding', label: 'ពិធីរៀបមង្គលការ' },
-  { value: 'engagement', label: 'ពិធីភ្ជាប់ពាក្យ' },
-  { value: 'hand-cutting', label: 'ពិធីកាត់ចំណងដៃ' },
-  { value: 'birthday', label: 'ពិធីខួបកំណើត' },
-  { value: 'anniversary', label: 'ពិធីខួប' },
-  { value: 'other', label: 'ផ្សេងៗ' },
-]
+// Mapping event types to Khmer labels
+const eventTypeLabels: Record<string, string> = {
+  wedding: 'ពិធីរៀបមង្គលការ',
+  engagement: 'ពិធីភ្ជាប់ពាក្យ',
+  'hand-cutting': 'ពិធីកាត់ចំណងដៃ',
+  birthday: 'ពិធីខួបកំណើត',
+  anniversary: 'ពិធីខួប',
+  other: 'ផ្សេងៗ',
+}
 
 interface EventFormProps {
   event?: Event
@@ -36,6 +37,13 @@ export function EventForm({ event, onSuccess, onCancel }: EventFormProps) {
   const isEditMode = !!event
   const createEvent = useCreateEvent()
   const updateEvent = useUpdateEvent()
+  const { data: eventCategories = [], isLoading: isLoadingCategories } = useEventCategories()
+  
+  // Map categories to the format needed for the Select component
+  const eventTypes = eventCategories.map((category) => ({
+    value: category,
+    label: eventTypeLabels[category] || category,
+  }))
 
   // Convert date to datetime-local format
   const formatDateForInput = (date: string | Date | undefined): string => {
@@ -266,16 +274,26 @@ export function EventForm({ event, onSuccess, onCancel }: EventFormProps) {
         <Label htmlFor="eventType" className="text-sm font-semibold text-black mb-2 block">
           ប្រភេទកម្មវិធី
         </Label>
-        <Select value={formData.eventType} onValueChange={(value) => handleInputChange('eventType', value)}>
+        <Select 
+          value={formData.eventType} 
+          onValueChange={(value) => handleInputChange('eventType', value)}
+          disabled={isLoadingCategories}
+        >
           <SelectTrigger className="w-full h-10 text-sm">
-            <SelectValue placeholder="ជ្រើសរើសប្រភេទកម្មវិធី" />
+            <SelectValue placeholder={isLoadingCategories ? 'កំពុងផ្ទុក...' : 'ជ្រើសរើសប្រភេទកម្មវិធី'} />
           </SelectTrigger>
           <SelectContent>
-            {eventTypes.map((type) => (
-              <SelectItem key={type.value} value={type.value}>
-                {type.label}
+            {eventTypes.length > 0 ? (
+              eventTypes.map((type) => (
+                <SelectItem key={type.value} value={type.value}>
+                  {type.label}
+                </SelectItem>
+              ))
+            ) : (
+              <SelectItem value="" disabled>
+                {isLoadingCategories ? 'កំពុងផ្ទុក...' : 'មិនមានប្រភេទ'}
               </SelectItem>
-            ))}
+            )}
           </SelectContent>
         </Select>
       </div>

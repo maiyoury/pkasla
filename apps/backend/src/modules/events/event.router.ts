@@ -10,6 +10,8 @@ import {
   deleteEventHandler,
   listEventsHandler,
   getMyEventsHandler,
+  getEventsByTypeHandler,
+  getEventCategoriesHandler,
 } from './event.controller';
 import {
   createEventSchema,
@@ -17,6 +19,7 @@ import {
   getEventSchema,
   deleteEventSchema,
   listEventsQuerySchema,
+  getEventsByTypeSchema,
 } from './event.validation';
 
 const router = Router();
@@ -33,6 +36,19 @@ router.get(
   '/my',
   authenticate,
   asyncHandler(getMyEventsHandler),
+);
+
+// Get all event categories (public)
+router.get(
+  '/categories',
+  asyncHandler(getEventCategoriesHandler),
+);
+
+// Get events by type with pagination (public)
+router.get(
+  '/type/:eventType',
+  validateRequest(getEventsByTypeSchema),
+  asyncHandler(getEventsByTypeHandler),
 );
 
 // Get event by ID (public)

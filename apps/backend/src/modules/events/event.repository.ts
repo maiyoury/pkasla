@@ -1,5 +1,5 @@
 import type { FilterQuery, UpdateQuery } from 'mongoose';
-import { EventModel, type EventDocument } from './event.model';
+import { EventModel, type EventDocument, type EventType } from './event.model';
 
 export class EventRepository {
   create(payload: Partial<EventDocument>) {
@@ -12,6 +12,30 @@ export class EventRepository {
 
   findByHostId(hostId: string) {
     return EventModel.find({ hostId }).sort({ createdAt: -1 }).lean();
+  }
+
+  findByEventType(eventType: EventType) {
+    return EventModel.find({ eventType })
+      .populate('hostId', 'name email avatar')
+      .sort({ createdAt: -1 })
+      .lean();
+  }
+
+  findByEventTypePaginated(
+    eventType: EventType,
+    page: number = 1,
+    pageSize: number = 10,
+    sort?: Record<string, 1 | -1>
+  ) {
+    const skip = (page - 1) * pageSize;
+    const query = EventModel.find({ eventType }).populate('hostId', 'name email avatar');
+    if (sort) {
+      query.sort(sort);
+    }
+    return query
+      .skip(skip)
+      .limit(pageSize)
+      .lean();
   }
 
   updateById(id: string, payload: UpdateQuery<EventDocument>) {

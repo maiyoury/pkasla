@@ -283,6 +283,44 @@ class EventService {
   }
 
   /**
+   * Get events by type with pagination
+   */
+  async findByEventType(
+    eventType: EventType,
+    page: number = 1,
+    pageSize: number = 10
+  ): Promise<{
+    items: EventResponse[];
+    total: number;
+    page: number;
+    pageSize: number;
+  }> {
+    const [events, total] = await Promise.all([
+      eventRepository.findByEventTypePaginated(eventType, page, pageSize, { createdAt: -1 }),
+      eventRepository.countDocuments({ eventType }),
+    ]);
+
+    const sanitizedEvents = events
+      .map((event) => sanitizeEvent(event as unknown as EventDocument))
+      .filter(Boolean) as EventResponse[];
+
+    return {
+      items: sanitizedEvents,
+      total,
+      page,
+      pageSize,
+    };
+  }
+
+  /**
+   * Get all unique event types (categories)
+   */
+  async getEventCategories(): Promise<string[]> {
+    // Return all available event types
+    return ['wedding', 'engagement', 'hand-cutting', 'birthday', 'anniversary', 'other'];
+  }
+
+  /**
    * Increment guest count
    */
   async incrementGuestCount(eventId: string, increment: number = 1): Promise<void> {

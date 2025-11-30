@@ -211,6 +211,19 @@ export type CreateEventInput = z.infer<typeof createEventSchema>['body'];
 export type UpdateEventInput = z.infer<typeof updateEventSchema>['body'];
 
 /**
+ * Get events by type validation schema
+ */
+export const getEventsByTypeSchema = z.object({
+  params: z.object({
+    eventType: eventTypeEnum,
+  }),
+  query: z.object({
+    page: z.coerce.number().min(1).default(1).optional(),
+    pageSize: z.coerce.number().min(1).max(100).default(10).optional(),
+  }),
+});
+
+/**
  * Type inference for list events query
  */
 export type ListEventsQuery = z.infer<typeof listEventsQuerySchema>['query'];

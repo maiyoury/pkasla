@@ -12,6 +12,7 @@ export const eventKeys = {
   list: (filters?: EventListFilters) => [...eventKeys.lists(), filters] as const,
   detail: (id: string) => [...eventKeys.all, 'detail', id] as const,
   my: () => [...eventKeys.all, 'my'] as const,
+  categories: () => [...eventKeys.all, 'categories'] as const,
 };
 
 /**
@@ -87,6 +88,27 @@ export function useEvent(id: string) {
     enabled: !!id,
     retry: false,
     staleTime: 1000 * 60, // 1 minute
+  });
+}
+
+/**
+ * Get all event categories (types)
+ */
+export function useEventCategories() {
+  return useQuery<string[], Error>({
+    queryKey: eventKeys.categories(),
+    queryFn: async (): Promise<string[]> => {
+      const response = await api.get<string[]>(`/events/categories`);
+      if (!response.success) {
+        throw new Error(response.error || 'Failed to fetch event categories');
+      }
+      if (!response.data) {
+        throw new Error('Event categories data not found');
+      }
+      return response.data;
+    },
+    retry: false,
+    staleTime: 1000 * 60 * 5, // 5 minutes
   });
 }
 

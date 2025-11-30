@@ -14,17 +14,29 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Checkbox } from '@/components/ui/checkbox'
-import { useCreateEvent } from '@/hooks/api/useEvent'
+import { useCreateEvent, useEventCategories } from '@/hooks/api/useEvent'
 
-const eventTypes = [
-  { value: 'wedding', label: 'ពិធីរៀបមង្គលការ' },
-  { value: 'engagement', label: 'ពិធីភ្ជាប់ពាក្យ' },
-  { value: 'hand-cutting', label: 'ពិធីកាត់ចំណងដៃ' },
-]
+// Mapping event types to Khmer labels
+const eventTypeLabels: Record<string, string> = {
+  wedding: 'ពិធីរៀបមង្គលការ',
+  engagement: 'ពិធីភ្ជាប់ពាក្យ',
+  'hand-cutting': 'ពិធីកាត់ចំណងដៃ',
+  birthday: 'ពិធីខួបកំណើត',
+  anniversary: 'ពិធីខួប',
+  other: 'ផ្សេងៗ',
+}
 
 export default function CreateEventPage() {
   const router = useRouter()
   const createEvent = useCreateEvent()
+  const { data: eventCategories = [], isLoading: isLoadingCategories } = useEventCategories()
+  
+  // Map categories to the format needed for the Select component
+  const eventTypes = eventCategories.map((category) => ({
+    value: category,
+    label: eventTypeLabels[category] || category,
+  }))
+
   const [formData, setFormData] = useState({
     title: '',
     eventType: '' as 'wedding' | 'engagement' | 'hand-cutting' | 'birthday' | 'anniversary' | 'other' | '',
@@ -100,16 +112,26 @@ export default function CreateEventPage() {
           <Label htmlFor="eventType" className="text-sm font-semibold text-black mb-2 block">
             ប្រភេទកម្មវិធី
           </Label>
-          <Select value={formData.eventType} onValueChange={(value) => handleInputChange('eventType', value)}>
+          <Select 
+            value={formData.eventType} 
+            onValueChange={(value) => handleInputChange('eventType', value)}
+            disabled={isLoadingCategories}
+          >
             <SelectTrigger className="w-full h-10 text-sm">
-              <SelectValue placeholder="ជ្រើសរើសប្រភេទកម្មវិធី" />
+              <SelectValue placeholder={isLoadingCategories ? 'កំពុងផ្ទុក...' : 'ជ្រើសរើសប្រភេទកម្មវិធី'} />
             </SelectTrigger>
             <SelectContent>
-              {eventTypes.map((type) => (
-                <SelectItem key={type.value} value={type.value}>
-                  {type.label}
+              {eventTypes.length > 0 ? (
+                eventTypes.map((type) => (
+                  <SelectItem key={type.value} value={type.value}>
+                    {type.label}
+                  </SelectItem>
+                ))
+              ) : (
+                <SelectItem value="" disabled>
+                  {isLoadingCategories ? 'កំពុងផ្ទុក...' : 'មិនមានប្រភេទ'}
                 </SelectItem>
-              ))}
+              )}
             </SelectContent>
           </Select>
         </div>

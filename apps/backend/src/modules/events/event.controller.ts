@@ -331,3 +331,23 @@ export const getMyEventsHandler = async (req: Request, res: Response) => {
   return res.status(httpStatus.OK).json(buildSuccessResponse(events));
 };
 
+/**
+ * Get all event categories (types)
+ */
+export const getEventCategoriesHandler = async (req: Request, res: Response) => {
+  const categories = await eventService.getEventCategories();
+  return res.status(httpStatus.OK).json(buildSuccessResponse(categories));
+};
+
+/**
+ * Get events by type with pagination
+ */
+export const getEventsByTypeHandler = async (req: Request, res: Response) => {
+  const { eventType } = req.params;
+  const page = Number(req.query.page) || 1;
+  const pageSize = Number(req.query.pageSize) || 10;
+
+  const result = await eventService.findByEventType(eventType as any, page, pageSize);
+  return res.status(httpStatus.OK).json(buildSuccessResponse(result));
+};
+
