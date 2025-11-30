@@ -90,6 +90,17 @@ export default function Guests({
     try {
       setSharingGuestId(guestId)
       
+      // Check if event has a template selected
+      const eventResponse = await api.get<{ templateSlug?: string }>(`/events/${eventId}`)
+      const event = eventResponse.data
+      
+      if (!event?.templateSlug) {
+        toast.error('Please select a template for this event before sharing invites', {
+          duration: 5000,
+        })
+        return
+      }
+      
       // First try to get the guest to see if inviteToken is included
       const guestResponse = await api.get<{ inviteToken?: string }>(`/guests/${guestId}`)
       const guest = guestResponse.data
@@ -119,7 +130,7 @@ export default function Guests({
     } finally {
       setSharingGuestId(null)
     }
-  }, [])
+  }, [eventId])
 
   const columns = useMemo<ColumnDef<DisplayGuest>[]>(
     () => [

@@ -1,5 +1,5 @@
-import { notFound, redirect } from 'next/navigation';
-import { api } from '@/lib/axios-client';
+import { notFound, redirect } from "next/navigation";
+import { api } from "@/lib/axios-client";
 
 interface InvitePageProps {
   params: Promise<{ token: string }>;
@@ -10,15 +10,18 @@ interface InvitePageProps {
  * Public invitation page
  * Fetches guest and event data by token and renders the selected template
  */
-export default async function InvitePage({ params, searchParams }: InvitePageProps) {
+export default async function InvitePage({
+  params,
+  searchParams,
+}: InvitePageProps) {
   const { token } = await params;
   const resolvedSearchParams = await searchParams;
-  const isPreview = resolvedSearchParams.preview === 'true';
+  const isPreview = resolvedSearchParams.preview === "true";
 
   try {
     // Fetch invitation data from backend
     const response = await api.get(`/invites/${token}`);
-    
+
     if (!response.success || !response.data) {
       notFound();
     }
@@ -29,13 +32,35 @@ export default async function InvitePage({ params, searchParams }: InvitePagePro
       notFound();
     }
 
-    // If no template is selected, show a default message
+    // If no template is selected, show a helpful message
     if (!template || !template.slug) {
       return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-50">
-          <div className="text-center">
-            <h1 className="text-2xl font-bold text-gray-900 mb-4">{event.title}</h1>
-            <p className="text-gray-600">No template selected for this event.</p>
+        <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+          <div className="text-center max-w-md">
+            <h1 className="text-2xl font-bold text-gray-900 mb-4">
+              {event.title}
+            </h1>
+            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6 mb-4">
+              <p className="text-yellow-800 font-semibold mb-2">
+                Template Not Selected
+              </p>
+              <p className="text-yellow-700 text-sm">
+                The event organizer hasn't selected a template for this
+                invitation yet. Please contact them to complete the invitation
+                setup.
+              </p>
+            </div>
+            {event.description && (
+              <p className="text-gray-600 mt-4">{event.description}</p>
+            )}
+            {event.date && (
+              <p className="text-gray-600 mt-2">
+                Date: {new Date(event.date).toLocaleDateString()}
+              </p>
+            )}
+            {event.venue && (
+              <p className="text-gray-600 mt-2">Venue: {event.venue}</p>
+            )}
           </div>
         </div>
       );
@@ -57,8 +82,7 @@ export default async function InvitePage({ params, searchParams }: InvitePagePro
 
     notFound();
   } catch (error) {
-    console.error('Failed to load invitation:', error);
+    console.error("Failed to load invitation:", error);
     notFound();
   }
 }
-

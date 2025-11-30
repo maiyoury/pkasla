@@ -34,7 +34,9 @@ export default function Templates({ eventId }: TemplatesProps) {
   })
 
   const templates = templatesData?.items || []
-  const currentTemplate = templates.find(t => t.slug === event?.templateSlug)
+  // Use selectedTemplateSlug if set, otherwise fall back to event.templateSlug
+  const activeTemplateSlug = selectedTemplateSlug || event?.templateSlug
+  const currentTemplate = templates.find(t => t.slug === activeTemplateSlug)
   const selectedTemplate = templates.find(t => t.slug === selectedTemplateSlug)
 
   React.useEffect(() => {
@@ -52,15 +54,20 @@ export default function Templates({ eventId }: TemplatesProps) {
 
   const handleSelectTemplate = async (slug: string) => {
     try {
+      // Optimistically update the selected template
+      setSelectedTemplateSlug(slug)
+      
       await updateEvent.mutateAsync({
         id: eventId,
         data: {
           templateSlug: slug,
         },
       })
-      setSelectedTemplateSlug(slug)
       // Toast is handled by the mutation's onSuccess callback
+      // The event query will be invalidated and refetched automatically
     } catch {
+      // Revert on error
+      setSelectedTemplateSlug(event?.templateSlug || null)
       toast.error('Failed to select template')
     }
   }
@@ -138,7 +145,7 @@ export default function Templates({ eventId }: TemplatesProps) {
   return (
     <div className="space-y-6">
       {/* Current Template */}
-      {currentTemplate && (
+      {currentTemplate ? (
         <Card className="border border-gray-200 shadow-none">
           <CardHeader>
             <CardTitle className="text-lg font-semibold text-black">
@@ -183,6 +190,19 @@ export default function Templates({ eventId }: TemplatesProps) {
                   Customize
                 </Button>
               </div>
+            </div>
+          </CardContent>
+        </Card>
+      ) : (
+        <Card className="border border-gray-200 shadow-none">
+          <CardContent className="p-6">
+            <div className="text-center py-8">
+              <p className="text-sm text-gray-600 mb-4">
+                No template selected for this event.
+              </p>
+              <p className="text-xs text-gray-500">
+                Select a template below to get started.
+              </p>
             </div>
           </CardContent>
         </Card>

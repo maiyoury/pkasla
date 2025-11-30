@@ -4,6 +4,24 @@ import { env } from './config/environment';
 import { logger } from './utils/logger';
 import { cacheService } from './common/services/cache.service';
 
+// Suppress deprecation warning for url.parse() from dependencies
+// This warning comes from older dependencies (like cors@2.8.5) that use url.parse()
+// The warning is safe to suppress as it's from third-party code we can't directly modify
+// Once dependencies are updated to use WHATWG URL API, this can be removed
+process.removeAllListeners('warning');
+process.on('warning', (warning) => {
+  // Suppress only the url.parse() deprecation warning (DEP0169)
+  if (
+    warning.name === 'DeprecationWarning' &&
+    warning.message.includes('url.parse()') &&
+    warning.message.includes('DEP0169')
+  ) {
+    return; // Suppress this warning
+  }
+  // Log other warnings normally
+  console.warn(warning.name, warning.message);
+});
+
 const app = createApp();
 let server: ReturnType<typeof app.listen>;
 

@@ -31,6 +31,14 @@ export interface UpdateEventInput {
   khqrKhr?: string;
   restrictDuplicateNames?: boolean;
   status?: EventStatus;
+  templateSlug?: string;
+  userTemplateConfig?: {
+    images?: Record<string, string>;
+    colors?: Record<string, string>;
+    fonts?: Record<string, string>;
+    spacing?: Record<string, number>;
+    customVariables?: Record<string, string>;
+  };
 }
 
 export interface EventResponse {
@@ -179,6 +187,11 @@ class EventService {
     const updateData: any = { ...payload };
     if (payload.date) {
       updateData.date = new Date(payload.date);
+    }
+    
+    // Handle templateSlug: convert empty string to null to clear it
+    if (payload.templateSlug !== undefined) {
+      updateData.templateSlug = payload.templateSlug === '' ? null : payload.templateSlug;
     }
 
     const updated = await eventRepository.updateById(id, { $set: updateData });

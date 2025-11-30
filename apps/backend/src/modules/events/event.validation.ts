@@ -163,6 +163,14 @@ export const updateEventSchema = z.object({
       z.boolean().optional()
     ),
     status: eventStatusEnum.optional(),
+    templateSlug: z.string().trim().optional().or(z.literal('')),
+    userTemplateConfig: z.object({
+      images: z.record(z.string(), z.string()).optional(),
+      colors: z.record(z.string(), z.string()).optional(),
+      fonts: z.record(z.string(), z.string()).optional(),
+      spacing: z.record(z.string(), z.number()).optional(),
+      customVariables: z.record(z.string(), z.string()).optional(),
+    }).optional(),
   }),
 });
 
