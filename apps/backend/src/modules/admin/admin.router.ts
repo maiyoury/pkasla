@@ -40,9 +40,6 @@ const router = Router();
 // All routes require authentication
 router.use(authenticate);
 
-// Template routes - allow authenticated users (not just admins) for GET requests
-// GET routes (list, categories, get by ID) are accessible to all authenticated users
-// POST, PATCH, DELETE routes require admin role
 const publicTemplateRouter = Router();
 publicTemplateRouter.get(
   '/',
@@ -78,8 +75,6 @@ adminOnlyTemplateRouter.delete(
   asyncHandler(deleteTemplateHandler),
 );
 
-// Mount template routers BEFORE admin authorization
-// This allows authenticated users to access GET routes
 router.use('/t', publicTemplateRouter);
 router.use('/t', adminOnlyTemplateRouter);
 
