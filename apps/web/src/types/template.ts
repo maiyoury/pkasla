@@ -1,3 +1,5 @@
+export type TemplateStatus = 'draft' | 'published' | 'archived'
+
 export interface Template {
   id: string
   name: string
@@ -7,6 +9,7 @@ export interface Template {
   isPremium: boolean
   previewImage?: string
   slug?: string // Next.js route name (e.g., "classic-gold", "modern-minimal")
+  status: TemplateStatus // Template status: draft, published, archived
   variables?: string[] // Available variables (e.g., ["event.title", "guest.name", "event.date"])
   assets?: {
     images?: string[]
@@ -25,6 +28,7 @@ export interface TemplateFormData {
   isPremium: boolean
   previewImage: File | string | null
   slug?: string
+  status?: TemplateStatus
   variables?: string[]
   assets?: {
     images?: string[]

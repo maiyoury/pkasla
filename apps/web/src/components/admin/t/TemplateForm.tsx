@@ -15,6 +15,7 @@ import {
 import { Checkbox } from '@/components/ui/checkbox'
 import { Template, TemplateFormData } from '@/types/template'
 import { api } from '@/lib/axios-client'
+import { useTemplateCategories } from '@/hooks/api/useTemplate'
 
 interface TemplateFormProps {
   template?: Template
@@ -23,14 +24,13 @@ interface TemplateFormProps {
   isSubmitting?: boolean
 }
 
-const CATEGORIES = ['Wedding', 'Business', 'Personal', 'Event', 'Other']
-
 export function TemplateForm({
   template,
   onSubmit,
   onCancel,
   isSubmitting = false,
 }: TemplateFormProps) {
+  const { data: categories = [], isLoading: categoriesLoading } = useTemplateCategories()
   const [formData, setFormData] = useState<TemplateFormData>({
     name: '',
     title: '',
@@ -39,6 +39,7 @@ export function TemplateForm({
     isPremium: false,
     previewImage: null,
     slug: '',
+    status: 'draft',
     variables: [],
     assets: {
       images: [],
@@ -62,6 +63,7 @@ export function TemplateForm({
         isPremium: template.isPremium,
         previewImage: null,
         slug: template.slug || '',
+        status: (template.status as 'draft' | 'published' | 'archived') || 'draft',
         variables: template.variables || [],
         assets: template.assets || {
           images: [],
@@ -231,19 +233,43 @@ export function TemplateForm({
           Category
         </Label>
         <Select
-          value={formData.category}
+          value={formData.category ? formData.category : undefined}
           onValueChange={(value) => handleInputChange('category', value)}
-          disabled={isSubmitting}
+          disabled={isSubmitting || categoriesLoading}
+          key={template?.id || 'new'}
         >
           <SelectTrigger className="h-10 text-sm">
-            <SelectValue placeholder="Select a category" />
+            <SelectValue placeholder={categoriesLoading ? "Loading categories..." : "Select a category"} />
           </SelectTrigger>
           <SelectContent>
-            {CATEGORIES.map((category) => (
-              <SelectItem key={category} value={category}>
-                {category}
-              </SelectItem>
-            ))}
+            {categories.length > 0 ? (
+              <>
+                {categories.map((category) => (
+                  <SelectItem key={category} value={category}>
+                    {category}
+                  </SelectItem>
+                ))}
+                {/* Show current category if it's not in the list (for backward compatibility) */}
+                {formData.category && !categories.includes(formData.category) && (
+                  <SelectItem key={formData.category} value={formData.category}>
+                    {formData.category}
+                  </SelectItem>
+                )}
+              </>
+            ) : (
+              <>
+                {formData.category && (
+                  <SelectItem value={formData.category}>
+                    {formData.category}
+                  </SelectItem>
+                )}
+                {!categoriesLoading && (
+                  <div className="px-2 py-1.5 text-sm text-muted-foreground">
+                    No categories available
+                  </div>
+                )}
+              </>
+            )}
           </SelectContent>
         </Select>
       </div>
@@ -303,6 +329,31 @@ export function TemplateForm({
         />
         <p className="text-xs text-gray-500 mt-1">
           List of variables that can be used in this template
+        </p>
+      </div>
+
+      {/* Status */}
+      <div>
+        <Label htmlFor="status" className="text-sm font-semibold text-black mb-2 block">
+          Status <span className="text-red-500">*</span>
+        </Label>
+        <Select
+          value={formData.status ?? 'draft'}
+          onValueChange={(value) => handleInputChange('status', value as 'draft' | 'published' | 'archived')}
+          disabled={isSubmitting}
+          key={`status-${template?.id || 'new'}`}
+        >
+          <SelectTrigger className="h-10 text-sm">
+            <SelectValue placeholder="Select status" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="draft">Draft</SelectItem>
+            <SelectItem value="published">Published</SelectItem>
+            <SelectItem value="archived">Archived</SelectItem>
+          </SelectContent>
+        </Select>
+        <p className="text-xs text-gray-500 mt-1">
+          Published templates are visible to all users. Draft and archived templates are only visible to admins.
         </p>
       </div>
 

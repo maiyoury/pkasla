@@ -10,6 +10,9 @@ export interface CreateTemplateInput {
   price?: number;
   isPremium?: boolean;
   previewImage?: string;
+  status?: 'draft' | 'published' | 'archived';
+  slug?: string;
+  variables?: string[];
 }
 
 export interface UpdateTemplateInput {
@@ -19,6 +22,9 @@ export interface UpdateTemplateInput {
   price?: number;
   isPremium?: boolean;
   previewImage?: string;
+  status?: 'draft' | 'published' | 'archived';
+  slug?: string;
+  variables?: string[];
 }
 
 export interface TemplateResponse {
@@ -29,6 +35,7 @@ export interface TemplateResponse {
   price?: number;
   isPremium: boolean;
   previewImage?: string;
+  status: 'draft' | 'published' | 'archived';
   createdAt: Date;
   updatedAt: Date;
 }
@@ -88,12 +95,20 @@ class TemplateService {
 
   /**
    * Find template by ID or throw error if not found
+   * @param id - Template ID
+   * @param isAdmin - Whether the user is an admin (admins can see all templates, regular users only see published)
    */
-  async findByIdOrFail(id: string): Promise<TemplateResponse> {
+  async findByIdOrFail(id: string, isAdmin: boolean = false): Promise<TemplateResponse> {
     const template = await this.findById(id);
     if (!template) {
       throw new AppError('Template not found', httpStatus.NOT_FOUND);
     }
+    
+    // Regular users can only see published templates
+    if (!isAdmin && template.status !== 'published') {
+      throw new AppError('Template not found', httpStatus.NOT_FOUND);
+    }
+    
     return template;
   }
 
@@ -154,11 +169,16 @@ class TemplateService {
 
   /**
    * List templates with pagination and filters
+   * @param page - Page number
+   * @param pageSize - Items per page
+   * @param filters - Filter options
+   * @param isAdmin - Whether the user is an admin (admins see all templates, regular users only see published)
    */
   async list(
     page: number = 1,
     pageSize: number = 10,
-    filters?: TemplateListFilters
+    filters?: TemplateListFilters,
+    isAdmin: boolean = false
   ): Promise<{
     items: TemplateResponse[];
     total: number;
@@ -182,6 +202,11 @@ class TemplateService {
         { title: { $regex: filters.search, $options: 'i' } },
         { category: { $regex: filters.search, $options: 'i' } },
       ];
+    }
+
+    // Regular users can only see published templates
+    if (!isAdmin) {
+      query.status = 'published';
     }
 
     const [templates, total] = await Promise.all([

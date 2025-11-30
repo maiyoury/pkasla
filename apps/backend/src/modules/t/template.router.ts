@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { asyncHandler } from '@/utils/async-handler';
 import { validateRequest } from '@/common/middlewares/validate-request';
-import { createUploadMiddleware } from '@/common/middlewares/upload';
+import { authenticate } from '@/common/middlewares/authenticate';
 import {
   createTemplateHandler,
   getTemplateHandler,
@@ -20,9 +20,11 @@ import {
 
 const router = Router();
 
-// List templates with pagination and filters
+// User-facing routes - require authentication
+// List templates with pagination and filters (regular users see only published)
 router.get(
   '/',
+  authenticate,
   validateRequest(listTemplatesQuerySchema),
   asyncHandler(listTemplatesHandler),
 );
@@ -30,34 +32,28 @@ router.get(
 // Get all unique categories
 router.get(
   '/categories',
+  authenticate,
   asyncHandler(getCategoriesHandler),
 );
 
-// Get template by ID
+// Get template by ID (regular users see only published)
 router.get(
   '/:id',
+  authenticate,
   validateRequest(getTemplateSchema),
   asyncHandler(getTemplateHandler),
 );
 
-// Create new template (with optional file upload)
+// Create new template
 router.post(
   '/',
-  createUploadMiddleware('previewImage', {
-    allowedMimeTypes: ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'],
-    maxSize: 5 * 1024 * 1024, // 5MB
-  }),
   validateRequest(createTemplateSchema),
   asyncHandler(createTemplateHandler),
 );
 
-// Update template by ID (with optional file upload)
+// Update template by ID
 router.patch(
   '/:id',
-  createUploadMiddleware('previewImage', {
-    allowedMimeTypes: ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'],
-    maxSize: 5 * 1024 * 1024, // 5MB
-  }),
   validateRequest(updateTemplateSchema),
   asyncHandler(updateTemplateHandler),
 );

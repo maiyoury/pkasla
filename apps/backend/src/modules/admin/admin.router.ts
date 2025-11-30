@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { validateRequest } from '@/common/middlewares/validate-request';
 import { authenticate } from '@/common/middlewares/authenticate';
 import { authorize } from '@/common/middlewares/authorize';
+import { asyncHandler } from '@/utils/async-handler';
 import {
   getDashboardHandler,
   getUserMetricsHandler,
@@ -18,12 +19,71 @@ import {
   adminQuerySchema,
 } from './admin.validation';
 import { settingsRouter } from '@/modules/settings';
-import { templateRouter } from '@/modules/t';
+import {
+  createTemplateHandler,
+  getTemplateHandler,
+  updateTemplateHandler,
+  deleteTemplateHandler,
+  listTemplatesHandler,
+  getCategoriesHandler,
+} from '@/modules/t/template.controller';
+import {
+  createTemplateSchema,
+  updateTemplateSchema,
+  getTemplateSchema,
+  deleteTemplateSchema,
+  listTemplatesQuerySchema,
+} from '@/modules/t/template.validation';
 
 const router = Router();
 
-// All admin routes require authentication and admin role
+// All routes require authentication
 router.use(authenticate);
+
+// Template routes - allow authenticated users (not just admins) for GET requests
+// GET routes (list, categories, get by ID) are accessible to all authenticated users
+// POST, PATCH, DELETE routes require admin role
+const publicTemplateRouter = Router();
+publicTemplateRouter.get(
+  '/',
+  validateRequest(listTemplatesQuerySchema),
+  asyncHandler(listTemplatesHandler),
+);
+publicTemplateRouter.get(
+  '/categories',
+  asyncHandler(getCategoriesHandler),
+);
+publicTemplateRouter.get(
+  '/:id',
+  validateRequest(getTemplateSchema),
+  asyncHandler(getTemplateHandler),
+);
+
+// Admin-only template routes (write operations)
+const adminOnlyTemplateRouter = Router();
+adminOnlyTemplateRouter.use(authorize('admin'));
+adminOnlyTemplateRouter.post(
+  '/',
+  validateRequest(createTemplateSchema),
+  asyncHandler(createTemplateHandler),
+);
+adminOnlyTemplateRouter.patch(
+  '/:id',
+  validateRequest(updateTemplateSchema),
+  asyncHandler(updateTemplateHandler),
+);
+adminOnlyTemplateRouter.delete(
+  '/:id',
+  validateRequest(deleteTemplateSchema),
+  asyncHandler(deleteTemplateHandler),
+);
+
+// Mount template routers BEFORE admin authorization
+// This allows authenticated users to access GET routes
+router.use('/t', publicTemplateRouter);
+router.use('/t', adminOnlyTemplateRouter);
+
+// All other admin routes require admin role
 router.use(authorize('admin'));
 
 // Dashboard & Analytics
@@ -58,9 +118,6 @@ router
 
 // Settings routes
 router.use('/settings', settingsRouter);
-
-// Template routes
-router.use('/t', templateRouter);
 
 // Cache Management
 router.route('/cache/clear').post(clearCacheHandler);

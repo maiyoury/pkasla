@@ -27,6 +27,7 @@ export default function NewTemplatePage() {
           isPremium: data.isPremium,
           previewImage: previewImageUrl,
           slug: data.slug || undefined,
+          status: data.status || 'draft',
           variables: data.variables && data.variables.length > 0 ? data.variables : undefined,
           assets: data.assets && (data.assets.images?.length || data.assets.colors?.length || data.assets.fonts?.length)
             ? data.assets

@@ -1,5 +1,7 @@
 import { Schema, model, type Document, type Model } from 'mongoose';
 
+export type TemplateStatus = 'draft' | 'published' | 'archived';
+
 export interface TemplateDocument extends Document {
   name: string;
   title: string;
@@ -8,6 +10,7 @@ export interface TemplateDocument extends Document {
   isPremium: boolean;
   previewImage?: string;
   slug: string; // Next.js route name (e.g., "classic-gold", "modern-minimal")
+  status: TemplateStatus; // Template status: draft, published, archived
   variables?: string[]; // Available variables (e.g., ["event.title", "guest.name", "event.date"])
   assets?: {
     images?: string[];
@@ -55,6 +58,12 @@ const templateSchema = new Schema<TemplateDocument>(
       unique: true,
       index: true,
       sparse: true, // Allow null/undefined but enforce uniqueness when present
+    },
+    status: {
+      type: String,
+      enum: ['draft', 'published', 'archived'],
+      default: 'draft',
+      index: true,
     },
     variables: {
       type: [String],

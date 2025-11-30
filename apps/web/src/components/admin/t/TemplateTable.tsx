@@ -71,6 +71,7 @@ export function TemplateTable({
               <TableHead className="text-xs font-semibold text-black">Category</TableHead>
               <TableHead className="text-xs font-semibold text-black">Price</TableHead>
               <TableHead className="text-xs font-semibold text-black">Premium</TableHead>
+              <TableHead className="text-xs font-semibold text-black">Status</TableHead>
               <TableHead className="text-xs font-semibold text-black">Created</TableHead>
               <TableHead className="text-xs font-semibold text-black">Actions</TableHead>
             </TableRow>
@@ -78,7 +79,7 @@ export function TemplateTable({
           <TableBody>
             {templates.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={11} className="text-center py-8 text-xs text-gray-500">
+                <TableCell colSpan={12} className="text-center py-8 text-xs text-gray-500">
                   No templates found
                 </TableCell>
               </TableRow>
@@ -146,6 +147,24 @@ export function TemplateTable({
                       className="text-xs"
                     >
                       {template.isPremium ? 'Premium' : 'Free'}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
+                    <Badge
+                      variant={
+                        template.status === 'published'
+                          ? 'default'
+                          : template.status === 'archived'
+                          ? 'secondary'
+                          : 'outline'
+                      }
+                      className="text-xs"
+                    >
+                      {template.status === 'published'
+                        ? 'Published'
+                        : template.status === 'archived'
+                        ? 'Archived'
+                        : 'Draft'}
                     </Badge>
                   </TableCell>
                   <TableCell className="text-xs text-gray-600">

@@ -109,9 +109,7 @@ export default function AdminTemplatesPage() {
       <Card className="border border-gray-200">
         <CardHeader className="pb-3">
           <div className="flex flex-col gap-4">
-            <CardTitle className="text-sm font-semibold text-black">
-              All Templates ({totalItems})
-            </CardTitle>
+          
             <TemplateToolbar
               searchTerm={searchTerm}
               categoryFilter={categoryFilter}

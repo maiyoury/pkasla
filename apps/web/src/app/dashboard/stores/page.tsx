@@ -14,7 +14,7 @@ import {
 } from '@/components/ui/select'
 import Stores from '@/components/events/tabs/Stores'
 import TemplatePaymentDialog from '@/components/templates/TemplatePaymentDialog'
-import { useTemplates, useTemplateCategories } from '@/hooks/api/useTemplate'
+import { useUserTemplates, useUserTemplateCategories } from '@/hooks/api/useTemplate'
 import { useTemplateStore } from '@/store/templates'
 import type { Template as APITemplate } from '@/types/template'
 
@@ -23,10 +23,10 @@ export default function StoresPage() {
   const [searchInput, setSearchInput] = useState(filters.search || '')
   const [selectedTemplate, setSelectedTemplate] = useState<APITemplate | null>(null)
   const [isPaymentDialogOpen, setIsPaymentDialogOpen] = useState(false)
-  const { data: categories = [] } = useTemplateCategories()
+  const { data: categories = [] } = useUserTemplateCategories()
 
   // Fetch templates using the store filters
-  const { data: templatesData, isLoading } = useTemplates(filters)
+  const { data: templatesData, isLoading } = useUserTemplates(filters)
 
   const totalItems = templatesData?.total || 0
   const totalPages = templatesData ? Math.ceil(templatesData.total / (templatesData.pageSize || 12)) : 0

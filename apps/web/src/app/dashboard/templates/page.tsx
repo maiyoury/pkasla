@@ -8,8 +8,8 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Spinner } from '@/components/ui/shadcn-io/spinner'
 import { Card, CardContent } from '@/components/ui/card'
-import { useMyTemplatePurchases } from '@/hooks/api/useTemplatePurchase'
-import { useTemplate } from '@/hooks/api/useTemplate'
+import { useMyTemplatePurchases, type TemplatePurchase } from '@/hooks/api/useTemplatePurchase'
+import { useUserTemplate } from '@/hooks/api/useTemplate'
 
 export default function MyTemplatesPage() {
   const [searchInput, setSearchInput] = useState('')
@@ -91,12 +91,7 @@ export default function MyTemplatesPage() {
 }
 
 interface TemplatesGridProps {
-  purchases: Array<{
-    id: string
-    templateId: string
-    purchaseDate: string
-    price: number
-  }>
+  purchases: TemplatePurchase[]
   searchInput: string
   onViewPreview: (templateId: string) => void
 }
@@ -129,12 +124,7 @@ function TemplatesGrid({ purchases, searchInput, onViewPreview }: TemplatesGridP
 }
 
 interface TemplateCardProps {
-  purchase: {
-    id: string
-    templateId: string
-    purchaseDate: string
-    price: number
-  }
+  purchase: TemplatePurchase
   searchInput: string
   onViewPreview: (templateId: string) => void
 }
@@ -143,7 +133,7 @@ function TemplateCard({ purchase, searchInput, onViewPreview }: TemplateCardProp
   // Ensure templateId is a string (handle case where backend returns object)
   const templateId = getTemplateId(purchase.templateId)
   
-  const { data: template, isLoading } = useTemplate(templateId)
+  const { data: template, isLoading } = useUserTemplate(templateId)
 
   // Filter by search input
   const matchesSearch = useMemo(() => {

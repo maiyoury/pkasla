@@ -29,11 +29,26 @@ export const createTemplateSchema = z.object({
       .boolean()
       .optional()
       .default(false),
+    status: z
+      .enum(['draft', 'published', 'archived'], {
+        message: 'Status must be one of: draft, published, archived',
+      })
+      .optional()
+      .default('draft'),
     previewImage: z
       .union([
         z.string().url({ message: 'Preview image must be a valid URL' }),
         z.string().optional(),
       ])
+      .optional(),
+    slug: z
+      .string()
+      .max(100, { message: 'Slug must not exceed 100 characters' })
+      .trim()
+      .regex(/^[a-z0-9-]+$/, { message: 'Slug must contain only lowercase letters, numbers, and hyphens' })
+      .optional(),
+    variables: z
+      .array(z.string())
       .optional(),
   }),
 });
@@ -81,6 +96,11 @@ export const updateTemplateSchema = z.object({
       .min(0, { message: 'Price must be a positive number' })
       .optional(),
     isPremium: z.boolean().optional(),
+    status: z
+      .enum(['draft', 'published', 'archived'], {
+        message: 'Status must be one of: draft, published, archived',
+      })
+      .optional(),
     previewImage: z
       .preprocess(
         (val) => (val === '' || val === null ? undefined : val),
@@ -91,6 +111,19 @@ export const updateTemplateSchema = z.object({
           ])
           .optional()
       ),
+    slug: z
+      .preprocess(
+        (val) => (val === '' || val === null ? undefined : val),
+        z
+          .string()
+          .trim()
+          .max(100, { message: 'Slug must not exceed 100 characters' })
+          .regex(/^[a-z0-9-]+$/, { message: 'Slug must contain only lowercase letters, numbers, and hyphens' })
+          .optional()
+      ),
+    variables: z
+      .array(z.string())
+      .optional(),
   }),
 });
 

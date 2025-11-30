@@ -26,8 +26,11 @@ export interface TemplateListFilters {
 
 /**
  * Get list of templates with pagination and filters
+ * For admin use - can see all templates
  */
-export function useTemplates(filters: TemplateListFilters = {}) {
+export function useTemplates(filters: TemplateListFilters = {}, useUserEndpoint: boolean = false) {
+  const endpoint = useUserEndpoint ? '/templates' : '/admin/t';
+  
   return useQuery<TemplateListResponse, Error>({
     queryKey: templateKeys.list(filters),
     queryFn: async (): Promise<TemplateListResponse> => {
@@ -39,7 +42,7 @@ export function useTemplates(filters: TemplateListFilters = {}) {
       if (filters.search) params.append('search', filters.search);
 
       const response = await api.get<TemplateListResponse>(
-        `/admin/t${params.toString() ? `?${params.toString()}` : ''}`
+        `${endpoint}${params.toString() ? `?${params.toString()}` : ''}`
       );
       if (!response.success) {
         throw new Error(response.error || 'Failed to fetch templates');
@@ -55,9 +58,17 @@ export function useTemplates(filters: TemplateListFilters = {}) {
 }
 
 /**
- * Get template by ID
+ * Get list of templates for regular users (only published templates)
  */
-export function useTemplate(id: string | { _id?: unknown; id?: unknown } | unknown) {
+export function useUserTemplates(filters: TemplateListFilters = {}) {
+  return useTemplates(filters, true);
+}
+
+/**
+ * Get template by ID
+ * For admin use - can see all templates
+ */
+export function useTemplate(id: string | { _id?: unknown; id?: unknown } | unknown, useUserEndpoint: boolean = false) {
   // Ensure ID is always a string
   const templateId = typeof id === 'string' 
     ? id 
@@ -65,10 +76,12 @@ export function useTemplate(id: string | { _id?: unknown; id?: unknown } | unkno
       ? String((id as { _id?: unknown; id?: unknown })._id || (id as { _id?: unknown; id?: unknown }).id)
       : String(id)
 
+  const endpoint = useUserEndpoint ? '/templates' : '/admin/t';
+
   return useQuery<Template, Error>({
     queryKey: templateKeys.detail(templateId),
     queryFn: async (): Promise<Template> => {
-      const response = await api.get<Template>(`/admin/t/${templateId}`);
+      const response = await api.get<Template>(`${endpoint}/${templateId}`);
       if (!response.success) {
         throw new Error(response.error || 'Failed to fetch template');
       }
@@ -84,13 +97,23 @@ export function useTemplate(id: string | { _id?: unknown; id?: unknown } | unkno
 }
 
 /**
- * Get all unique categories
+ * Get template by ID for regular users (only published templates)
  */
-export function useTemplateCategories() {
+export function useUserTemplate(id: string | { _id?: unknown; id?: unknown } | unknown) {
+  return useTemplate(id, true);
+}
+
+/**
+ * Get all unique categories
+ * For admin use
+ */
+export function useTemplateCategories(useUserEndpoint: boolean = false) {
+  const endpoint = useUserEndpoint ? '/templates' : '/admin/t';
+  
   return useQuery<string[], Error>({
     queryKey: templateKeys.categories(),
     queryFn: async (): Promise<string[]> => {
-      const response = await api.get<string[]>(`/admin/t/categories`);
+      const response = await api.get<string[]>(`${endpoint}/categories`);
       if (!response.success) {
         throw new Error(response.error || 'Failed to fetch categories');
       }
@@ -102,6 +125,13 @@ export function useTemplateCategories() {
     retry: false,
     staleTime: 1000 * 60 * 5, // 5 minutes
   });
+}
+
+/**
+ * Get all unique categories for regular users
+ */
+export function useUserTemplateCategories() {
+  return useTemplateCategories(true);
 }
 
 /**
@@ -124,6 +154,9 @@ export function useCreateTemplate() {
           formData.append('price', data.price.toString());
         }
         formData.append('isPremium', data.isPremium.toString());
+        if (data.status) {
+          formData.append('status', data.status);
+        }
         formData.append('previewImage', previewImage);
 
         const response = await api.upload<Template>('/admin/t', formData);
@@ -182,6 +215,9 @@ export function useUpdateTemplate() {
         }
         if (data.isPremium !== undefined) {
           formData.append('isPremium', data.isPremium.toString());
+        }
+        if (data.status) {
+          formData.append('status', data.status);
         }
         formData.append('previewImage', previewImage);
 

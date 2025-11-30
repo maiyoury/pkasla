@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Spinner } from '@/components/ui/shadcn-io/spinner'
-import { useTemplates } from '@/hooks/api/useTemplate'
+import { useUserTemplates } from '@/hooks/api/useTemplate'
 import { useEvent, useUpdateEvent } from '@/hooks/api/useEvent'
 import { CheckCircle2, Eye, Palette, Type, Image as ImageIcon } from 'lucide-react'
 import Image from 'next/image'
@@ -19,7 +19,7 @@ interface TemplatesProps {
 
 export default function Templates({ eventId }: TemplatesProps) {
   const { data: event, isLoading: eventLoading } = useEvent(eventId)
-  const { data: templatesData, isLoading: templatesLoading } = useTemplates({ pageSize: 100 })
+  const { data: templatesData, isLoading: templatesLoading } = useUserTemplates({ pageSize: 100 })
   const updateEvent = useUpdateEvent()
   const [selectedTemplateSlug, setSelectedTemplateSlug] = useState<string | null>(null)
   const [isCustomizing, setIsCustomizing] = useState(false)
