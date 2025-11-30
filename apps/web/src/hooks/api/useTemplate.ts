@@ -135,6 +135,38 @@ export function useUserTemplateCategories() {
 }
 
 /**
+ * Helper function to append template fields to FormData
+ */
+function appendTemplateFieldsToFormData(
+  formData: FormData,
+  data: Partial<Omit<Template, 'id' | 'createdAt' | 'updatedAt'>>
+) {
+  if (data.name) formData.append('name', data.name);
+  if (data.title) formData.append('title', data.title);
+  if (data.category) {
+    formData.append('category', data.category);
+  }
+  if (data.price !== undefined && data.price !== null) {
+    formData.append('price', data.price.toString());
+  }
+  if (data.isPremium !== undefined) {
+    formData.append('isPremium', data.isPremium.toString());
+  }
+  if (data.status) {
+    formData.append('status', data.status);
+  }
+  if (data.slug) {
+    formData.append('slug', data.slug);
+  }
+  if (data.variables && data.variables.length > 0) {
+    formData.append('variables', JSON.stringify(data.variables));
+  }
+  if (data.assets) {
+    formData.append('assets', JSON.stringify(data.assets));
+  }
+}
+
+/**
  * Create template mutation
  */
 export function useCreateTemplate() {
@@ -145,18 +177,7 @@ export function useCreateTemplate() {
       // If there's a file, use FormData and upload endpoint
       if (previewImage) {
         const formData = new FormData();
-        formData.append('name', data.name);
-        formData.append('title', data.title);
-        if (data.category) {
-          formData.append('category', data.category);
-        }
-        if (data.price !== undefined && data.price !== null) {
-          formData.append('price', data.price.toString());
-        }
-        formData.append('isPremium', data.isPremium.toString());
-        if (data.status) {
-          formData.append('status', data.status);
-        }
+        appendTemplateFieldsToFormData(formData, data);
         formData.append('previewImage', previewImage);
 
         const response = await api.upload<Template>('/admin/t', formData);
@@ -205,20 +226,7 @@ export function useUpdateTemplate() {
       // If there's a file, use FormData with PATCH
       if (previewImage) {
         const formData = new FormData();
-        if (data.name) formData.append('name', data.name);
-        if (data.title) formData.append('title', data.title);
-        if (data.category) {
-          formData.append('category', data.category);
-        }
-        if (data.price !== undefined && data.price !== null) {
-          formData.append('price', data.price.toString());
-        }
-        if (data.isPremium !== undefined) {
-          formData.append('isPremium', data.isPremium.toString());
-        }
-        if (data.status) {
-          formData.append('status', data.status);
-        }
+        appendTemplateFieldsToFormData(formData, data);
         formData.append('previewImage', previewImage);
 
         // Use axiosInstance directly for PATCH with FormData

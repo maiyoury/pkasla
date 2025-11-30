@@ -13,7 +13,6 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { Template } from '@/types/template'
-import { useRouter } from 'next/navigation'
 
 interface TemplateTableProps {
   templates: Template[]
@@ -24,6 +23,7 @@ interface TemplateTableProps {
   totalItems: number
   onPageChange: (page: number) => void
   onDelete: (id: string) => void
+  onEdit: (id: string) => void
   isDeleting?: boolean
 }
 
@@ -49,9 +49,9 @@ export function TemplateTable({
   totalItems,
   onPageChange,
   onDelete,
+  onEdit,
   isDeleting = false,
 }: TemplateTableProps) {
-  const router = useRouter()
   const hasNextPage = currentPage < totalPages
   const hasPrevPage = currentPage > 1
   const endIndex = Math.min(startIndex + templates.length, totalItems)
@@ -175,7 +175,7 @@ export function TemplateTable({
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => router.push(`/admin/t/edit/${template.id}`)}
+                        onClick={() => onEdit(template.id)}
                         className="h-7 w-7 p-0"
                         disabled={isDeleting}
                       >

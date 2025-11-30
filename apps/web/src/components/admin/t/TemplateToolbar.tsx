@@ -11,7 +11,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useRouter } from "next/navigation";
 
 interface TemplateToolbarProps {
   searchTerm: string;
@@ -19,6 +18,7 @@ interface TemplateToolbarProps {
   categories: string[];
   onSearchChange: (value: string) => void;
   onCategoryFilterChange: (value: string) => void;
+  onCreate: () => void;
 }
 
 export function TemplateToolbar({
@@ -27,9 +27,8 @@ export function TemplateToolbar({
   categories,
   onSearchChange,
   onCategoryFilterChange,
+  onCreate,
 }: TemplateToolbarProps) {
-  const router = useRouter();
-
   return (
     <div className="flex sm:justify-between gap-4 ">
       <div className="flex flex-col gap-4  sm:flex-row sm:items-center ">
@@ -59,7 +58,7 @@ export function TemplateToolbar({
       </div>
       <div className="flex flex-col sm:flex-row gap-3">
         <Button
-          onClick={() => router.push("/admin/t/new")}
+          onClick={onCreate}
           className="w-full sm:w-auto h-9 text-xs"
         >
           <Plus className="h-4 w-4 mr-2" />

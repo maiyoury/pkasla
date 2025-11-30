@@ -233,10 +233,9 @@ export function TemplateForm({
           Category
         </Label>
         <Select
-          value={formData.category ? formData.category : undefined}
+          value={formData.category || undefined}
           onValueChange={(value) => handleInputChange('category', value)}
           disabled={isSubmitting || categoriesLoading}
-          key={template?.id || 'new'}
         >
           <SelectTrigger className="h-10 text-sm">
             <SelectValue placeholder={categoriesLoading ? "Loading categories..." : "Select a category"} />
@@ -338,10 +337,9 @@ export function TemplateForm({
           Status <span className="text-red-500">*</span>
         </Label>
         <Select
-          value={formData.status ?? 'draft'}
+          value={formData.status || 'draft'}
           onValueChange={(value) => handleInputChange('status', value as 'draft' | 'published' | 'archived')}
           disabled={isSubmitting}
-          key={`status-${template?.id || 'new'}`}
         >
           <SelectTrigger className="h-10 text-sm">
             <SelectValue placeholder="Select status" />

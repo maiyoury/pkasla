@@ -1,9 +1,10 @@
 'use client'
 
 import React, { useState, useMemo } from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { TemplateTable } from '@/components/admin/t/TemplateTable'
 import { TemplateToolbar } from '@/components/admin/t/TemplateToolbar'
+import { TemplateDialog } from '@/components/admin/t/TemplateDialog'
 import { Spinner } from '@/components/ui/shadcn-io/spinner'
 import {
   AlertDialog,
@@ -25,6 +26,8 @@ export default function AdminTemplatesPage() {
   const [currentPage, setCurrentPage] = useState(1)
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [templateToDelete, setTemplateToDelete] = useState<string | null>(null)
+  const [templateDialogOpen, setTemplateDialogOpen] = useState(false)
+  const [editingTemplateId, setEditingTemplateId] = useState<string | null>(null)
 
   // Build filters for API
   const filters = useMemo(() => {
@@ -75,6 +78,23 @@ export default function AdminTemplatesPage() {
     setDeleteDialogOpen(true)
   }
 
+  const handleCreate = () => {
+    setEditingTemplateId(null)
+    setTemplateDialogOpen(true)
+  }
+
+  const handleEdit = (id: string) => {
+    setEditingTemplateId(id)
+    setTemplateDialogOpen(true)
+  }
+
+  const handleDialogClose = (open: boolean) => {
+    setTemplateDialogOpen(open)
+    if (!open) {
+      setEditingTemplateId(null)
+    }
+  }
+
   const confirmDelete = async () => {
     if (!templateToDelete) return
 
@@ -116,6 +136,7 @@ export default function AdminTemplatesPage() {
               categories={categories}
               onSearchChange={handleSearchChange}
               onCategoryFilterChange={handleCategoryFilterChange}
+              onCreate={handleCreate}
             />
           </div>
         </CardHeader>
@@ -134,11 +155,18 @@ export default function AdminTemplatesPage() {
               totalItems={totalItems}
               onPageChange={setCurrentPage}
               onDelete={handleDelete}
+              onEdit={handleEdit}
               isDeleting={deleteTemplate.isPending}
             />
           )}
         </CardContent>
       </Card>
+
+      <TemplateDialog
+        open={templateDialogOpen}
+        onOpenChange={handleDialogClose}
+        templateId={editingTemplateId}
+      />
 
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
