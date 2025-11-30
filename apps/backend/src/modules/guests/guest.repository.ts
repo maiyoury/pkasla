@@ -45,7 +45,7 @@ export class GuestRepository {
 
   findByInviteToken(token: string) {
     return GuestModel.findOne({ inviteToken: token })
-      .populate('eventId', 'title description eventType date venue googleMapLink coverImage hostId')
+      .populate('eventId', 'title description eventType date venue googleMapLink coverImage hostId templateSlug userTemplateConfig')
       .populate('userId', 'name email avatar')
       .populate('createdBy', 'name email avatar')
       .lean();

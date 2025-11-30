@@ -46,6 +46,10 @@ export class InviteService {
     let template = null;
     if (event.templateSlug) {
       template = await templateRepository.findBySlug(event.templateSlug);
+      if (!template) {
+        // Log warning but don't fail - template might have been deleted
+        console.warn(`Template with slug "${event.templateSlug}" not found for event ${eventId}`);
+      }
     }
 
     // Merge assets from template and user customization
