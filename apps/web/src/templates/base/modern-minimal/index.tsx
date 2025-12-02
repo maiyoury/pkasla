@@ -7,7 +7,10 @@ import { useState } from "react";
 export default function ModernMinimalTemplate() {
   const [showCoupleQR, setShowCoupleQR] = useState(false);
   // Colors - you can update these
-  const accentColor = '#ec4899';
+  const accentColor = '#f472b6'; // Soft pink for titles
+  const textColor = '#ffffff'; // White for main text
+  const highlightColor = '#fbbf24'; // Yellow for highlights
+  const emphasisColor = '#ef4444'; // Red for emphasis
   
   // Fonts - you can update these
   const khmerFont = 'font-preahvihear';
@@ -199,15 +202,15 @@ export default function ModernMinimalTemplate() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 1, ease: "easeOut" }}
         >
-          <h2 className={`relative mb-8 text-3xl ${moulpaliFont} md:text-4xl`} style={{ color: accentColor }}>
+          <h2 className={`relative mb-6 text-4xl ${moulpaliFont} md:text-5xl lg:text-6xl`} style={{ color: accentColor }}>
             សិរីមង្គលអាពាហ៍ពិពាហ៍
           </h2>
-          <div className="flex justify-center items-center flex-col gap-4 mb-8">
-            <h3 className={`text-2xl md:text-3xl ${khangkomuttFont}`}>
+          <div className="flex justify-center items-center flex-col gap-3 mb-8">
+            <h3 className={`text-3xl md:text-4xl lg:text-5xl ${khangkomuttFont}`} style={{ color: textColor }}>
               {groomName}
             </h3>
-            <Image src="/images/assets/2hearts.gif" alt="Heart" width={64} height={64} />
-            <h3 className={`text-2xl md:text-3xl ${khangkomuttFont}`}>
+            <Image src="/images/assets/2hearts.gif" alt="Heart" width={48} height={48} className="md:w-16 md:h-16" />
+            <h3 className={`text-3xl md:text-4xl lg:text-5xl ${khangkomuttFont}`} style={{ color: textColor }}>
               {brideName}
             </h3>
           </div>
@@ -228,11 +231,11 @@ export default function ModernMinimalTemplate() {
               filter: 'blur(0px)',
             }}
           >
-            <p className={`mb-6 text-xl font-medium text-gray-800 ${khmerFont}`}>
+            <p className={`mb-4 text-xl md:text-2xl font-medium ${khmerFont}`} style={{ color: textColor }}>
             យើងខ្ញុំមានកត្តិយសសូមគោរពអញ្ជើញ
           </p>
-            <p className={`text-lg leading-relaxed text-gray-700 ${khmerFont} relative z-10`}>
-              {invitationText} <strong className="text-pink-600">ក្នុងពិធីរៀបអាពាហ៍ពិពាហ៍</strong> កូនប្រុស-កូនស្រី របស់យើងខ្ញុំទាំងពីរ។
+            <p className={`text-base md:text-lg lg:text-xl leading-relaxed ${khmerFont} relative z-10`} style={{ color: textColor }}>
+              {invitationText} <strong style={{ color: highlightColor }}>ក្នុងពិធីរៀបអាពាហ៍ពិពាហ៍</strong> <span style={{ color: emphasisColor }}>កូនប្រុស-កូនស្រី របស់</span> យើងខ្ញុំទាំងពីរ។
             </p>
           </motion.div>
         </motion.div>
@@ -251,25 +254,25 @@ export default function ModernMinimalTemplate() {
         >
           <div className="relative p-8">
             <div className="relative z-10">
-              <h3 className={`text-2xl md:text-3xl ${moulpaliFont} text-center mb-6`} style={{ color: accentColor }}>
+              <h3 className={`text-3xl md:text-4xl ${moulpaliFont} text-center mb-6`} style={{ color: accentColor }}>
                 កម្មវិធីសិរីមង្គល អាពាហ៍ពិពាហ៍
               </h3>
               <div className="space-y-4">
                 {programSchedule.map((item, index) => (
                   <motion.div
                     key={index}
-                    className="flex items-start gap-4 p-4 bg-pink-50/50"
+                    className="flex items-start gap-4 p-4"
                     initial={{ opacity: 0, x: -20 }}
                     whileInView={{ opacity: 1, x: 0 }}
                     viewport={{ once: true }}
                     transition={{ duration: 0.5, delay: index * 0.1 }}
                   >
-                    <div className="w-2 h-2 rounded-full bg-pink-400 mt-2 shrink-0"></div>
+                    <div className="w-2 h-2 rounded-full mt-2 shrink-0" style={{ backgroundColor: accentColor }}></div>
             <div>
-                      <p className={`font-semibold ${khmerFont} mb-1`} style={{ color: accentColor }}>
+                      <p className={`text-lg md:text-xl font-semibold ${khmerFont} mb-1`} style={{ color: accentColor }}>
                         {item.time}
                       </p>
-                      <p className={`text-gray-700 ${khmerFont}`}>
+                      <p className={`text-base md:text-lg ${khmerFont}`} style={{ color: textColor }}>
                         {item.event}
                       </p>
                     </div>
@@ -295,7 +298,7 @@ export default function ModernMinimalTemplate() {
           >
             <div className="relative p-8">
               <div className="relative z-10">
-                <h3 className={`text-2xl md:text-3xl ${moulpaliFont} text-center mb-6`} style={{ color: accentColor }}>
+                <h3 className={`text-3xl md:text-4xl ${moulpaliFont} text-center mb-6`} style={{ color: accentColor }}>
                   ទីតាំងកម្មវិធី
                 </h3>
                 
@@ -316,7 +319,7 @@ export default function ModernMinimalTemplate() {
                         className="object-contain"
                       />
                     </div>
-                    <p className={`text-sm text-gray-600 ${khmerFont}`}>
+                    <p className={`text-base md:text-lg ${khmerFont}`} style={{ color: textColor }}>
                       ស្កេនដើម្បីបើកផែនទី
                     </p>
                   </motion.div>
@@ -326,7 +329,7 @@ export default function ModernMinimalTemplate() {
                   href={googleMapLink}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className={`text-lg inline-block underline font-medium ${khmerFont}`}
+                  className={`text-lg md:text-xl inline-block underline font-medium ${khmerFont}`}
                   style={{ color: accentColor }}
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
@@ -352,10 +355,10 @@ export default function ModernMinimalTemplate() {
         >
           <div className="relative p-8">
             <div className="relative z-10">
-              <h3 className={`text-2xl md:text-3xl ${moulpaliFont} text-center mb-6`} style={{ color: accentColor }}>
+              <h3 className={`text-3xl md:text-4xl ${moulpaliFont} text-center mb-6`} style={{ color: accentColor }}>
                 កម្រងរូបភាពអនុស្សាវរីយ៍
               </h3>
-              <p className={`text-center mb-6 text-gray-600 ${khmerFont}`}>
+              <p className={`text-center mb-6 text-base md:text-lg ${khmerFont}`} style={{ color: textColor }}>
                 រូបភាពសម្រាប់រំលឹក និងជាចំណងអាពាហ៍ពិពាហ៍ដ៏រឹងមាំ ហើយមានសុភមង្គល សម្រាប់យើងទាំងពីរនាក់។
               </p>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -396,10 +399,10 @@ export default function ModernMinimalTemplate() {
         >
           <div className="relative p-8">
             <div className="relative z-10">
-              <h3 className={`text-2xl md:text-3xl ${moulpaliFont} text-center mb-6`} style={{ color: accentColor }}>
+              <h3 className={`text-3xl md:text-4xl ${moulpaliFont} text-center mb-6`} style={{ color: accentColor }}>
                 លិខិតសូមថ្លែងអំណរគុណ
               </h3>
-              <p className={`text-lg leading-relaxed text-gray-700 ${khmerFont}`}>
+              <p className={`text-base md:text-lg lg:text-xl leading-relaxed ${khmerFont}`} style={{ color: textColor }}>
                 ខ្ញុំបាទ នាងខ្ញុំ ជាមាតាបិតា កូនប្រុស-កូនស្រី សូមថ្លែង អំណរគុណយ៉ាងជ្រាលជ្រៅចំពោះវត្តមាន ដ៏ឧត្តុង្គឧត្តម របស់សម្តេច ទ្រង់ ឯកឧត្តម លោកជំទាវ អ្នកឧកញ៉ា ឧកញ៉ា លោកស្រី អ្នកនាង កញ្ញា អញ្ជើញចូលរួមជា ភ្ញៀវកិត្តិយស ក្នុងពិធីសិរីមង្គលអាពាហ៍ពិពាហ៍ កូន ប្រុស-ស្រី របស់យើងខ្ញុំ។ សូមមេត្តាទទួលនូវ សេចក្តី គោរព ដ៏ខ្ពង់ខ្ពស់ពីយើងខ្ញុំ។
               </p>
             </div>
@@ -457,7 +460,7 @@ export default function ModernMinimalTemplate() {
                               className="object-contain"
                             />
           </div>
-                          <p className={`text-sm font-medium ${khmerFont}`} style={{ color: accentColor }}>
+                          <p className={`text-base md:text-lg font-medium ${khmerFont}`} style={{ color: textColor }}>
                           ស្កេនដើម្បី​ចូលរួម​ចំណងដៃ
                           </p>
         </div>
@@ -474,7 +477,7 @@ export default function ModernMinimalTemplate() {
                               className="object-contain"
                             />
                           </div>
-                          <p className={`text-sm font-medium ${khmerFont}`} style={{ color: accentColor }}>
+                          <p className={`text-base md:text-lg font-medium ${khmerFont}`} style={{ color: textColor }}>
                           ស្កេនដើម្បី​ចូលរួម​ចំណងដៃ
                           </p>
                         </div>
