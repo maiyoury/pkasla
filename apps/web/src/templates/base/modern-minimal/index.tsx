@@ -25,7 +25,7 @@ export default function ModernMinimalTemplate() {
     '/images/assets/frame/modern-minimal.png',
     '/images/assets/frame/modern-minimal.png',
   ];
-  const qrCodeImage = '/images/assets/frame/vintage-lace.png'; // QR code image for location
+  const qrCodeImage = '/images/KHQR-KH.png'; // QR code image for location
   const qrCodeCoupleKH = '/images/KHQR-KH.png'; // QR code for couple (Khmer)
   const qrCodeCoupleUS = '/images/KHQR-US.png'; // QR code for couple (English)
   
@@ -214,7 +214,7 @@ export default function ModernMinimalTemplate() {
           
           {/* Invitation Text Card with Frame */}
           <motion.div 
-            className="relative p-6 mx-auto max-w-4xl rounded-2xl shadow-lg backdrop-blur-sm"
+            className="relative p-6 mx-auto max-w-4xl"
             initial={{ opacity: 0, y: 20, filter: 'blur(10px)' }}
             animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
             transition={{ duration: 0.8, ease: "easeOut", delay: 0.2 }}
@@ -249,7 +249,7 @@ export default function ModernMinimalTemplate() {
           viewport={{ once: false, amount: 0.3, margin: "-100px" }}
           transition={{ duration: 1, ease: "easeOut" }}
         >
-          <div className="relative p-8 rounded-2xl shadow-lg backdrop-blur-sm">
+          <div className="relative p-8">
             <div className="relative z-10">
               <h3 className={`text-2xl md:text-3xl ${moulpaliFont} text-center mb-6`} style={{ color: accentColor }}>
                 កម្មវិធីសិរីមង្គល អាពាហ៍ពិពាហ៍
@@ -258,7 +258,7 @@ export default function ModernMinimalTemplate() {
                 {programSchedule.map((item, index) => (
                   <motion.div
                     key={index}
-                    className="flex items-start gap-4 p-4 rounded-lg bg-pink-50/50 border border-pink-100"
+                    className="flex items-start gap-4 p-4 bg-pink-50/50"
                     initial={{ opacity: 0, x: -20 }}
                     whileInView={{ opacity: 1, x: 0 }}
                     viewport={{ once: true }}
@@ -293,7 +293,7 @@ export default function ModernMinimalTemplate() {
             viewport={{ once: false, amount: 0.3, margin: "-100px" }}
             transition={{ duration: 1, ease: "easeOut" }}
           >
-            <div className="relative p-8 rounded-2xl shadow-lg backdrop-blur-sm">
+            <div className="relative p-8">
               <div className="relative z-10">
                 <h3 className={`text-2xl md:text-3xl ${moulpaliFont} text-center mb-6`} style={{ color: accentColor }}>
                   ទីតាំងកម្មវិធី
@@ -308,7 +308,7 @@ export default function ModernMinimalTemplate() {
                     viewport={{ once: true }}
                     transition={{ duration: 0.5 }}
                   >
-                    <div className="relative w-48 h-48 md:w-64 md:h-64 p-4 bg-white rounded-lg border-2 border-pink-200">
+                    <div className="relative w-48 h-48 md:w-64 md:h-64 p-4 bg-white">
                       <Image
                         src={qrCodeImage}
                         alt="QR Code"
@@ -350,7 +350,7 @@ export default function ModernMinimalTemplate() {
           viewport={{ once: false, amount: 0.3, margin: "-100px" }}
           transition={{ duration: 1, ease: "easeOut" }}
         >
-          <div className="relative p-8 rounded-2xl shadow-lg backdrop-blur-sm">
+          <div className="relative p-8">
             <div className="relative z-10">
               <h3 className={`text-2xl md:text-3xl ${moulpaliFont} text-center mb-6`} style={{ color: accentColor }}>
                 កម្រងរូបភាពអនុស្សាវរីយ៍
@@ -362,7 +362,7 @@ export default function ModernMinimalTemplate() {
                 {galleryImages.map((img, index) => (
                   <motion.div
                     key={index}
-                    className="relative aspect-square rounded-lg overflow-hidden border-2 border-pink-200"
+                    className="relative aspect-square overflow-hidden"
                     initial={{ opacity: 0, scale: 0.8 }}
                     whileInView={{ opacity: 1, scale: 1 }}
                     viewport={{ once: true }}
@@ -394,7 +394,7 @@ export default function ModernMinimalTemplate() {
           viewport={{ once: false, amount: 0.3, margin: "-100px" }}
           transition={{ duration: 1, ease: "easeOut" }}
         >
-          <div className="relative p-8 rounded-2xl shadow-lg backdrop-blur-sm">
+          <div className="relative p-8">
             <div className="relative z-10">
               <h3 className={`text-2xl md:text-3xl ${moulpaliFont} text-center mb-6`} style={{ color: accentColor }}>
                 លិខិតសូមថ្លែងអំណរគុណ
@@ -418,16 +418,15 @@ export default function ModernMinimalTemplate() {
           viewport={{ once: false, amount: 0.3, margin: "-100px" }}
           transition={{ duration: 1, ease: "easeOut" }}
         >
-          <div className="relative p-8 rounded-2xl shadow-lg backdrop-blur-sm">
+          <div className="relative p-8">
             <div className="relative z-10">
               <div className="flex flex-col items-center gap-6">
                 {/* Clickable button */}
                 <motion.button
                   onClick={() => setShowCoupleQR(!showCoupleQR)}
-                  className={`px-8 py-4 rounded-lg border-2 font-medium ${khmerFont} flex items-center gap-3`}
+                  className={`px-8 py-4 font-medium ${khmerFont} flex items-center gap-3`}
                   style={{ 
                     color: showCoupleQR ? 'white' : accentColor,
-                    borderColor: accentColor,
                     backgroundColor: showCoupleQR ? accentColor : 'transparent',
                   }}
                   whileHover={{ scale: 1.05 }}
@@ -450,7 +449,7 @@ export default function ModernMinimalTemplate() {
                       {/* Khmer QR Code */}
                       {qrCodeCoupleKH && (
                         <div className="flex flex-col items-center gap-3">
-                          <div className="relative w-48 h-48 md:w-64 md:h-64 p-4 bg-white rounded-lg border-2 border-pink-200">
+                          <div className="relative w-48 h-48 md:w-64 md:h-64 p-4 bg-white">
                             <Image
                               src={qrCodeCoupleKH}
                               alt="QR Code Khmer"
@@ -467,7 +466,7 @@ export default function ModernMinimalTemplate() {
                       {/* English/US QR Code */}
                       {qrCodeCoupleUS && (
                         <div className="flex flex-col items-center gap-3">
-                          <div className="relative w-48 h-48 md:w-64 md:h-64 p-4 bg-white rounded-lg border-2 border-pink-200">
+                          <div className="relative w-48 h-48 md:w-64 md:h-64 p-4 bg-white">
                             <Image
                               src={qrCodeCoupleUS}
                               alt="QR Code English"
