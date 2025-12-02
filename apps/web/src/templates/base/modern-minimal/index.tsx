@@ -29,8 +29,9 @@ export default function ModernMinimalTemplate() {
   const butterfly2 = '/images/assets/butterfly2.png'; // Butterfly image 2
   const butterfly3 = '/images/assets/butterfly3.png'; // Butterfly image 3
   const galleryImages = [ // Photo gallery images
-    '/images/assets/frame/modern-minimal.png',
-    '/images/assets/frame/modern-minimal.png',
+    '/images/gallery1.png',
+    '/images/gallery2.png',
+    '/images/gallery3.png',
   ];
   const qrCodeImage = '/images/KHQR-KH.png'; // QR code image for location
   const qrCodeCoupleKH = '/images/KHQR-KH.png'; // QR code for couple (Khmer)
@@ -392,12 +393,12 @@ export default function ModernMinimalTemplate() {
                     viewport={{ once: true }}
                     transition={{ duration: 0.5 }}
                   >
-                    <div className="relative w-48 h-48 md:w-64 md:h-64 p-4 bg-white">
+                    <div className="relative w-48 h-48 md:w-64 md:h-64 p-4 bg-white rounded-lg">
                       <Image
                         src={qrCodeImage}
                         alt="QR Code"
                         fill
-                        className="object-contain"
+                        className="object-contain rounded-lg"
                       />
                     </div>
                     <p className={`text-base md:text-lg ${khmerFont}`} style={{ color: textColor }}>
@@ -410,7 +411,7 @@ export default function ModernMinimalTemplate() {
                   href={googleMapLink}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className={`text-lg md:text-xl inline-block underline font-medium ${khmerFont}`}
+                  className={`text-lg md:text-xl flex items-center justify-center underline font-medium ${khmerFont}`}
                   style={{ color: accentColor }}
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
@@ -457,7 +458,7 @@ export default function ModernMinimalTemplate() {
                       src={img}
                       alt={`Gallery ${index + 1}`}
                       fill
-                      className="object-cover"
+                      className="object-cover rounded-lg"
                     />
                   </motion.div>
                 ))}
