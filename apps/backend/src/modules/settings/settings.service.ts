@@ -35,6 +35,20 @@ export interface UpdateSettingsDto {
   emailPassword?: string;
   notificationOnUserRegistration?: boolean;
   notificationOnUserStatusChange?: boolean;
+  
+  // Payment Settings
+  // Stripe Configuration
+  stripeEnabled?: boolean;
+  stripeSecretKey?: string;
+  stripePublishableKey?: string;
+  stripeWebhookSecret?: string;
+  // Bakong Configuration
+  bakongEnabled?: boolean;
+  bakongAccessToken?: string;
+  bakongMerchantAccountId?: string;
+  bakongWebhookSecret?: string;
+  bakongApiUrl?: string;
+  bakongEnvironment?: 'sit' | 'production';
 }
 
 class SettingsService {
@@ -121,7 +135,48 @@ class SettingsService {
       }
     }
 
-    const updated = await settingsRepository.updateFields(updateData);
+    // Get current settings to check if payment methods are already enabled
+    const currentSettings = await this.getSettings();
+
+    // Validate Stripe settings if Stripe is being enabled
+    if (updateData.stripeEnabled && !currentSettings.stripeEnabled) {
+      // Only require keys when enabling for the first time
+      if (!updateData.stripeSecretKey || !updateData.stripePublishableKey) {
+        throw new AppError(
+          'Stripe Secret Key and Publishable Key are required when enabling Stripe',
+          httpStatus.BAD_REQUEST
+        );
+      }
+    }
+
+    // Validate Bakong settings if Bakong is being enabled
+    if (updateData.bakongEnabled && !currentSettings.bakongEnabled) {
+      // Only require keys when enabling for the first time
+      if (!updateData.bakongAccessToken || !updateData.bakongMerchantAccountId) {
+        throw new AppError(
+          'Bakong Access Token and Merchant Account ID are required when enabling Bakong',
+          httpStatus.BAD_REQUEST
+        );
+      }
+    }
+
+    // Filter out empty strings for sensitive fields to preserve existing values
+    const filteredUpdateData = { ...updateData };
+    const sensitiveFields = [
+      'stripeSecretKey',
+      'stripeWebhookSecret',
+      'bakongAccessToken',
+      'bakongWebhookSecret',
+      'emailPassword',
+    ] as const;
+
+    for (const field of sensitiveFields) {
+      if (filteredUpdateData[field] === '') {
+        delete filteredUpdateData[field];
+      }
+    }
+
+    const updated = await settingsRepository.updateFields(filteredUpdateData);
     
     // Clear cache after update
     clearSettingsCache();

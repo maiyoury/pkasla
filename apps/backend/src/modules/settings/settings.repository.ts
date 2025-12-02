@@ -18,7 +18,9 @@ export class SettingsRepository {
    * Get settings (without sensitive fields)
    */
   async get() {
-    return SettingsModel.findOne().select('-emailPassword').lean();
+    return SettingsModel.findOne()
+      .select('-emailPassword -stripeSecretKey -stripeWebhookSecret -bakongAccessToken -bakongWebhookSecret')
+      .lean();
   }
 
   /**
@@ -43,7 +45,7 @@ export class SettingsRepository {
       { _id: settings._id },
       payload,
       { new: true, runValidators: true }
-    ).select('-emailPassword').lean();
+    ).select('-emailPassword -stripeSecretKey -stripeWebhookSecret -bakongAccessToken -bakongWebhookSecret').lean();
   }
 
   /**
@@ -59,7 +61,7 @@ export class SettingsRepository {
       { _id: settings._id },
       { $set: fields },
       { new: true, runValidators: true }
-    ).select('-emailPassword').lean();
+    ).select('-emailPassword -stripeSecretKey -stripeWebhookSecret -bakongAccessToken -bakongWebhookSecret').lean();
   }
 }
 

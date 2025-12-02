@@ -32,6 +32,20 @@ export interface SettingsDocument extends Document {
   notificationOnUserRegistration: boolean;
   notificationOnUserStatusChange: boolean;
   
+  // Payment Settings
+  // Stripe Configuration
+  stripeEnabled: boolean;
+  stripeSecretKey?: string;
+  stripePublishableKey?: string;
+  stripeWebhookSecret?: string;
+  // Bakong Configuration
+  bakongEnabled: boolean;
+  bakongAccessToken?: string;
+  bakongMerchantAccountId?: string;
+  bakongWebhookSecret?: string;
+  bakongApiUrl?: string;
+  bakongEnvironment?: 'sit' | 'production';
+  
   createdAt: Date;
   updatedAt: Date;
 }
@@ -68,6 +82,20 @@ const settingsSchema = new Schema<SettingsDocument>(
     emailPassword: { type: String, select: false, trim: true },
     notificationOnUserRegistration: { type: Boolean, default: true },
     notificationOnUserStatusChange: { type: Boolean, default: true },
+    
+    // Payment Settings
+    // Stripe Configuration
+    stripeEnabled: { type: Boolean, default: false },
+    stripeSecretKey: { type: String, select: false, trim: true },
+    stripePublishableKey: { type: String, trim: true },
+    stripeWebhookSecret: { type: String, select: false, trim: true },
+    // Bakong Configuration
+    bakongEnabled: { type: Boolean, default: false },
+    bakongAccessToken: { type: String, select: false, trim: true },
+    bakongMerchantAccountId: { type: String, trim: true },
+    bakongWebhookSecret: { type: String, select: false, trim: true },
+    bakongApiUrl: { type: String, trim: true },
+    bakongEnvironment: { type: String, enum: ['sit', 'production'], default: 'sit' },
   },
   { 
     timestamps: true,
@@ -82,6 +110,10 @@ settingsSchema.set('toJSON', {
   transform: (_doc, ret) => {
     const result = ret as Record<string, any>;
     delete result.emailPassword; // Never expose password
+    delete result.stripeSecretKey; // Never expose secret keys
+    delete result.stripeWebhookSecret; // Never expose webhook secrets
+    delete result.bakongAccessToken; // Never expose access tokens
+    delete result.bakongWebhookSecret; // Never expose webhook secrets
     result.id = result._id;
     delete result._id;
     return result;
