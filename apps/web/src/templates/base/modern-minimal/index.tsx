@@ -58,7 +58,7 @@ export default function ModernMinimalTemplate() {
       {/* Decorative Elements - Fixed position during scroll with enhanced animations */}
       {decorativeTopLeft && (
         <motion.div 
-          className="fixed top-0 left-0 w-48 h-48 md:w-64 md:h-64 z-0 pointer-events-none"
+          className="fixed top-0 left-0 w-48 h-48 md:w-64 md:h-64 z-30 pointer-events-none"
           initial={{ opacity: 0, scale: 0.8, x: -30, y: -30, rotate: -10 }}
           animate={{ 
             opacity: [0, 0.6, 0.5, 0.7, 0.5],
@@ -84,7 +84,7 @@ export default function ModernMinimalTemplate() {
       )}
       {decorativeTopRight && (
         <motion.div 
-          className="fixed top-0 right-0 w-48 h-48 md:w-64 md:h-64 z-0 pointer-events-none"
+          className="fixed top-0 right-0 w-48 h-48 md:w-64 md:h-64 z-30 pointer-events-none"
           initial={{ opacity: 0, scale: 0.8, x: 30, y: -30, rotate: 10 }}
           animate={{ 
             opacity: [0, 0.6, 0.5, 0.7, 0.5],
@@ -110,7 +110,7 @@ export default function ModernMinimalTemplate() {
       )}
       {decorativeBottomLeft && (
         <motion.div 
-          className="fixed bottom-0 left-0 w-48 h-48 md:w-64 md:h-64 z-0 pointer-events-none"
+          className="fixed bottom-0 left-0 w-48 h-48 md:w-64 md:h-64 z-30 pointer-events-none"
           initial={{ opacity: 0, scale: 0.8, x: -30, y: 30, rotate: 10 }}
           animate={{ 
             opacity: [0, 0.6, 0.5, 0.7, 0.5],
@@ -136,7 +136,7 @@ export default function ModernMinimalTemplate() {
       )}
       {decorativeBottomRight && (
         <motion.div 
-          className="fixed bottom-0 right-0 w-48 h-48 md:w-64 md:h-64 z-0 pointer-events-none"
+          className="fixed bottom-0 right-0 w-48 h-48 md:w-64 md:h-64 z-30 pointer-events-none"
           initial={{ opacity: 0, scale: 0.8, x: 30, y: 30, rotate: -10 }}
           animate={{ 
             opacity: [0, 0.6, 0.5, 0.7, 0.5],
@@ -162,7 +162,7 @@ export default function ModernMinimalTemplate() {
       )}
       {decorativeBorder && (
         <motion.div 
-          className="fixed bottom-0 left-0 right-0 h-32 md:h-40 z-0 pointer-events-none"
+          className="fixed bottom-0 left-0 right-0 h-32 md:h-40 z-30 pointer-events-none"
           initial={{ opacity: 0, y: 50 }}
           animate={{ 
             opacity: [0, 0.5, 0.4, 0.6, 0.4],
@@ -184,10 +184,17 @@ export default function ModernMinimalTemplate() {
         />
       )}
 
-      <div className="container relative z-20 px-4 mx-auto max-w-6xl">
+      <div 
+        className="container relative z-10 px-4 mx-auto max-w-6xl flex flex-col items-center justify-start py-8 overflow-y-auto"
+        style={{
+          maxHeight: '60vh',
+          height: '60vh',
+          marginTop: '20vh',
+        }}
+      >
         {/* Hero Section */}
         <motion.div 
-          className="mb-16 text-center relative"
+          className="mb-16 text-center relative w-full"
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 1, ease: "easeOut" }}
@@ -207,12 +214,19 @@ export default function ModernMinimalTemplate() {
           
           {/* Invitation Text Card with Frame */}
           <motion.div 
-            className="relative p-6 mx-auto max-w-4xl rounded-2xl border-2 border-pink-200 shadow-lg backdrop-blur-sm bg-white/80"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
+            className="relative p-6 mx-auto max-w-4xl rounded-2xl border-2 border-pink-200 shadow-lg backdrop-blur-sm"
+            initial={{ opacity: 0, y: 20, filter: 'blur(10px)' }}
+            animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
             transition={{ duration: 0.8, ease: "easeOut", delay: 0.2 }}
-            whileInView={{ scale: [1, 1.02, 1] }}
-            viewport={{ once: true }}
+            whileInView={{ 
+              scale: [1, 1.02, 1],
+              filter: 'blur(0px)',
+              opacity: 1
+            }}
+            viewport={{ once: false, amount: 0.3 }}
+            style={{
+              filter: 'blur(0px)',
+            }}
           >
             <p className={`mb-6 text-xl font-medium text-gray-800 ${khmerFont}`}>
             យើងខ្ញុំមានកត្តិយសសូមគោរពអញ្ជើញ
@@ -225,13 +239,17 @@ export default function ModernMinimalTemplate() {
 
         {/* Program Schedule with Frame */}
         <motion.div 
-          className="mx-auto max-w-4xl mb-16 relative"
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-100px" }}
+          className="mx-auto max-w-4xl mb-16 relative w-full"
+          initial={{ opacity: 0, y: 20, filter: 'blur(8px)' }}
+          whileInView={{ 
+            opacity: 1, 
+            y: 0,
+            filter: 'blur(0px)'
+          }}
+          viewport={{ once: false, amount: 0.3, margin: "-100px" }}
           transition={{ duration: 1, ease: "easeOut" }}
         >
-          <div className="relative p-8 rounded-2xl border-2 border-pink-200 shadow-lg backdrop-blur-sm bg-white/80">
+          <div className="relative p-8 rounded-2xl border-2 border-pink-200 shadow-lg backdrop-blur-sm">
             <div className="relative z-10">
               <h3 className={`text-2xl md:text-3xl ${moulpaliFont} text-center mb-6`} style={{ color: accentColor }}>
                 កម្មវិធីសិរីមង្គល អាពាហ៍ពិពាហ៍
@@ -265,13 +283,17 @@ export default function ModernMinimalTemplate() {
         {/* Google Map Link with QR Code */}
         {googleMapLink && (
           <motion.div 
-            className="mx-auto max-w-4xl mb-16 relative"
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-100px" }}
+            className="mx-auto max-w-4xl mb-16 relative w-full"
+            initial={{ opacity: 0, y: 20, filter: 'blur(8px)' }}
+            whileInView={{ 
+              opacity: 1, 
+              y: 0,
+              filter: 'blur(0px)'
+            }}
+            viewport={{ once: false, amount: 0.3, margin: "-100px" }}
             transition={{ duration: 1, ease: "easeOut" }}
           >
-            <div className="relative p-8 rounded-2xl border-2 border-pink-200 shadow-lg backdrop-blur-sm bg-white/80">
+            <div className="relative p-8 rounded-2xl border-2 border-pink-200 shadow-lg backdrop-blur-sm">
               <div className="relative z-10">
                 <h3 className={`text-2xl md:text-3xl ${moulpaliFont} text-center mb-6`} style={{ color: accentColor }}>
                   ទីតាំងកម្មវិធី
@@ -318,13 +340,17 @@ export default function ModernMinimalTemplate() {
 
         {/* Photo Gallery with Frame */}
         <motion.div 
-          className="mx-auto max-w-4xl mb-16 relative"
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-100px" }}
+          className="mx-auto max-w-4xl mb-16 relative w-full"
+          initial={{ opacity: 0, y: 20, filter: 'blur(8px)' }}
+          whileInView={{ 
+            opacity: 1, 
+            y: 0,
+            filter: 'blur(0px)'
+          }}
+          viewport={{ once: false, amount: 0.3, margin: "-100px" }}
           transition={{ duration: 1, ease: "easeOut" }}
         >
-          <div className="relative p-8 rounded-2xl border-2 border-pink-200 shadow-lg backdrop-blur-sm bg-white/80">
+          <div className="relative p-8 rounded-2xl border-2 border-pink-200 shadow-lg backdrop-blur-sm">
             <div className="relative z-10">
               <h3 className={`text-2xl md:text-3xl ${moulpaliFont} text-center mb-6`} style={{ color: accentColor }}>
                 កម្រងរូបភាពអនុស្សាវរីយ៍
@@ -358,13 +384,17 @@ export default function ModernMinimalTemplate() {
 
         {/* Thank You Letter with Frame */}
         <motion.div 
-          className="mx-auto max-w-4xl mb-16 relative"
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-100px" }}
+          className="mx-auto max-w-4xl mb-16 relative w-full"
+          initial={{ opacity: 0, y: 20, filter: 'blur(8px)' }}
+          whileInView={{ 
+            opacity: 1, 
+            y: 0,
+            filter: 'blur(0px)'
+          }}
+          viewport={{ once: false, amount: 0.3, margin: "-100px" }}
           transition={{ duration: 1, ease: "easeOut" }}
         >
-          <div className="relative p-8 rounded-2xl border-2 border-pink-200 shadow-lg backdrop-blur-sm bg-white/80">
+          <div className="relative p-8 rounded-2xl border-2 border-pink-200 shadow-lg backdrop-blur-sm">
             <div className="relative z-10">
               <h3 className={`text-2xl md:text-3xl ${moulpaliFont} text-center mb-6`} style={{ color: accentColor }}>
                 លិខិតសូមថ្លែងអំណរគុណ
@@ -378,13 +408,17 @@ export default function ModernMinimalTemplate() {
 
         {/* Couple QR Code Section */}
         <motion.div 
-          className="mx-auto max-w-4xl mb-16 relative"
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-100px" }}
+          className="mx-auto max-w-4xl mb-16 relative w-full"
+          initial={{ opacity: 0, y: 20, filter: 'blur(8px)' }}
+          whileInView={{ 
+            opacity: 1, 
+            y: 0,
+            filter: 'blur(0px)'
+          }}
+          viewport={{ once: false, amount: 0.3, margin: "-100px" }}
           transition={{ duration: 1, ease: "easeOut" }}
         >
-          <div className="relative p-8 rounded-2xl border-2 border-pink-200 shadow-lg backdrop-blur-sm bg-white/80">
+          <div className="relative p-8 rounded-2xl border-2 border-pink-200 shadow-lg backdrop-blur-sm">
             <div className="relative z-10">
               <div className="flex flex-col items-center gap-6">
                 {/* Clickable button */}
