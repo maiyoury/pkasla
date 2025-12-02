@@ -1,186 +1,401 @@
-interface ModernMinimalTemplateProps {
-  event: {
-    title: string;
-    description?: string;
-    date: string | Date;
-    venue: string;
-    googleMapLink?: string;
-    coverImage?: string;
-  };
-  guest: {
-    name: string;
-    email?: string;
-    inviteToken?: string;
-    meta?: Record<string, string>;
-  };
-  assets: {
-    images?: Record<string, string>;
-    colors?: Record<string, string>;
-    fonts?: Record<string, string>;
-  };
-}
+"use client";
 
-export default function ModernMinimalTemplate({ event, guest, assets }: ModernMinimalTemplateProps) {
-  const eventDate = typeof event.date === 'string' ? new Date(event.date) : event.date;
-  const formattedDate = eventDate.toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  });
-  const formattedTime = eventDate.toLocaleTimeString('en-US', {
-    hour: 'numeric',
-    minute: '2-digit',
-  });
+import { motion } from "motion/react";
+import Image from "next/image";
+import { useState } from "react";
 
-  const primaryColor = assets.colors?.primary || '#000000';
-  const accentColor = assets.colors?.accent || '#8b7355';
-  const frameBgImage = assets.images?.frame || assets.images?.background || event.coverImage;
+export default function ModernMinimalTemplate() {
+  const [showCoupleQR, setShowCoupleQR] = useState(false);
+  // Colors - you can update these
+  const accentColor = '#ec4899';
+  
+  // Fonts - you can update these
+  const khmerFont = 'font-preahvihear';
+  const moulpaliFont = 'font-moulpali';
+  const khangkomuttFont = 'font-khangkomutt';
+  
+  // Images - UPDATE THESE PATHS with your actual images
+  const backgroundImage = '/images/assets/frame/modern-minimal.png'; // Main background
+  const decorativeTopLeft = '/images/assets/frame/frame-bg.png'; // Top left decorative
+  const decorativeTopRight = '/images/assets/frame/frame-bg.png'; // Top right decorative
+  const decorativeBottomLeft = '/images/assets/frame/frame-bg.png'; // Bottom left decorative
+  const decorativeBottomRight = '/images/assets/frame/frame-bg.png'; // Bottom right decorative
+  const decorativeBorder = '/images/assets/frame/frame-bg.png'; // Bottom border
+  const galleryImages = [ // Photo gallery images
+    '/images/assets/frame/modern-minimal.png',
+    '/images/assets/frame/modern-minimal.png',
+  ];
+  const qrCodeImage = '/images/assets/frame/vintage-lace.png'; // QR code image for location
+  const qrCodeCoupleKH = '/images/KHQR-KH.png'; // QR code for couple (Khmer)
+  const qrCodeCoupleUS = '/images/KHQR-US.png'; // QR code for couple (English)
+  
+  // Wedding information - UPDATE THESE
+  const groomName = "មន្នី ច័ន្ទផល្គុន";
+  const brideName = "ម៉ៃ យូរី";
+  const invitationText = "សម្តេច ទ្រង់ ឯកឧត្តម អ្នកឧកញ៉ា លោកជំទាវ លោក លោកស្រី អ្នកនាង កញ្ញា ចូលរួមជាអធិបតី និង ជាភ្ញៀវកិត្តិយសដើម្បីប្រសិទ្ធិពរជ័យ សិរីមង្គល";
+  const googleMapLink = "https://maps.google.com/";
+  
+  // Program schedule
+  const programSchedule = [
+    { time: "វេលាម៉ោង ០៦:០០-០៧:០០ព្រឹក", event: "ជួបជុំភ្ញៀវកិត្តិយស ដើម្បីរៀបចំហែជំនួន" },
+    { time: "វេលាម៉ោង ០៧:០០-០៨:០០ព្រឹក", event: "ពិធីហែជំនួន(កំណត់)" },
+    { time: "វេលាម៉ោង ០៨:០០-០៩:០០ព្រឹក", event: "ពិធីចៅមហានិយាយជើងការ រាប់ផ្លែឈើ" },
+    { time: "វេលាម៉ោង ០៩:០០-១០:០០ព្រឹក", event: "ពិធីកាត់សក់បង្កក់សិរី" },
+  ];
 
   return (
-    <div 
-      className="min-h-screen relative overflow-hidden"
-      style={{ 
-        backgroundImage: `url(${frameBgImage})`, 
-        backgroundSize: 'cover', 
-        backgroundPosition: 'center', 
+    <section 
+      className="overflow-hidden relative py-20 scroll-smooth min-h-screen"
+      style={{
+        backgroundImage: backgroundImage ? `url(${backgroundImage})` : undefined,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
         backgroundRepeat: 'no-repeat',
         backgroundAttachment: 'fixed',
       }}
     >
-      {/* Overlay gradient for depth */}
-      <div className="absolute inset-0 bg-linear-to-br from-black/20 via-transparent to-black/30" />
-      
-      {/* Animated background elements */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-20 left-10 w-72 h-72 bg-white/5 rounded-full blur-3xl animate-pulse" style={{ animationDuration: '4s' }} />
-        <div className="absolute bottom-20 right-10 w-96 h-96 bg-white/5 rounded-full blur-3xl animate-pulse" style={{ animationDuration: '6s', animationDelay: '1s' }} />
-      </div>
+      {/* Decorative Elements - UPDATE IMAGE PATHS */}
+      {decorativeTopLeft && (
+        <motion.div 
+          className="absolute top-0 left-0 w-48 h-48 md:w-64 md:h-64 opacity-60 pointer-events-none"
+          initial={{ opacity: 0, scale: 0.8, x: -20, y: -20 }}
+          animate={{ opacity: 0.6, scale: 1, x: 0, y: 0 }}
+          transition={{ duration: 1, ease: "easeOut", delay: 0.2 }}
+          style={{
+            backgroundImage: `url(${decorativeTopLeft})`,
+            backgroundSize: 'contain',
+            backgroundPosition: 'top left',
+            backgroundRepeat: 'no-repeat',
+          }}
+        />
+      )}
+      {decorativeTopRight && (
+        <motion.div 
+          className="absolute top-0 right-0 w-48 h-48 md:w-64 md:h-64 opacity-60 pointer-events-none"
+          initial={{ opacity: 0, scale: 0.8, x: 20, y: -20 }}
+          animate={{ opacity: 0.6, scale: 1, x: 0, y: 0 }}
+          transition={{ duration: 1, ease: "easeOut", delay: 0.3 }}
+          style={{
+            backgroundImage: `url(${decorativeTopRight})`,
+            backgroundSize: 'contain',
+            backgroundPosition: 'top right',
+            backgroundRepeat: 'no-repeat',
+          }}
+        />
+      )}
+      {decorativeBottomLeft && (
+        <motion.div 
+          className="absolute bottom-0 left-0 w-48 h-48 md:w-64 md:h-64 opacity-60 pointer-events-none"
+          initial={{ opacity: 0, scale: 0.8, x: -20, y: 20 }}
+          animate={{ opacity: 0.6, scale: 1, x: 0, y: 0 }}
+          transition={{ duration: 1, ease: "easeOut", delay: 0.4 }}
+          style={{
+            backgroundImage: `url(${decorativeBottomLeft})`,
+            backgroundSize: 'contain',
+            backgroundPosition: 'bottom left',
+            backgroundRepeat: 'no-repeat',
+          }}
+        />
+      )}
+      {decorativeBottomRight && (
+        <motion.div 
+          className="absolute bottom-0 right-0 w-48 h-48 md:w-64 md:h-64 opacity-60 pointer-events-none"
+          initial={{ opacity: 0, scale: 0.8, x: 20, y: 20 }}
+          animate={{ opacity: 0.6, scale: 1, x: 0, y: 0 }}
+          transition={{ duration: 1, ease: "easeOut", delay: 0.5 }}
+          style={{
+            backgroundImage: `url(${decorativeBottomRight})`,
+            backgroundSize: 'contain',
+            backgroundPosition: 'bottom right',
+            backgroundRepeat: 'no-repeat',
+          }}
+        />
+      )}
+      {decorativeBorder && (
+        <motion.div 
+          className="absolute bottom-0 left-0 right-0 h-32 opacity-50 pointer-events-none"
+          initial={{ opacity: 0, y: 50 }}
+          animate={{ opacity: 0.5, y: 0 }}
+          transition={{ duration: 1.2, ease: "easeOut", delay: 0.6 }}
+          style={{
+            backgroundImage: `url(${decorativeBorder})`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'bottom center',
+            backgroundRepeat: 'repeat-x',
+          }}
+        />
+      )}
 
-      <div className="min-h-screen flex items-center justify-center p-3 sm:p-4 md:p-6 relative z-10">
-        <div className="max-w-2xl w-full">
-          {/* Glass card with subtle blur only */}
-          <div 
-            className="overflow-hidden">
-            {/* Header with minimal background */}
-            <div 
-              className="relative px-6 sm:px-8 md:px-12 py-10 sm:py-12 md:py-16 overflow-hidden"
-            >
-              <div className="absolute top-0 right-0 w-40 h-40 sm:w-64 sm:h-64 rounded-full opacity-10" style={{ background: accentColor }} />
-              
-              <h1 
-                className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extralight tracking-tight relative z-10 transition-all duration-500"
-                style={{ 
-                  color: primaryColor,
-                  lineHeight: '1.1',
-                }}
-              >
-                {event.title}
-              </h1>
-              
-              {/* Decorative line */}
-              <div 
-                className="h-0.5 mt-6 sm:mt-8 rounded-full w-16 sm:w-20"
-                style={{
-                  background: `linear-gradient(90deg, ${primaryColor} 0%, ${accentColor} 100%)`,
-                }}
-              />
-            </div>
+      <div className="container relative z-10 px-4 mx-auto max-w-6xl">
+        {/* Hero Section */}
+        <motion.div 
+          className="mb-16 text-center relative"
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 1, ease: "easeOut" }}
+        >
+          <h2 className={`relative mb-8 text-3xl ${moulpaliFont} md:text-4xl`} style={{ color: accentColor }}>
+            សិរីមង្គលអាពាហ៍ពិពាហ៍
+          </h2>
+          <div className="flex justify-center items-center flex-col gap-4 mb-8">
+            <h3 className={`text-2xl md:text-3xl ${khangkomuttFont}`}>
+              {groomName}
+            </h3>
+            <Image src="/images/assets/2hearts.gif" alt="Heart" width={64} height={64} />
+            <h3 className={`text-2xl md:text-3xl ${khangkomuttFont}`}>
+              {brideName}
+            </h3>
+          </div>
+          
+          {/* Invitation Text Card with Frame */}
+          <motion.div 
+            className="relative p-6 mx-auto max-w-4xl rounded-2xl border-2 border-pink-200 shadow-lg backdrop-blur-sm bg-white/80"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, ease: "easeOut", delay: 0.2 }}
+            whileInView={{ scale: [1, 1.02, 1] }}
+            viewport={{ once: true }}
+          >
+            <p className={`mb-6 text-xl font-medium text-gray-800 ${khmerFont}`}>
+            យើងខ្ញុំមានកត្តិយសសូមគោរពអញ្ជើញ
+          </p>
+            <p className={`text-lg leading-relaxed text-gray-700 ${khmerFont} relative z-10`}>
+              {invitationText} <strong className="text-pink-600">ក្នុងពិធីរៀបអាពាហ៍ពិពាហ៍</strong> កូនប្រុស-កូនស្រី របស់យើងខ្ញុំទាំងពីរ។
+            </p>
+          </motion.div>
+        </motion.div>
 
-            {/* Content */}
-            <div className="px-6 sm:px-8 md:px-12 py-8 sm:py-10 md:py-12 space-y-8 sm:space-y-10">
-              {/* Greeting */}
-              <div>
-                <p className="text-xl sm:text-2xl font-light mb-4 sm:mb-6" style={{ color: primaryColor }}>
-                  Dear <span className="font-normal">{guest.name}</span>,
-                </p>
-                {event.description && (
-                  <p className="text-base sm:text-lg text-gray-600 leading-relaxed">
-                    {event.description}
-                  </p>
-                )}
-              </div>
-
-              {/* Event Details */}
-              <div className="grid sm:grid-cols-2 gap-6 sm:gap-8 pt-6 sm:pt-8">
-                <div className="group">
-                  <div className="flex items-center gap-3 mb-3 sm:mb-4">
-                    <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center" style={{ backgroundColor: `${accentColor}15` }}>
-                      <svg className="w-4 h-4 sm:w-5 sm:h-5" style={{ color: accentColor }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                      </svg>
+        {/* Program Schedule with Frame */}
+        <motion.div 
+          className="mx-auto max-w-4xl mb-16 relative"
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-100px" }}
+          transition={{ duration: 1, ease: "easeOut" }}
+        >
+          <div className="relative p-8 rounded-2xl border-2 border-pink-200 shadow-lg backdrop-blur-sm bg-white/80">
+            <div className="relative z-10">
+              <h3 className={`text-2xl md:text-3xl ${moulpaliFont} text-center mb-6`} style={{ color: accentColor }}>
+                កម្មវិធីសិរីមង្គល អាពាហ៍ពិពាហ៍
+              </h3>
+              <div className="space-y-4">
+                {programSchedule.map((item, index) => (
+                  <motion.div
+                    key={index}
+                    className="flex items-start gap-4 p-4 rounded-lg bg-pink-50/50 border border-pink-100"
+                    initial={{ opacity: 0, x: -20 }}
+                    whileInView={{ opacity: 1, x: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.5, delay: index * 0.1 }}
+                  >
+                    <div className="w-2 h-2 rounded-full bg-pink-400 mt-2 shrink-0"></div>
+            <div>
+                      <p className={`font-semibold ${khmerFont} mb-1`} style={{ color: accentColor }}>
+                        {item.time}
+                      </p>
+                      <p className={`text-gray-700 ${khmerFont}`}>
+                        {item.event}
+                      </p>
                     </div>
-                    <p className="text-xs uppercase tracking-widest font-medium" style={{ color: accentColor }}>
-                      Date & Time
-                    </p>
-                  </div>
-                  <p className="text-lg sm:text-xl font-light mb-1" style={{ color: primaryColor }}>{formattedDate}</p>
-                  <p className="text-base sm:text-lg font-light text-gray-600">{formattedTime}</p>
-                </div>
-
-                <div className="group">
-                  <div className="flex items-center gap-3 mb-3 sm:mb-4">
-                    <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center" style={{ backgroundColor: `${accentColor}15` }}>
-                      <svg className="w-4 h-4 sm:w-5 sm:h-5" style={{ color: accentColor }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                      </svg>
-                    </div>
-                    <p className="text-xs uppercase tracking-widest font-medium" style={{ color: accentColor }}>
-                      Location
-                    </p>
-                  </div>
-                  <p className="text-base sm:text-lg font-light mb-2" style={{ color: primaryColor }}>{event.venue}</p>
-                  {event.googleMapLink && (
-                    <a
-                      href={event.googleMapLink}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-2 text-sm font-medium transition-all hover:gap-3"
-                      style={{ color: accentColor }}
-                    >
-                      Get Directions
-                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                      </svg>
-                    </a>
-                  )}
-                </div>
+                  </motion.div>
+                ))}
               </div>
-
-              {/* RSVP Button */}
-              <div className="pt-6 sm:pt-8">
-                <a
-                  href={`/invite/${guest.inviteToken || ''}/rsvp`}
-                  className="group relative inline-block w-full text-center py-3 sm:py-4 rounded-xl font-light tracking-wide transition-all duration-300 overflow-hidden hover:shadow-lg"
-                  style={{ 
-                    backgroundColor: 'transparent',
-                    color: primaryColor,
-                    border: `2px solid ${primaryColor}`,
-                  }}
-                >
-                  <span className="relative z-10 text-base sm:text-lg group-hover:text-white transition-colors duration-300">RSVP Now</span>
-                  <div 
-                    className="absolute inset-0 transition-transform duration-300 scale-0 group-hover:scale-100"
-                    style={{
-                      background: `linear-gradient(135deg, ${primaryColor} 0%, ${accentColor} 100%)`,
-                      transformOrigin: 'center',
-                    }}
-                  />
-                </a>
-              </div>
-            </div>
-
-            {/* Footer */}
-            <div 
-              className="px-8 md:px-12 py-8 text-center border-t border-white/20"
-            >
-              <p className="text-sm text-gray-500 font-light tracking-wide">
-                We look forward to celebrating with you
-              </p>
             </div>
           </div>
+        </motion.div>
+
+        {/* Google Map Link with QR Code */}
+        {googleMapLink && (
+          <motion.div 
+            className="mx-auto max-w-4xl mb-16 relative"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-100px" }}
+            transition={{ duration: 1, ease: "easeOut" }}
+          >
+            <div className="relative p-8 rounded-2xl border-2 border-pink-200 shadow-lg backdrop-blur-sm bg-white/80">
+              <div className="relative z-10">
+                <h3 className={`text-2xl md:text-3xl ${moulpaliFont} text-center mb-6`} style={{ color: accentColor }}>
+                  ទីតាំងកម្មវិធី
+                </h3>
+                
+                {/* QR Code for Location */}
+                {qrCodeImage && (
+                  <motion.div
+                    className="flex flex-col items-center gap-4 mb-6"
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    whileInView={{ opacity: 1, scale: 1 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.5 }}
+                  >
+                    <div className="relative w-48 h-48 md:w-64 md:h-64 p-4 bg-white rounded-lg border-2 border-pink-200">
+                      <Image
+                        src={qrCodeImage}
+                        alt="QR Code"
+                        fill
+                        className="object-contain"
+                      />
+                    </div>
+                    <p className={`text-sm text-gray-600 ${khmerFont}`}>
+                      ស្កេនដើម្បីបើកផែនទី
+                    </p>
+                  </motion.div>
+                )}
+                
+                <motion.a
+                  href={googleMapLink}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={`text-lg inline-block underline font-medium ${khmerFont}`}
+                  style={{ color: accentColor }}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  មើលទីតាំង
+                </motion.a>
+              </div>
+            </div>
+          </motion.div>
+        )}
+
+        {/* Photo Gallery with Frame */}
+        <motion.div 
+          className="mx-auto max-w-4xl mb-16 relative"
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-100px" }}
+          transition={{ duration: 1, ease: "easeOut" }}
+        >
+          <div className="relative p-8 rounded-2xl border-2 border-pink-200 shadow-lg backdrop-blur-sm bg-white/80">
+            <div className="relative z-10">
+              <h3 className={`text-2xl md:text-3xl ${moulpaliFont} text-center mb-6`} style={{ color: accentColor }}>
+                កម្រងរូបភាពអនុស្សាវរីយ៍
+              </h3>
+              <p className={`text-center mb-6 text-gray-600 ${khmerFont}`}>
+                រូបភាពសម្រាប់រំលឹក និងជាចំណងអាពាហ៍ពិពាហ៍ដ៏រឹងមាំ ហើយមានសុភមង្គល សម្រាប់យើងទាំងពីរនាក់។
+              </p>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {galleryImages.map((img, index) => (
+                  <motion.div
+                    key={index}
+                    className="relative aspect-square rounded-lg overflow-hidden border-2 border-pink-200"
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    whileInView={{ opacity: 1, scale: 1 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.5, delay: index * 0.1 }}
+                    whileHover={{ scale: 1.05 }}
+                  >
+                    <Image
+                      src={img}
+                      alt={`Gallery ${index + 1}`}
+                      fill
+                      className="object-cover"
+                    />
+                  </motion.div>
+                ))}
         </div>
       </div>
     </div>
+        </motion.div>
+
+        {/* Thank You Letter with Frame */}
+        <motion.div 
+          className="mx-auto max-w-4xl mb-16 relative"
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-100px" }}
+          transition={{ duration: 1, ease: "easeOut" }}
+        >
+          <div className="relative p-8 rounded-2xl border-2 border-pink-200 shadow-lg backdrop-blur-sm bg-white/80">
+            <div className="relative z-10">
+              <h3 className={`text-2xl md:text-3xl ${moulpaliFont} text-center mb-6`} style={{ color: accentColor }}>
+                លិខិតសូមថ្លែងអំណរគុណ
+              </h3>
+              <p className={`text-lg leading-relaxed text-gray-700 ${khmerFont}`}>
+                ខ្ញុំបាទ នាងខ្ញុំ ជាមាតាបិតា កូនប្រុស-កូនស្រី សូមថ្លែង អំណរគុណយ៉ាងជ្រាលជ្រៅចំពោះវត្តមាន ដ៏ឧត្តុង្គឧត្តម របស់សម្តេច ទ្រង់ ឯកឧត្តម លោកជំទាវ អ្នកឧកញ៉ា ឧកញ៉ា លោកស្រី អ្នកនាង កញ្ញា អញ្ជើញចូលរួមជា ភ្ញៀវកិត្តិយស ក្នុងពិធីសិរីមង្គលអាពាហ៍ពិពាហ៍ កូន ប្រុស-ស្រី របស់យើងខ្ញុំ។ សូមមេត្តាទទួលនូវ សេចក្តី គោរព ដ៏ខ្ពង់ខ្ពស់ពីយើងខ្ញុំ។
+              </p>
+            </div>
+          </div>
+        </motion.div>
+
+        {/* Couple QR Code Section */}
+        <motion.div 
+          className="mx-auto max-w-4xl mb-16 relative"
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-100px" }}
+          transition={{ duration: 1, ease: "easeOut" }}
+        >
+          <div className="relative p-8 rounded-2xl border-2 border-pink-200 shadow-lg backdrop-blur-sm bg-white/80">
+            <div className="relative z-10">
+              <div className="flex flex-col items-center gap-6">
+                {/* Clickable button */}
+                <motion.button
+                  onClick={() => setShowCoupleQR(!showCoupleQR)}
+                  className={`px-8 py-4 rounded-lg border-2 font-medium ${khmerFont} flex items-center gap-3`}
+                  style={{ 
+                    color: showCoupleQR ? 'white' : accentColor,
+                    borderColor: accentColor,
+                    backgroundColor: showCoupleQR ? accentColor : 'transparent',
+                  }}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  <span>{showCoupleQR ? '✕' : '💑'}</span>
+                  <span>ចំណងដៃ</span>
+                </motion.button>
+                
+                {/* QR Codes - shown when clicked */}
+                {showCoupleQR && (
+                  <motion.div
+                    className="w-full"
+                    initial={{ opacity: 0, scale: 0.8, y: -20 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.8, y: -20 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      {/* Khmer QR Code */}
+                      {qrCodeCoupleKH && (
+                        <div className="flex flex-col items-center gap-3">
+                          <div className="relative w-48 h-48 md:w-64 md:h-64 p-4 bg-white rounded-lg border-2 border-pink-200">
+                            <Image
+                              src={qrCodeCoupleKH}
+                              alt="QR Code Khmer"
+                              fill
+                              className="object-contain"
+                            />
+          </div>
+                          <p className={`text-sm font-medium ${khmerFont}`} style={{ color: accentColor }}>
+                          ស្កេនដើម្បី​ចូលរួម​ចំណងដៃ
+                          </p>
+        </div>
+                      )}
+                      
+                      {/* English/US QR Code */}
+                      {qrCodeCoupleUS && (
+                        <div className="flex flex-col items-center gap-3">
+                          <div className="relative w-48 h-48 md:w-64 md:h-64 p-4 bg-white rounded-lg border-2 border-pink-200">
+                            <Image
+                              src={qrCodeCoupleUS}
+                              alt="QR Code English"
+                              fill
+                              className="object-contain"
+                            />
+                          </div>
+                          <p className={`text-sm font-medium ${khmerFont}`} style={{ color: accentColor }}>
+                          ស្កេនដើម្បី​ចូលរួម​ចំណងដៃ
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  </motion.div>
+                )}
+        </div>
+      </div>
+    </div>
+        </motion.div>
+      </div>
+    </section>
   );
 }
