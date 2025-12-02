@@ -24,6 +24,10 @@ export default function ModernMinimalTemplate() {
   const decorativeBottomLeft = '/images/assets/frame/frame-bottom-left.png'; // Bottom left decorative
   const decorativeBottomRight = '/images/assets/frame/frame-bottom-right.png'; // Bottom right decorative
   const decorativeBorder = '/images/assets/frame/frame-bg.png'; // Bottom border
+  // Butterfly decorative elements - UPDATE THESE PATHS with your butterfly images
+  const butterfly1 = '/images/assets/butterfly1.png'; // Butterfly image 1
+  const butterfly2 = '/images/assets/butterfly2.png'; // Butterfly image 2
+  const butterfly3 = '/images/assets/butterfly3.png'; // Butterfly image 3
   const galleryImages = [ // Photo gallery images
     '/images/assets/frame/modern-minimal.png',
     '/images/assets/frame/modern-minimal.png',
@@ -187,6 +191,83 @@ export default function ModernMinimalTemplate() {
         />
       )}
 
+      {/* Decorative Butterflies */}
+      {butterfly1 && (
+        <motion.div
+          className="fixed top-1/4 left-8 md:left-16 w-16 h-16 md:w-20 md:h-20 z-30 pointer-events-none"
+          initial={{ opacity: 0, scale: 0, rotate: -45 }}
+          animate={{
+            opacity: [0, 0.8, 0.6, 0.8, 0.6],
+            scale: [0, 1, 1, 1.1, 1],
+            x: [0, 10, -5, 15, 0],
+            y: [0, -10, 5, -15, 0],
+            rotate: [-45, 0, 10, -10, 0]
+          }}
+          transition={{
+            duration: 6,
+            ease: "easeInOut",
+            repeat: Infinity,
+            delay: 0.8
+          }}
+          style={{
+            backgroundImage: `url(${butterfly1})`,
+            backgroundSize: 'contain',
+            backgroundPosition: 'center',
+            backgroundRepeat: 'no-repeat',
+          }}
+        />
+      )}
+      {butterfly2 && (
+        <motion.div
+          className="fixed top-1/3 right-12 md:right-24 w-12 h-12 md:w-16 md:h-16 z-30 pointer-events-none"
+          initial={{ opacity: 0, scale: 0, rotate: 45 }}
+          animate={{
+            opacity: [0, 0.7, 0.5, 0.7, 0.5],
+            scale: [0, 1, 1, 1.15, 1],
+            x: [0, -8, 5, -12, 0],
+            y: [0, 8, -5, 12, 0],
+            rotate: [45, 0, -15, 15, 0]
+          }}
+          transition={{
+            duration: 5.5,
+            ease: "easeInOut",
+            repeat: Infinity,
+            delay: 1.2
+          }}
+          style={{
+            backgroundImage: `url(${butterfly2})`,
+            backgroundSize: 'contain',
+            backgroundPosition: 'center',
+            backgroundRepeat: 'no-repeat',
+          }}
+        />
+      )}
+      {butterfly3 && (
+        <motion.div
+          className="fixed bottom-1/4 left-1/4 w-14 h-14 md:w-18 md:h-18 z-30 pointer-events-none"
+          initial={{ opacity: 0, scale: 0, rotate: -30 }}
+          animate={{
+            opacity: [0, 0.6, 0.4, 0.6, 0.4],
+            scale: [0, 1, 1, 1.05, 1],
+            x: [0, 5, -8, 10, 0],
+            y: [0, -5, 8, -10, 0],
+            rotate: [-30, 0, 20, -20, 0]
+          }}
+          transition={{
+            duration: 7,
+            ease: "easeInOut",
+            repeat: Infinity,
+            delay: 1.8
+          }}
+          style={{
+            backgroundImage: `url(${butterfly3})`,
+            backgroundSize: 'contain',
+            backgroundPosition: 'center',
+            backgroundRepeat: 'no-repeat',
+          }}
+        />
+      )}
+
       <div 
         className="container relative z-10 px-4 mx-auto max-w-6xl flex flex-col items-center justify-start py-8 overflow-y-auto"
         style={{
@@ -261,7 +342,7 @@ export default function ModernMinimalTemplate() {
                 {programSchedule.map((item, index) => (
                   <motion.div
                     key={index}
-                    className="flex items-start gap-4 p-4"
+                    className="flex items-start gap-4"
                     initial={{ opacity: 0, x: -20 }}
                     whileInView={{ opacity: 1, x: 0 }}
                     viewport={{ once: true }}
