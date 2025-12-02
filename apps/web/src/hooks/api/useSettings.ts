@@ -45,6 +45,20 @@ export interface Settings {
   notificationOnUserRegistration: boolean;
   notificationOnUserStatusChange: boolean;
   
+  // Payment Settings
+  // Stripe Configuration
+  stripeEnabled: boolean;
+  stripeSecretKey?: string;
+  stripePublishableKey?: string;
+  stripeWebhookSecret?: string;
+  // Bakong Configuration
+  bakongEnabled: boolean;
+  bakongAccessToken?: string;
+  bakongMerchantAccountId?: string;
+  bakongWebhookSecret?: string;
+  bakongApiUrl?: string;
+  bakongEnvironment?: 'sit' | 'production';
+  
   id?: string;
   createdAt?: string;
   updatedAt?: string;
@@ -84,6 +98,20 @@ export interface UpdateSettingsDto {
   emailPassword?: string;
   notificationOnUserRegistration?: boolean;
   notificationOnUserStatusChange?: boolean;
+  
+  // Payment Settings
+  // Stripe Configuration
+  stripeEnabled?: boolean;
+  stripeSecretKey?: string;
+  stripePublishableKey?: string;
+  stripeWebhookSecret?: string;
+  // Bakong Configuration
+  bakongEnabled?: boolean;
+  bakongAccessToken?: string;
+  bakongMerchantAccountId?: string;
+  bakongWebhookSecret?: string;
+  bakongApiUrl?: string;
+  bakongEnvironment?: 'sit' | 'production';
 }
 
 /**

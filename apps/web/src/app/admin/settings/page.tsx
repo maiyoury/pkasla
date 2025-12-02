@@ -9,6 +9,7 @@ import {
   Info,
   Save,
   Loader2,
+  CreditCard,
 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -155,7 +156,7 @@ export default function AdminSettingsPage() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className="grid w-full grid-cols-6">
           <TabsTrigger value="general" className="text-xs">
             <Settings className="h-3 w-3 mr-1" />
             General
@@ -171,6 +172,10 @@ export default function AdminSettingsPage() {
           <TabsTrigger value="notifications" className="text-xs">
             <Bell className="h-3 w-3 mr-1" />
             Notifications
+          </TabsTrigger>
+          <TabsTrigger value="payment" className="text-xs">
+            <CreditCard className="h-3 w-3 mr-1" />
+            Payment
           </TabsTrigger>
           <TabsTrigger value="system" className="text-xs">
             <Info className="h-3 w-3 mr-1" />
@@ -624,6 +629,233 @@ export default function AdminSettingsPage() {
                         handleInputChange('notificationOnUserStatusChange', checked)
                       }
                     />
+                  </div>
+                </>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Payment Settings */}
+        <TabsContent value="payment" className="space-y-4">
+          <Card className="border border-gray-200">
+            <CardHeader>
+              <CardTitle className="text-sm font-semibold text-black">
+                Stripe Payment Configuration
+              </CardTitle>
+              <CardDescription className="text-xs">
+                Configure Stripe payment gateway settings
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <Label htmlFor="stripeEnabled" className="text-xs font-medium">
+                    Enable Stripe
+                  </Label>
+                  <p className="text-xs text-gray-500">
+                    Enable Stripe payment processing
+                  </p>
+                </div>
+                <Switch
+                  id="stripeEnabled"
+                  checked={currentSettings.stripeEnabled}
+                  onCheckedChange={(checked) =>
+                    handleInputChange('stripeEnabled', checked)
+                  }
+                />
+              </div>
+
+              {currentSettings.stripeEnabled && (
+                <>
+                  <Separator />
+                  <div className="space-y-2">
+                    <Label htmlFor="stripeSecretKey" className="text-xs font-medium">
+                      Stripe Secret Key
+                    </Label>
+                    <Input
+                      id="stripeSecretKey"
+                      type="password"
+                      value={currentSettings.stripeSecretKey || ''}
+                      onChange={(e) =>
+                        handleInputChange('stripeSecretKey', e.target.value)
+                      }
+                      className="text-xs"
+                      placeholder="sk_test_... or sk_live_..."
+                    />
+                    <p className="text-xs text-gray-500">
+                      Your Stripe secret key (starts with sk_test_ or sk_live_)
+                    </p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="stripePublishableKey" className="text-xs font-medium">
+                      Stripe Publishable Key
+                    </Label>
+                    <Input
+                      id="stripePublishableKey"
+                      value={currentSettings.stripePublishableKey || ''}
+                      onChange={(e) =>
+                        handleInputChange('stripePublishableKey', e.target.value)
+                      }
+                      className="text-xs"
+                      placeholder="pk_test_... or pk_live_..."
+                    />
+                    <p className="text-xs text-gray-500">
+                      Your Stripe publishable key (starts with pk_test_ or pk_live_)
+                    </p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="stripeWebhookSecret" className="text-xs font-medium">
+                      Stripe Webhook Secret
+                    </Label>
+                    <Input
+                      id="stripeWebhookSecret"
+                      type="password"
+                      value={currentSettings.stripeWebhookSecret || ''}
+                      onChange={(e) =>
+                        handleInputChange('stripeWebhookSecret', e.target.value)
+                      }
+                      className="text-xs"
+                      placeholder="whsec_..."
+                    />
+                    <p className="text-xs text-gray-500">
+                      Webhook secret for verifying Stripe webhook signatures
+                    </p>
+                  </div>
+                </>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card className="border border-gray-200">
+            <CardHeader>
+              <CardTitle className="text-sm font-semibold text-black">
+                Bakong KHQR Payment Configuration
+              </CardTitle>
+              <CardDescription className="text-xs">
+                Configure Bakong KHQR payment gateway settings
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <Label htmlFor="bakongEnabled" className="text-xs font-medium">
+                    Enable Bakong
+                  </Label>
+                  <p className="text-xs text-gray-500">
+                    Enable Bakong KHQR payment processing
+                  </p>
+                </div>
+                <Switch
+                  id="bakongEnabled"
+                  checked={currentSettings.bakongEnabled}
+                  onCheckedChange={(checked) =>
+                    handleInputChange('bakongEnabled', checked)
+                  }
+                />
+              </div>
+
+              {currentSettings.bakongEnabled && (
+                <>
+                  <Separator />
+                  <div className="space-y-2">
+                    <Label htmlFor="bakongAccessToken" className="text-xs font-medium">
+                      Bakong Access Token
+                    </Label>
+                    <Input
+                      id="bakongAccessToken"
+                      type="password"
+                      value={currentSettings.bakongAccessToken || ''}
+                      onChange={(e) =>
+                        handleInputChange('bakongAccessToken', e.target.value)
+                      }
+                      className="text-xs"
+                      placeholder="Enter Bakong access token"
+                    />
+                    <p className="text-xs text-gray-500">
+                      Your Bakong API access token
+                    </p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="bakongMerchantAccountId" className="text-xs font-medium">
+                      Merchant Account ID
+                    </Label>
+                    <Input
+                      id="bakongMerchantAccountId"
+                      value={currentSettings.bakongMerchantAccountId || ''}
+                      onChange={(e) =>
+                        handleInputChange('bakongMerchantAccountId', e.target.value)
+                      }
+                      className="text-xs"
+                      placeholder="Enter merchant account ID"
+                    />
+                    <p className="text-xs text-gray-500">
+                      Your Bakong merchant account identifier
+                    </p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="bakongWebhookSecret" className="text-xs font-medium">
+                      Bakong Webhook Secret
+                    </Label>
+                    <Input
+                      id="bakongWebhookSecret"
+                      type="password"
+                      value={currentSettings.bakongWebhookSecret || ''}
+                      onChange={(e) =>
+                        handleInputChange('bakongWebhookSecret', e.target.value)
+                      }
+                      className="text-xs"
+                      placeholder="Enter webhook secret"
+                    />
+                    <p className="text-xs text-gray-500">
+                      Webhook secret for verifying Bakong webhook signatures
+                    </p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="bakongEnvironment" className="text-xs font-medium">
+                      Environment
+                    </Label>
+                    <Select
+                      value={currentSettings.bakongEnvironment || 'sit'}
+                      onValueChange={(value) =>
+                        handleInputChange('bakongEnvironment', value as 'sit' | 'production')
+                      }
+                    >
+                      <SelectTrigger className="text-xs">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="sit">SIT (Testing)</SelectItem>
+                        <SelectItem value="production">Production</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <p className="text-xs text-gray-500">
+                      Select the Bakong environment (SIT for testing, Production for live)
+                    </p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="bakongApiUrl" className="text-xs font-medium">
+                      API URL (Optional)
+                    </Label>
+                    <Input
+                      id="bakongApiUrl"
+                      type="url"
+                      value={currentSettings.bakongApiUrl || ''}
+                      onChange={(e) =>
+                        handleInputChange('bakongApiUrl', e.target.value)
+                      }
+                      className="text-xs"
+                      placeholder="https://sit-api-bakong.nbc.gov.kh"
+                    />
+                    <p className="text-xs text-gray-500">
+                      Custom API URL (leave empty to use default based on environment)
+                    </p>
                   </div>
                 </>
               )}

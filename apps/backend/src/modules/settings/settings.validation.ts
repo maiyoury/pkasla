@@ -32,6 +32,20 @@ export const updateSettingsSchema = z.object({
     emailPassword: z.string().min(1).optional(),
     notificationOnUserRegistration: z.boolean().optional(),
     notificationOnUserStatusChange: z.boolean().optional(),
+    
+    // Payment Settings
+    // Stripe Configuration
+    stripeEnabled: z.boolean().optional(),
+    stripeSecretKey: z.string().trim().optional(),
+    stripePublishableKey: z.string().trim().optional(),
+    stripeWebhookSecret: z.string().trim().optional(),
+    // Bakong Configuration
+    bakongEnabled: z.boolean().optional(),
+    bakongAccessToken: z.string().trim().optional(),
+    bakongMerchantAccountId: z.string().trim().optional(),
+    bakongWebhookSecret: z.string().trim().optional(),
+    bakongApiUrl: z.string().url().trim().optional().or(z.literal('')),
+    bakongEnvironment: z.enum(['sit', 'production']).optional(),
   }),
 });
 
