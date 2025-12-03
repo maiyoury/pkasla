@@ -97,18 +97,42 @@ export default function ElegantRoseTemplate() {
           className="fixed top-0 left-0 w-48 h-48 md:w-64 md:h-64 z-30 pointer-events-none"
           initial={{ opacity: 0, scale: 0.8, x: -30, y: -30, rotate: -10 }}
           animate={{
-            opacity: [0, 0.6, 0.5, 0.7, 0.5],
-            scale: [0.8, 1, 1, 1.05, 1],
-            x: [-30, 0, 0, -5, 0],
-            y: [-30, 0, 0, -5, 0],
-            rotate: [-10, -5, -5, 0, -5],
+            opacity: 1,
+            scale: [1, 1.02, 1],
+            x: [0, -2, 0],
+            y: [0, -2, 0],
+            rotate: [0, -2, 0],
           }}
           transition={{
-            duration: 5,
-            ease: "easeInOut",
-            repeat: Infinity,
-            delay: 0.2,
-            times: [0, 0.2, 0.2, 0.6, 1],
+            opacity: {
+              duration: 1,
+              ease: "easeOut",
+              delay: 0.2,
+            },
+            scale: {
+              duration: 4,
+              ease: "easeInOut",
+              repeat: Infinity,
+              delay: 1.2,
+            },
+            x: {
+              duration: 4,
+              ease: "easeInOut",
+              repeat: Infinity,
+              delay: 1.2,
+            },
+            y: {
+              duration: 4,
+              ease: "easeInOut",
+              repeat: Infinity,
+              delay: 1.2,
+            },
+            rotate: {
+              duration: 4,
+              ease: "easeInOut",
+              repeat: Infinity,
+              delay: 1.2,
+            },
           }}
           style={{
             backgroundImage: `url(${decorativeTopLeft})`,
@@ -123,18 +147,42 @@ export default function ElegantRoseTemplate() {
           className="fixed top-0 right-0 w-48 h-48 md:w-64 md:h-64 z-30 pointer-events-none"
           initial={{ opacity: 0, scale: 0.8, x: 30, y: -30, rotate: 10 }}
           animate={{
-            opacity: [0, 0.6, 0.5, 0.7, 0.5],
-            scale: [0.8, 1, 1, 1.05, 1],
-            x: [30, 0, 0, 5, 0],
-            y: [-30, 0, 0, -5, 0],
-            rotate: [10, 5, 5, 0, 5],
+            opacity: 1,
+            scale: [1, 1.02, 1],
+            x: [0, 2, 0],
+            y: [0, -2, 0],
+            rotate: [0, 2, 0],
           }}
           transition={{
-            duration: 5,
-            ease: "easeInOut",
-            repeat: Infinity,
-            delay: 0.3,
-            times: [0, 0.2, 0.2, 0.6, 1],
+            opacity: {
+              duration: 1,
+              ease: "easeOut",
+              delay: 0.3,
+            },
+            scale: {
+              duration: 4,
+              ease: "easeInOut",
+              repeat: Infinity,
+              delay: 1.3,
+            },
+            x: {
+              duration: 4,
+              ease: "easeInOut",
+              repeat: Infinity,
+              delay: 1.3,
+            },
+            y: {
+              duration: 4,
+              ease: "easeInOut",
+              repeat: Infinity,
+              delay: 1.3,
+            },
+            rotate: {
+              duration: 4,
+              ease: "easeInOut",
+              repeat: Infinity,
+              delay: 1.3,
+            },
           }}
           style={{
             backgroundImage: `url(${decorativeTopRight})`,
@@ -149,18 +197,42 @@ export default function ElegantRoseTemplate() {
           className="fixed bottom-0 left-0 w-48 h-48 md:w-64 md:h-64 z-30 pointer-events-none"
           initial={{ opacity: 0, scale: 0.8, x: -30, y: 30, rotate: 10 }}
           animate={{
-            opacity: [0, 0.6, 0.5, 0.7, 0.5],
-            scale: [0.8, 1, 1, 1.05, 1],
-            x: [-30, 0, 0, -5, 0],
-            y: [30, 0, 0, 5, 0],
-            rotate: [10, 5, 5, 0, 5],
+            opacity: 1,
+            scale: [1, 1.02, 1],
+            x: [0, -2, 0],
+            y: [0, 2, 0],
+            rotate: [0, 2, 0],
           }}
           transition={{
-            duration: 5,
-            ease: "easeInOut",
-            repeat: Infinity,
-            delay: 0.4,
-            times: [0, 0.2, 0.2, 0.6, 1],
+            opacity: {
+              duration: 1,
+              ease: "easeOut",
+              delay: 0.4,
+            },
+            scale: {
+              duration: 4,
+              ease: "easeInOut",
+              repeat: Infinity,
+              delay: 1.4,
+            },
+            x: {
+              duration: 4,
+              ease: "easeInOut",
+              repeat: Infinity,
+              delay: 1.4,
+            },
+            y: {
+              duration: 4,
+              ease: "easeInOut",
+              repeat: Infinity,
+              delay: 1.4,
+            },
+            rotate: {
+              duration: 4,
+              ease: "easeInOut",
+              repeat: Infinity,
+              delay: 1.4,
+            },
           }}
           style={{
             backgroundImage: `url(${decorativeBottomLeft})`,
@@ -175,18 +247,42 @@ export default function ElegantRoseTemplate() {
           className="fixed bottom-0 right-0 w-48 h-48 md:w-64 md:h-64 z-30 pointer-events-none"
           initial={{ opacity: 0, scale: 0.8, x: 30, y: 30, rotate: -10 }}
           animate={{
-            opacity: [0, 0.6, 0.5, 0.7, 0.5],
-            scale: [0.8, 1, 1, 1.05, 1],
-            x: [30, 0, 0, 5, 0],
-            y: [30, 0, 0, 5, 0],
-            rotate: [-10, -5, -5, 0, -5],
+            opacity: 1,
+            scale: [1, 1.02, 1],
+            x: [0, 2, 0],
+            y: [0, 2, 0],
+            rotate: [0, -2, 0],
           }}
           transition={{
-            duration: 5,
-            ease: "easeInOut",
-            repeat: Infinity,
-            delay: 0.5,
-            times: [0, 0.2, 0.2, 0.6, 1],
+            opacity: {
+              duration: 1,
+              ease: "easeOut",
+              delay: 0.5,
+            },
+            scale: {
+              duration: 4,
+              ease: "easeInOut",
+              repeat: Infinity,
+              delay: 1.5,
+            },
+            x: {
+              duration: 4,
+              ease: "easeInOut",
+              repeat: Infinity,
+              delay: 1.5,
+            },
+            y: {
+              duration: 4,
+              ease: "easeInOut",
+              repeat: Infinity,
+              delay: 1.5,
+            },
+            rotate: {
+              duration: 4,
+              ease: "easeInOut",
+              repeat: Infinity,
+              delay: 1.5,
+            },
           }}
           style={{
             backgroundImage: `url(${decorativeBottomRight})`,
@@ -201,13 +297,21 @@ export default function ElegantRoseTemplate() {
           className="fixed bottom-0 left-0 right-0 h-32 md:h-40 z-30 pointer-events-none"
           initial={{ opacity: 0, y: 50 }}
           animate={{
-            opacity: 0.5,
-            y: 0,
+            opacity: 1,
+            y: [0, -2, 0],
           }}
           transition={{
-            duration: 1,
-            ease: "easeOut",
-            delay: 0.6,
+            opacity: {
+              duration: 1,
+              ease: "easeOut",
+              delay: 0.6,
+            },
+            y: {
+              duration: 4,
+              ease: "easeInOut",
+              repeat: Infinity,
+              delay: 1.6,
+            },
           }}
           style={{
             backgroundImage: `url(${decorativeBorder})`,
@@ -347,7 +451,7 @@ export default function ElegantRoseTemplate() {
                 >
                   {groomName}
                 </h3>
-              </div>
+        </div>
 
               {/* Invitation Text Card with Frame */}
               <motion.div
@@ -611,7 +715,7 @@ export default function ElegantRoseTemplate() {
                   <motion.button
                     onClick={() => setShowCoupleQR(!showCoupleQR)}
                     className={`px-8 py-4 font-medium ${khmerFont} flex items-center justify-center gap-3 relative`}
-                    style={{
+              style={{
                       color: primaryColor,
                       backgroundImage: `url(${frameBtn})`,
                       backgroundSize: "contain",
@@ -659,7 +763,7 @@ export default function ElegantRoseTemplate() {
                             >
                               ស្កេនដើម្បី​ចូលរួម​ចំណងដៃ
                             </p>
-                          </div>
+          </div>
                         )}
 
                         {/* English/US QR Code */}
@@ -684,12 +788,12 @@ export default function ElegantRoseTemplate() {
                       </div>
                     </motion.div>
                   )}
-                </div>
-              </div>
-            </div>
+          </div>
+        </div>
+      </div>
           </motion.div>
         )}
-      </div>
+    </div>
     </section>
   );
 }
