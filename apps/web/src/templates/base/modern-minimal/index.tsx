@@ -7,187 +7,197 @@ import { useState } from "react";
 export default function ModernMinimalTemplate() {
   const [showCoupleQR, setShowCoupleQR] = useState(false);
   // Colors - you can update these
-  const accentColor = '#f472b6'; // Soft pink for titles
-  const textColor = '#ffffff'; // White for main text
-  const highlightColor = '#fbbf24'; // Yellow for highlights
-  const emphasisColor = '#ef4444'; // Red for emphasis
-  
+  const accentColor = "#f472b6"; // Soft pink for titles
+  const textColor = "#ffffff"; // White for main text
+  const highlightColor = "#fbbf24"; // Yellow for highlights
+  const emphasisColor = "#ef4444"; // Red for emphasis
+
   // Fonts - you can update these
-  const khmerFont = 'font-preahvihear';
-  const moulpaliFont = 'font-moulpali';
-  const khangkomuttFont = 'font-khangkomutt';
-  
+  const khmerFont = "font-preahvihear";
+  const moulpaliFont = "font-moulpali";
+  const khangkomuttFont = "font-khangkomutt";
+
   // Images - UPDATE THESE PATHS with your actual images
-  const backgroundImage = '/images/assets/frame/modern-minimal.png'; // Main background
-  const decorativeTopLeft = '/images/assets/frame/frame-top-left.png'; // Top left decorative
-  const decorativeTopRight = '/images/assets/frame/frame-top-right.png'; // Top right decorative
-  const decorativeBottomLeft = '/images/assets/frame/frame-bottom-left.png'; // Bottom left decorative
-  const decorativeBottomRight = '/images/assets/frame/frame-bottom-right.png'; // Bottom right decorative
-  const decorativeBorder = '/images/assets/frame/frame-bg.png'; // Bottom border
+  const backgroundImage = "/images/assets/frame/modern-minimal.png"; // Main background
+  const decorativeTopLeft = "/images/assets/frame/frame-top-left.png"; // Top left decorative
+  const decorativeTopRight = "/images/assets/frame/frame-top-right.png"; // Top right decorative
+  const decorativeBottomLeft = "/images/assets/frame/frame-bottom-left.png"; // Bottom left decorative
+  const decorativeBottomRight = "/images/assets/frame/frame-bottom-right.png"; // Bottom right decorative
+  const decorativeBorder = "/images/assets/frame/frame-bg.png"; // Bottom border
   // Butterfly decorative elements - UPDATE THESE PATHS with your butterfly images
-  const butterfly1 = '/images/assets/butterfly1.png'; // Butterfly image 1
-  const butterfly2 = '/images/assets/butterfly2.png'; // Butterfly image 2
-  const butterfly3 = '/images/assets/butterfly3.png'; // Butterfly image 3
-  const galleryImages = [ // Photo gallery images
-    '/images/gallery1.png',
-    '/images/gallery2.png',
-    '/images/gallery3.png',
+  const butterfly1 = "/images/assets/butterfly1.png"; // Butterfly image 1
+  const butterfly2 = "/images/assets/butterfly2.png"; // Butterfly image 2
+  const butterfly3 = "/images/assets/butterfly3.png"; // Butterfly image 3
+  const galleryImages = [
+    // Photo gallery images
+    "/images/gallery1.png",
+    "/images/gallery2.png",
+    "/images/gallery3.png",
   ];
-  const qrCodeImage = '/images/KHQR-KH.png'; // QR code image for location
-  const qrCodeCoupleKH = '/images/KHQR-KH.png'; // QR code for couple (Khmer)
-  const qrCodeCoupleUS = '/images/KHQR-US.png'; // QR code for couple (English)
-  
+  const qrCodeImage = "/images/KHQR-KH.png"; // QR code image for location
+  const qrCodeCoupleKH = "/images/KHQR-KH.png"; // QR code for couple (Khmer)
+  const qrCodeCoupleUS = "/images/KHQR-US.png"; // QR code for couple (English)
+
   // Wedding information - UPDATE THESE
   const groomName = "មន្នី ច័ន្ទផល្គុន";
   const brideName = "ម៉ៃ យូរី";
-  const guestName = 'សុវណ្ណ ទេពី'
-  const invitationText = "សម្តេច ទ្រង់ ឯកឧត្តម អ្នកឧកញ៉ា លោកជំទាវ លោក លោកស្រី អ្នកនាង កញ្ញា ចូលរួមជាអធិបតី និង ជាភ្ញៀវកិត្តិយសដើម្បីប្រសិទ្ធិពរជ័យ សិរីមង្គល";
+  const guestName = "សុវណ្ណ ទេពី";
+  const invitationText =
+    "សម្តេច ទ្រង់ ឯកឧត្តម អ្នកឧកញ៉ា លោកជំទាវ លោក លោកស្រី អ្នកនាង កញ្ញា ចូលរួមជាអធិបតី និង ជាភ្ញៀវកិត្តិយសដើម្បីប្រសិទ្ធិពរជ័យ សិរីមង្គល";
   const googleMapLink = "https://maps.google.com/";
-  
+
   // Program schedule
   const programSchedule = [
-    { time: "វេលាម៉ោង ០៦:០០-០៧:០០ព្រឹក", event: "ជួបជុំភ្ញៀវកិត្តិយស ដើម្បីរៀបចំហែជំនួន" },
+    {
+      time: "វេលាម៉ោង ០៦:០០-០៧:០០ព្រឹក",
+      event: "ជួបជុំភ្ញៀវកិត្តិយស ដើម្បីរៀបចំហែជំនួន",
+    },
     { time: "វេលាម៉ោង ០៧:០០-០៨:០០ព្រឹក", event: "ពិធីហែជំនួន(កំណត់)" },
-    { time: "វេលាម៉ោង ០៨:០០-០៩:០០ព្រឹក", event: "ពិធីចៅមហានិយាយជើងការ រាប់ផ្លែឈើ" },
+    {
+      time: "វេលាម៉ោង ០៨:០០-០៩:០០ព្រឹក",
+      event: "ពិធីចៅមហានិយាយជើងការ រាប់ផ្លែឈើ",
+    },
     { time: "វេលាម៉ោង ០៩:០០-១០:០០ព្រឹក", event: "ពិធីកាត់សក់បង្កក់សិរី" },
   ];
 
   return (
-    <section 
+    <section
       className="overflow-hidden relative py-20 scroll-smooth min-h-screen z-10"
       style={{
-        backgroundImage: backgroundImage ? `url(${backgroundImage})` : undefined,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        backgroundRepeat: 'no-repeat',
-        backgroundAttachment: 'fixed',
+        backgroundImage: backgroundImage
+          ? `url(${backgroundImage})`
+          : undefined,
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        backgroundRepeat: "no-repeat",
+        backgroundAttachment: "fixed",
       }}
     >
       {/* Decorative Elements - Fixed position during scroll with enhanced animations */}
       {decorativeTopLeft && (
-        <motion.div 
+        <motion.div
           className="fixed top-0 left-0 w-48 h-48 md:w-64 md:h-64 z-30 pointer-events-none"
           initial={{ opacity: 0, scale: 0.8, x: -30, y: -30, rotate: -10 }}
-          animate={{ 
+          animate={{
             opacity: [0, 0.6, 0.5, 0.7, 0.5],
             scale: [0.8, 1, 1, 1.05, 1],
             x: [-30, 0, 0, -5, 0],
             y: [-30, 0, 0, -5, 0],
-            rotate: [-10, -5, -5, 0, -5]
+            rotate: [-10, -5, -5, 0, -5],
           }}
-          transition={{ 
+          transition={{
             duration: 5,
             ease: "easeInOut",
             repeat: Infinity,
             delay: 0.2,
-            times: [0, 0.2, 0.2, 0.6, 1]
+            times: [0, 0.2, 0.2, 0.6, 1],
           }}
           style={{
             backgroundImage: `url(${decorativeTopLeft})`,
-            backgroundSize: 'contain',
-            backgroundPosition: 'top left',
-            backgroundRepeat: 'no-repeat',
+            backgroundSize: "contain",
+            backgroundPosition: "top left",
+            backgroundRepeat: "no-repeat",
           }}
         />
       )}
       {decorativeTopRight && (
-        <motion.div 
+        <motion.div
           className="fixed top-0 right-0 w-48 h-48 md:w-64 md:h-64 z-30 pointer-events-none"
           initial={{ opacity: 0, scale: 0.8, x: 30, y: -30, rotate: 10 }}
-          animate={{ 
+          animate={{
             opacity: [0, 0.6, 0.5, 0.7, 0.5],
             scale: [0.8, 1, 1, 1.05, 1],
             x: [30, 0, 0, 5, 0],
             y: [-30, 0, 0, -5, 0],
-            rotate: [10, 5, 5, 0, 5]
+            rotate: [10, 5, 5, 0, 5],
           }}
-          transition={{ 
+          transition={{
             duration: 5,
             ease: "easeInOut",
             repeat: Infinity,
             delay: 0.3,
-            times: [0, 0.2, 0.2, 0.6, 1]
+            times: [0, 0.2, 0.2, 0.6, 1],
           }}
           style={{
             backgroundImage: `url(${decorativeTopRight})`,
-            backgroundSize: 'contain',
-            backgroundPosition: 'top right',
-            backgroundRepeat: 'no-repeat',
+            backgroundSize: "contain",
+            backgroundPosition: "top right",
+            backgroundRepeat: "no-repeat",
           }}
         />
       )}
       {decorativeBottomLeft && (
-        <motion.div 
+        <motion.div
           className="fixed bottom-0 left-0 w-48 h-48 md:w-64 md:h-64 z-30 pointer-events-none"
           initial={{ opacity: 0, scale: 0.8, x: -30, y: 30, rotate: 10 }}
-          animate={{ 
+          animate={{
             opacity: [0, 0.6, 0.5, 0.7, 0.5],
             scale: [0.8, 1, 1, 1.05, 1],
             x: [-30, 0, 0, -5, 0],
             y: [30, 0, 0, 5, 0],
-            rotate: [10, 5, 5, 0, 5]
+            rotate: [10, 5, 5, 0, 5],
           }}
-          transition={{ 
+          transition={{
             duration: 5,
             ease: "easeInOut",
             repeat: Infinity,
             delay: 0.4,
-            times: [0, 0.2, 0.2, 0.6, 1]
+            times: [0, 0.2, 0.2, 0.6, 1],
           }}
           style={{
             backgroundImage: `url(${decorativeBottomLeft})`,
-            backgroundSize: 'contain',
-            backgroundPosition: 'bottom left',
-            backgroundRepeat: 'no-repeat',
+            backgroundSize: "contain",
+            backgroundPosition: "bottom left",
+            backgroundRepeat: "no-repeat",
           }}
         />
       )}
       {decorativeBottomRight && (
-        <motion.div 
+        <motion.div
           className="fixed bottom-0 right-0 w-48 h-48 md:w-64 md:h-64 z-30 pointer-events-none"
           initial={{ opacity: 0, scale: 0.8, x: 30, y: 30, rotate: -10 }}
-          animate={{ 
+          animate={{
             opacity: [0, 0.6, 0.5, 0.7, 0.5],
             scale: [0.8, 1, 1, 1.05, 1],
             x: [30, 0, 0, 5, 0],
             y: [30, 0, 0, 5, 0],
-            rotate: [-10, -5, -5, 0, -5]
+            rotate: [-10, -5, -5, 0, -5],
           }}
-          transition={{ 
+          transition={{
             duration: 5,
             ease: "easeInOut",
             repeat: Infinity,
             delay: 0.5,
-            times: [0, 0.2, 0.2, 0.6, 1]
+            times: [0, 0.2, 0.2, 0.6, 1],
           }}
           style={{
             backgroundImage: `url(${decorativeBottomRight})`,
-            backgroundSize: 'contain',
-            backgroundPosition: 'bottom right',
-            backgroundRepeat: 'no-repeat',
+            backgroundSize: "contain",
+            backgroundPosition: "bottom right",
+            backgroundRepeat: "no-repeat",
           }}
         />
       )}
       {decorativeBorder && (
-        <motion.div 
+        <motion.div
           className="fixed bottom-0 left-0 right-0 h-32 md:h-40 z-30 pointer-events-none"
           initial={{ opacity: 0, y: 50 }}
-          animate={{ 
+          animate={{
             opacity: [0, 0.5, 0.4, 0.6, 0.4],
-            y: [50, 0, 0, -3, 0]
+            y: [50, 0, 0, -3, 0],
           }}
-          transition={{ 
+          transition={{
             duration: 4.2,
             ease: "easeInOut",
             repeat: Infinity,
             delay: 0.6,
-            times: [0, 0.3, 0.3, 0.65, 1]
+            times: [0, 0.3, 0.3, 0.65, 1],
           }}
           style={{
             backgroundImage: `url(${decorativeBorder})`,
-            backgroundSize: 'cover',
-            backgroundPosition: 'bottom center',
-            backgroundRepeat: 'repeat-x',
+            backgroundSize: "cover",
+            backgroundPosition: "bottom center",
+            backgroundRepeat: "repeat-x",
           }}
         />
       )}
@@ -202,19 +212,19 @@ export default function ModernMinimalTemplate() {
             scale: [0, 1, 1, 1.1, 1],
             x: [0, 10, -5, 15, 0],
             y: [0, -10, 5, -15, 0],
-            rotate: [-45, 0, 10, -10, 0]
+            rotate: [-45, 0, 10, -10, 0],
           }}
           transition={{
             duration: 6,
             ease: "easeInOut",
             repeat: Infinity,
-            delay: 0.8
+            delay: 0.8,
           }}
           style={{
             backgroundImage: `url(${butterfly1})`,
-            backgroundSize: 'contain',
-            backgroundPosition: 'center',
-            backgroundRepeat: 'no-repeat',
+            backgroundSize: "contain",
+            backgroundPosition: "center",
+            backgroundRepeat: "no-repeat",
           }}
         />
       )}
@@ -227,19 +237,19 @@ export default function ModernMinimalTemplate() {
             scale: [0, 1, 1, 1.15, 1],
             x: [0, -8, 5, -12, 0],
             y: [0, 8, -5, 12, 0],
-            rotate: [45, 0, -15, 15, 0]
+            rotate: [45, 0, -15, 15, 0],
           }}
           transition={{
             duration: 5.5,
             ease: "easeInOut",
             repeat: Infinity,
-            delay: 1.2
+            delay: 1.2,
           }}
           style={{
             backgroundImage: `url(${butterfly2})`,
-            backgroundSize: 'contain',
-            backgroundPosition: 'center',
-            backgroundRepeat: 'no-repeat',
+            backgroundSize: "contain",
+            backgroundPosition: "center",
+            backgroundRepeat: "no-repeat",
           }}
         />
       )}
@@ -252,91 +262,122 @@ export default function ModernMinimalTemplate() {
             scale: [0, 1, 1, 1.05, 1],
             x: [0, 5, -8, 10, 0],
             y: [0, -5, 8, -10, 0],
-            rotate: [-30, 0, 20, -20, 0]
+            rotate: [-30, 0, 20, -20, 0],
           }}
           transition={{
             duration: 7,
             ease: "easeInOut",
             repeat: Infinity,
-            delay: 1.8
+            delay: 1.8,
           }}
           style={{
             backgroundImage: `url(${butterfly3})`,
-            backgroundSize: 'contain',
-            backgroundPosition: 'center',
-            backgroundRepeat: 'no-repeat',
+            backgroundSize: "contain",
+            backgroundPosition: "center",
+            backgroundRepeat: "no-repeat",
           }}
         />
       )}
 
-      <div 
+      <div
         className="container relative z-10 px-4 mx-auto max-w-6xl flex flex-col items-center justify-start py-8 overflow-y-auto"
         style={{
-          maxHeight: '60vh',
-          height: '60vh',
-          marginTop: '20vh',
+          maxHeight: "60vh",
+          height: "60vh",
+          marginTop: "20vh",
         }}
       >
         {/* Hero Section */}
-        <motion.div 
+        <motion.div
           className="mb-16 text-center relative w-full"
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 1, ease: "easeOut" }}
         >
-          <h2 className={`relative mb-6 text-4xl ${moulpaliFont} md:text-5xl lg:text-6xl`} style={{ color: accentColor }}>
+          <h2
+            className={`relative mb-6 text-4xl ${moulpaliFont} md:text-5xl lg:text-6xl`}
+            style={{ color: accentColor }}
+          >
             សិរីមង្គលអាពាហ៍ពិពាហ៍
           </h2>
           <div className="flex justify-center items-center flex-col gap-3 mb-8">
-            <h3 className={`text-3xl md:text-4xl lg:text-5xl ${khangkomuttFont}`} style={{ color: textColor }}>
+            <h3
+              className={`text-3xl md:text-4xl lg:text-5xl ${khangkomuttFont}`}
+              style={{ color: textColor }}
+            >
               {brideName}
             </h3>
-            <Image src="/images/assets/2hearts.gif" alt="Heart" width={48} height={48} className="md:w-16 md:h-16" />
-            <h3 className={`text-3xl md:text-4xl lg:text-5xl ${khangkomuttFont}`} style={{ color: textColor }}>
+            <Image
+              src="/images/assets/2hearts.gif"
+              alt="Heart"
+              width={48}
+              height={48}
+              className="md:w-16 md:h-16"
+            />
+            <h3
+              className={`text-3xl md:text-4xl lg:text-5xl ${khangkomuttFont}`}
+              style={{ color: textColor }}
+            >
               {groomName}
             </h3>
           </div>
-          
+
           {/* Invitation Text Card with Frame */}
-          <motion.div 
+          <motion.div
             className="relative p-6 mx-auto max-w-4xl"
-            initial={{ opacity: 0, y: 20, filter: 'blur(10px)' }}
-            animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+            initial={{ opacity: 0, y: 20, filter: "blur(10px)" }}
+            animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
             transition={{ duration: 0.8, ease: "easeOut", delay: 0.2 }}
-            whileInView={{ 
+            whileInView={{
               scale: [1, 1.02, 1],
-              filter: 'blur(0px)',
-              opacity: 1
+              filter: "blur(0px)",
+              opacity: 1,
             }}
             viewport={{ once: false, amount: 0.3 }}
             style={{
-              filter: 'blur(0px)',
+              filter: "blur(0px)",
             }}
           >
-            <p className={`mb-4 text-xl md:text-2xl font-medium ${khmerFont}`} style={{ color: textColor }}>
-            យើងខ្ញុំមានកត្តិយសសូមគោរពអញ្ជើញ
-          </p>
-            <p className={`text-base md:text-lg lg:text-xl leading-relaxed ${khmerFont} relative z-10`} style={{ color: textColor }}>
-              {invitationText} <strong style={{ color: highlightColor }}>ក្នុងពិធីរៀបអាពាហ៍ពិពាហ៍</strong> <span style={{ color: emphasisColor }}>កូនប្រុស-កូនស្រី របស់</span> យើងខ្ញុំទាំងពីរ។
+            <p
+              className={`mb-4 text-xl md:text-2xl font-medium ${khmerFont}`}
+              style={{ color: textColor }}
+            >
+              យើងខ្ញុំមានកត្តិយសសូមគោរពអញ្ជើញ
+            </p>
+            <p
+              className={`text-base md:text-lg lg:text-xl leading-relaxed ${khmerFont} relative z-10`}
+              style={{ color: textColor }}
+            >
+              {invitationText}{" "}
+              <strong style={{ color: highlightColor }}>
+                ក្នុងពិធីរៀបអាពាហ៍ពិពាហ៍
+              </strong>{" "}
+              <span style={{ color: emphasisColor }}>
+                កូនប្រុស-កូនស្រី របស់
+              </span>{" "}
+              យើងខ្ញុំទាំងពីរ។
             </p>
           </motion.div>
         </motion.div>
 
         {/* Program Schedule with Frame */}
-        <motion.div 
+        <motion.div
           className="mx-auto max-w-4xl mb-16 relative w-full"
-          initial={{ opacity: 0, y: 20, filter: 'blur(8px)' }}
-          whileInView={{ 
-            opacity: 1, 
+          initial={{ opacity: 0, y: 20, filter: "blur(8px)" }}
+          whileInView={{
+            opacity: 1,
             y: 0,
-            filter: 'blur(0px)'
+            filter: "blur(0px)",
           }}
           viewport={{ once: false, amount: 0.3, margin: "-100px" }}
           transition={{ duration: 1, ease: "easeOut" }}
         >
           <div className="relative p-8">
             <div className="relative z-10">
-              <h3 className={`text-3xl md:text-4xl ${moulpaliFont} text-center mb-6`} style={{ color: accentColor }}>
+              <h3
+                className={`text-3xl md:text-4xl ${moulpaliFont} text-center mb-6`}
+                style={{ color: accentColor }}
+              >
                 កម្មវិធីសិរីមង្គល អាពាហ៍ពិពាហ៍
               </h3>
               <div className="space-y-4">
@@ -349,12 +390,21 @@ export default function ModernMinimalTemplate() {
                     viewport={{ once: true }}
                     transition={{ duration: 0.5, delay: index * 0.1 }}
                   >
-                    <div className="w-2 h-2 rounded-full mt-2 shrink-0" style={{ backgroundColor: accentColor }}></div>
-            <div>
-                      <p className={`text-lg md:text-xl font-semibold ${khmerFont} mb-1`} style={{ color: accentColor }}>
+                    <div
+                      className="w-2 h-2 rounded-full mt-2 shrink-0"
+                      style={{ backgroundColor: accentColor }}
+                    ></div>
+                    <div>
+                      <p
+                        className={`text-lg md:text-xl font-semibold ${khmerFont} mb-1`}
+                        style={{ color: accentColor }}
+                      >
                         {item.time}
                       </p>
-                      <p className={`text-base md:text-lg ${khmerFont}`} style={{ color: textColor }}>
+                      <p
+                        className={`text-base md:text-lg ${khmerFont}`}
+                        style={{ color: textColor }}
+                      >
                         {item.event}
                       </p>
                     </div>
@@ -367,23 +417,26 @@ export default function ModernMinimalTemplate() {
 
         {/* Google Map Link with QR Code */}
         {googleMapLink && (
-          <motion.div 
+          <motion.div
             className="mx-auto max-w-4xl mb-16 relative w-full"
-            initial={{ opacity: 0, y: 20, filter: 'blur(8px)' }}
-            whileInView={{ 
-              opacity: 1, 
+            initial={{ opacity: 0, y: 20, filter: "blur(8px)" }}
+            whileInView={{
+              opacity: 1,
               y: 0,
-              filter: 'blur(0px)'
+              filter: "blur(0px)",
             }}
             viewport={{ once: false, amount: 0.3, margin: "-100px" }}
             transition={{ duration: 1, ease: "easeOut" }}
           >
             <div className="relative p-8">
               <div className="relative z-10">
-                <h3 className={`text-3xl md:text-4xl ${moulpaliFont} text-center mb-6`} style={{ color: accentColor }}>
+                <h3
+                  className={`text-3xl md:text-4xl ${moulpaliFont} text-center mb-6`}
+                  style={{ color: accentColor }}
+                >
                   ទីតាំងកម្មវិធី
                 </h3>
-                
+
                 {/* QR Code for Location */}
                 {qrCodeImage && (
                   <motion.div
@@ -401,12 +454,15 @@ export default function ModernMinimalTemplate() {
                         className="object-contain rounded-lg"
                       />
                     </div>
-                    <p className={`text-base md:text-lg ${khmerFont}`} style={{ color: textColor }}>
+                    <p
+                      className={`text-base md:text-lg ${khmerFont}`}
+                      style={{ color: textColor }}
+                    >
                       ស្កេនដើម្បីបើកផែនទី
                     </p>
                   </motion.div>
                 )}
-                
+
                 <motion.a
                   href={googleMapLink}
                   target="_blank"
@@ -424,24 +480,31 @@ export default function ModernMinimalTemplate() {
         )}
 
         {/* Photo Gallery with Frame */}
-        <motion.div 
+        <motion.div
           className="mx-auto max-w-4xl mb-16 relative w-full"
-          initial={{ opacity: 0, y: 20, filter: 'blur(8px)' }}
-          whileInView={{ 
-            opacity: 1, 
+          initial={{ opacity: 0, y: 20, filter: "blur(8px)" }}
+          whileInView={{
+            opacity: 1,
             y: 0,
-            filter: 'blur(0px)'
+            filter: "blur(0px)",
           }}
           viewport={{ once: false, amount: 0.3, margin: "-100px" }}
           transition={{ duration: 1, ease: "easeOut" }}
         >
           <div className="relative p-8">
             <div className="relative z-10">
-              <h3 className={`text-3xl md:text-4xl ${moulpaliFont} text-center mb-6`} style={{ color: accentColor }}>
+              <h3
+                className={`text-3xl md:text-4xl ${moulpaliFont} text-center mb-6`}
+                style={{ color: accentColor }}
+              >
                 កម្រងរូបភាពអនុស្សាវរីយ៍
               </h3>
-              <p className={`text-center mb-6 text-base md:text-lg ${khmerFont}`} style={{ color: textColor }}>
-                រូបភាពសម្រាប់រំលឹក និងជាចំណងអាពាហ៍ពិពាហ៍ដ៏រឹងមាំ ហើយមានសុភមង្គល សម្រាប់យើងទាំងពីរនាក់។
+              <p
+                className={`text-center mb-6 text-base md:text-lg ${khmerFont}`}
+                style={{ color: textColor }}
+              >
+                រូបភាពសម្រាប់រំលឹក និងជាចំណងអាពាហ៍ពិពាហ៍ដ៏រឹងមាំ ហើយមានសុភមង្គល
+                សម្រាប់យើងទាំងពីរនាក់។
               </p>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {galleryImages.map((img, index) => (
@@ -462,43 +525,54 @@ export default function ModernMinimalTemplate() {
                     />
                   </motion.div>
                 ))}
-        </div>
-      </div>
-    </div>
+              </div>
+            </div>
+          </div>
         </motion.div>
 
         {/* Thank You Letter with Frame */}
-        <motion.div 
+        <motion.div
           className="mx-auto max-w-4xl mb-16 relative w-full"
-          initial={{ opacity: 0, y: 20, filter: 'blur(8px)' }}
-          whileInView={{ 
-            opacity: 1, 
+          initial={{ opacity: 0, y: 20, filter: "blur(8px)" }}
+          whileInView={{
+            opacity: 1,
             y: 0,
-            filter: 'blur(0px)'
+            filter: "blur(0px)",
           }}
           viewport={{ once: false, amount: 0.3, margin: "-100px" }}
           transition={{ duration: 1, ease: "easeOut" }}
         >
           <div className="relative p-8">
             <div className="relative z-10">
-              <h3 className={`text-3xl md:text-4xl ${moulpaliFont} text-center mb-6`} style={{ color: accentColor }}>
+              <h3
+                className={`text-3xl md:text-4xl ${moulpaliFont} text-center mb-6`}
+                style={{ color: accentColor }}
+              >
                 លិខិតសូមថ្លែងអំណរគុណ
               </h3>
-              <p className={`text-base md:text-lg lg:text-xl leading-relaxed ${khmerFont}`} style={{ color: textColor }}>
-                ខ្ញុំបាទ នាងខ្ញុំ ជាមាតាបិតា កូនប្រុស-កូនស្រី សូមថ្លែង អំណរគុណយ៉ាងជ្រាលជ្រៅចំពោះវត្តមាន ដ៏ឧត្តុង្គឧត្តម របស់សម្តេច ទ្រង់ ឯកឧត្តម លោកជំទាវ អ្នកឧកញ៉ា ឧកញ៉ា លោកស្រី អ្នកនាង កញ្ញា អញ្ជើញចូលរួមជា ភ្ញៀវកិត្តិយស ក្នុងពិធីសិរីមង្គលអាពាហ៍ពិពាហ៍ កូន ប្រុស-ស្រី របស់យើងខ្ញុំ។ សូមមេត្តាទទួលនូវ សេចក្តី គោរព ដ៏ខ្ពង់ខ្ពស់ពីយើងខ្ញុំ។
+              <p
+                className={`text-base md:text-lg lg:text-xl leading-relaxed ${khmerFont}`}
+                style={{ color: textColor }}
+              >
+                ខ្ញុំបាទ នាងខ្ញុំ ជាមាតាបិតា កូនប្រុស-កូនស្រី សូមថ្លែង
+                អំណរគុណយ៉ាងជ្រាលជ្រៅចំពោះវត្តមាន ដ៏ឧត្តុង្គឧត្តម របស់សម្តេច
+                ទ្រង់ ឯកឧត្តម លោកជំទាវ អ្នកឧកញ៉ា ឧកញ៉ា លោកស្រី អ្នកនាង កញ្ញា
+                អញ្ជើញចូលរួមជា ភ្ញៀវកិត្តិយស ក្នុងពិធីសិរីមង្គលអាពាហ៍ពិពាហ៍ កូន
+                ប្រុស-ស្រី របស់យើងខ្ញុំ។ សូមមេត្តាទទួលនូវ សេចក្តី គោរព
+                ដ៏ខ្ពង់ខ្ពស់ពីយើងខ្ញុំ។
               </p>
             </div>
           </div>
         </motion.div>
 
         {/* Couple QR Code Section */}
-        <motion.div 
+        <motion.div
           className="mx-auto max-w-4xl mb-16 relative w-full"
-          initial={{ opacity: 0, y: 20, filter: 'blur(8px)' }}
-          whileInView={{ 
-            opacity: 1, 
+          initial={{ opacity: 0, y: 20, filter: "blur(8px)" }}
+          whileInView={{
+            opacity: 1,
             y: 0,
-            filter: 'blur(0px)'
+            filter: "blur(0px)",
           }}
           viewport={{ once: false, amount: 0.3, margin: "-100px" }}
           transition={{ duration: 1, ease: "easeOut" }}
@@ -510,17 +584,17 @@ export default function ModernMinimalTemplate() {
                 <motion.button
                   onClick={() => setShowCoupleQR(!showCoupleQR)}
                   className={`px-8 py-4 font-medium ${khmerFont} flex items-center gap-3`}
-                  style={{ 
-                    color: showCoupleQR ? 'white' : accentColor,
-                    backgroundColor: showCoupleQR ? accentColor : 'transparent',
+                  style={{
+                    color: showCoupleQR ? "white" : accentColor,
+                    backgroundColor: showCoupleQR ? accentColor : "transparent",
                   }}
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                 >
-                  <span>{showCoupleQR ? '✕' : '💑'}</span>
+                  <span>{showCoupleQR ? "✕" : "💑"}</span>
                   <span>ចំណងដៃ</span>
                 </motion.button>
-                
+
                 {/* QR Codes - shown when clicked */}
                 {showCoupleQR && (
                   <motion.div
@@ -541,13 +615,16 @@ export default function ModernMinimalTemplate() {
                               fill
                               className="object-contain"
                             />
-          </div>
-                          <p className={`text-base md:text-lg font-medium ${khmerFont}`} style={{ color: textColor }}>
-                          ស្កេនដើម្បី​ចូលរួម​ចំណងដៃ
+                          </div>
+                          <p
+                            className={`text-base md:text-lg font-medium ${khmerFont}`}
+                            style={{ color: textColor }}
+                          >
+                            ស្កេនដើម្បី​ចូលរួម​ចំណងដៃ
                           </p>
-        </div>
+                        </div>
                       )}
-                      
+
                       {/* English/US QR Code */}
                       {qrCodeCoupleUS && (
                         <div className="flex flex-col items-center gap-3">
@@ -559,17 +636,20 @@ export default function ModernMinimalTemplate() {
                               className="object-contain"
                             />
                           </div>
-                          <p className={`text-base md:text-lg font-medium ${khmerFont}`} style={{ color: textColor }}>
-                          ស្កេនដើម្បី​ចូលរួម​ចំណងដៃ
+                          <p
+                            className={`text-base md:text-lg font-medium ${khmerFont}`}
+                            style={{ color: textColor }}
+                          >
+                            ស្កេនដើម្បី​ចូលរួម​ចំណងដៃ
                           </p>
                         </div>
                       )}
                     </div>
                   </motion.div>
                 )}
-        </div>
-      </div>
-    </div>
+              </div>
+            </div>
+          </div>
         </motion.div>
       </div>
     </section>
