@@ -355,11 +355,6 @@ export default function ElegantRoseTemplate() {
                 initial={{ opacity: 0, y: 20, filter: "blur(10px)" }}
                 animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
                 transition={{ duration: 0.8, ease: "easeOut", delay: 0.2 }}
-                style={{
-                  background: `linear-gradient(135deg, ${accentColor}20 0%, ${primaryColor}20 100%)`,
-                  borderRadius: "20px",
-                  border: `2px solid ${primaryColor}40`,
-                }}
               >
                 <p
                   className={`mb-4 text-xl md:text-2xl font-medium ${khmerFont}`}
@@ -398,13 +393,7 @@ export default function ElegantRoseTemplate() {
             viewport={{ once: false, amount: 0.3, margin: "-100px" }}
             transition={{ duration: 1, ease: "easeOut" }}
           >
-            <div
-              className="relative p-8 rounded-2xl"
-              style={{
-                background: `linear-gradient(135deg, ${accentColor}30 0%, ${primaryColor}30 100%)`,
-                border: `2px solid ${primaryColor}40`,
-              }}
-            >
+            <div className="relative p-8 rounded-2xl">
               <div className="relative z-10">
                 <h3
                   className={`text-3xl md:text-4xl ${moulpaliFont} text-center mb-6`}
@@ -461,13 +450,7 @@ export default function ElegantRoseTemplate() {
             viewport={{ once: false, amount: 0.3, margin: "-100px" }}
             transition={{ duration: 1, ease: "easeOut" }}
           >
-            <div
-              className="relative p-8 rounded-2xl"
-              style={{
-                background: `linear-gradient(135deg, ${accentColor}30 0%, ${primaryColor}30 100%)`,
-                border: `2px solid ${primaryColor}40`,
-              }}
-            >
+            <div className="relative p-8 rounded-2xl">
               <div className="relative z-10">
                 <h3
                   className={`text-3xl md:text-4xl ${moulpaliFont} text-center mb-6`}
@@ -531,13 +514,7 @@ export default function ElegantRoseTemplate() {
             viewport={{ once: false, amount: 0.3, margin: "-100px" }}
             transition={{ duration: 1, ease: "easeOut" }}
           >
-            <div
-              className="relative p-8 rounded-2xl"
-              style={{
-                background: `linear-gradient(135deg, ${accentColor}30 0%, ${primaryColor}30 100%)`,
-                border: `2px solid ${primaryColor}40`,
-              }}
-            >
+            <div className="relative p-8 rounded-2xl">
               <div className="relative z-10">
                 <h3
                   className={`text-3xl md:text-4xl ${moulpaliFont} text-center mb-6`}
@@ -562,9 +539,6 @@ export default function ElegantRoseTemplate() {
                       viewport={{ once: true }}
                       transition={{ duration: 0.5, delay: index * 0.1 }}
                       whileHover={{ scale: 1.05 }}
-                      style={{
-                        border: `2px solid ${primaryColor}40`,
-                      }}
                     >
                       <Image
                         src={img}
@@ -593,13 +567,7 @@ export default function ElegantRoseTemplate() {
             viewport={{ once: false, amount: 0.3, margin: "-100px" }}
             transition={{ duration: 1, ease: "easeOut" }}
           >
-            <div
-              className="relative p-8 rounded-2xl"
-              style={{
-                background: `linear-gradient(135deg, ${accentColor}30 0%, ${primaryColor}30 100%)`,
-                border: `2px solid ${primaryColor}40`,
-              }}
-            >
+            <div className="relative p-8 rounded-2xl">
               <div className="relative z-10">
                 <h3
                   className={`text-3xl md:text-4xl ${moulpaliFont} text-center mb-6`}
@@ -636,13 +604,7 @@ export default function ElegantRoseTemplate() {
             viewport={{ once: false, amount: 0.3, margin: "-100px" }}
             transition={{ duration: 1, ease: "easeOut" }}
           >
-            <div
-              className="relative p-8 rounded-2xl"
-              style={{
-                background: `linear-gradient(135deg, ${accentColor}30 0%, ${primaryColor}30 100%)`,
-                border: `2px solid ${primaryColor}40`,
-              }}
-            >
+            <div className="relative p-8 rounded-2xl">
               <div className="relative z-10">
                 <div className="flex flex-col items-center gap-6">
                   {/* Clickable button */}
