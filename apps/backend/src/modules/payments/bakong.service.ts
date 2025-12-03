@@ -6,93 +6,22 @@ import crypto from "crypto";
 import QRCode from "qrcode";
 import { logger } from "@/utils/logger";
 import { logPaymentEvent } from "./payment-log.helper";
-
 import { BakongKHQR } from "bakong-khqr";
+import type {
+  CreateBakongPaymentInput,
+  BakongPaymentResponse,
+  BakongTransactionStatus,
+  MerchantInfo,
+  KHQRResponse,
+  BakongCurrency,
+} from "@/types/bakong.types";
+import { CURRENCY_CODES } from "@/types/bakong.types";
+import type { PaymentStatus } from "./payment-log.model";
 
 if (!env.bakong?.accessToken) {
   console.warn(
     "Bakong access token not configured. Bakong payment features will not work."
   );
-}
-
-export interface CreateBakongPaymentInput {
-  userId: string;
-  amount: number;
-  currency?: string;
-  description?: string;
-  metadata?: {
-    planId?: string;
-    planName?: string;
-    billingCycle?: string;
-    templateId?: string;
-    templateName?: string;
-    type: "subscription" | "template";
-  };
-}
-
-export interface BakongPaymentResponse {
-  qrCode: string;
-  qrCodeData: string;
-  transactionId: string;
-  merchantAccountId: string;
-  amount: number;
-  currency: string;
-  expiresAt?: string;
-}
-
-export interface BakongTransactionStatus {
-  transactionId: string;
-  status: "pending" | "completed" | "failed" | "expired";
-  amount: number;
-  currency: string;
-  timestamp?: string;
-  payerAccountId?: string;
-  payerName?: string;
-}
-
-// export type KHQRCurrency = Record<'usd' | 'khr', number>
-export interface khqrData {
-  currency: {
-    usd: number;
-    khr: number;
-  };
-}
-
-export type merchantType = "merchant" | "individual";
-
-export interface IndividualInfo {
-  bakongAccountID: string;
-  merchantName: string;
-  merchantCity?: string;
-  accountInformation?: string;
-  acquiringBank: string;
-  currency?: number;
-  amount?: number;
-  billNumber?: string;
-  storeLabel?: string;
-  terminalLabel?: string;
-  mobileNumber?: string;
-  purposeOfTransaction?: string;
-  languagePreference?: string;
-  merchantNameAlternateLanguage?: string;
-  merchantCityAlternateLanguage?: string;
-  upiMerchantAccount?: string;
-  expirationTimestamp?: number;
-}
-
-export interface MerchantInfo extends IndividualInfo {
-  merchantID: string;
-}
-
-export interface SourceInfo {
-  appIconUrl: string;
-  appName: string;
-  appDeepLinkCallback: string;
-}
-
-export interface KHQRResponse {
-  status: { code: number; errorCode: null | number; message: null | string };
-  data: null | unknown;
 }
 
 class BakongService {
@@ -145,11 +74,11 @@ class BakongService {
       );
 
       const bakongInstance = this.ensureBakong();
-      const currency = input.currency || "KHR";
+      const currency: BakongCurrency = (input.currency || "USD") as BakongCurrency;
 
       // Convert amount to smallest currency unit (KHR uses riels, no decimals)
       const amountInSmallestUnit =
-        currency === "KHR"
+        currency === "USD"
           ? Math.round(input.amount)
           : Math.round(input.amount * 100);
 
@@ -192,7 +121,7 @@ class BakongService {
       const expirationTimestamp = Date.now() + 15 * 60 * 1000;
 
       // Currency codes according to ISO 4217
-      const currencyCode = currency === "KHR" ? 116 : 840; // KHR = 116, USD = 840
+      const currencyCode = CURRENCY_CODES[currency];
 
       // Get merchant configuration from environment variables
       // These should be configured in your environment or settings
@@ -236,7 +165,14 @@ class BakongService {
       }
 
       // Extract QR string from response data
-      const khqrString = (khqrResponse.data as { qr: string; md5?: string }).qr;
+      const khqrString = (khqrResponse.data as KHQRResponse['data'])?.qr;
+      
+      if (!khqrString) {
+        throw new AppError(
+          "Failed to generate KHQR code: No QR data returned",
+          httpStatus.INTERNAL_SERVER_ERROR
+        );
+      }
 
       // Generate QR code image from KHQR string
       let qrCodeImage: string;
@@ -312,10 +248,7 @@ class BakongService {
         userId: input.userId,
         transactionId,
         paymentMethod: "bakong",
-        paymentType: input.metadata?.type as
-          | "subscription"
-          | "template"
-          | undefined,
+        paymentType: input.metadata?.type,
         eventType: "payment_created",
         status: "pending",
         amount: input.amount,
@@ -496,19 +429,14 @@ class BakongService {
   /**
    * Map Bakong status to our status enum
    */
-  private mapBakongStatus(
-    status: string
-  ): "pending" | "completed" | "failed" | "expired" {
-    const statusMap: Record<
-      string,
-      "pending" | "completed" | "failed" | "expired"
-    > = {
+  private mapBakongStatus(status: string): PaymentStatus {
+    const statusMap: Record<string, PaymentStatus> = {
       PENDING: "pending",
       PROCESSING: "pending",
       SUCCESS: "completed",
       COMPLETED: "completed",
       FAILED: "failed",
-      CANCELLED: "failed",
+      CANCELLED: "cancelled",
       EXPIRED: "expired",
       REJECTED: "failed",
     };
@@ -574,3 +502,18 @@ class BakongService {
 }
 
 export const bakongService = new BakongService();
+
+// Re-export types for backward compatibility
+export type {
+  CreateBakongPaymentInput,
+  BakongPaymentResponse,
+  BakongTransactionStatus,
+  BakongPaymentMetadata,
+  BakongCurrency,
+  MerchantInfo,
+  IndividualMerchantInfo,
+  SourceInfo,
+  KHQRResponse,
+  KHQRCurrencyData,
+  MerchantType,
+} from "@/types/bakong.types";
