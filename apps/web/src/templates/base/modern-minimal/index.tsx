@@ -566,7 +566,7 @@ export default function ModernMinimalTemplate() {
       )}
       {decorativeBorder && (
         <motion.div
-          className="fixed bottom-0 left-0 right-0 h-64 md:h-96 z-30 pointer-events-none"
+          className="fixed bottom-0 left-0 right-0 h-64 z-30 pointer-events-none"
           initial={{ opacity: 0, y: 50 }}
           animate={{
             opacity: 1,
@@ -587,7 +587,7 @@ export default function ModernMinimalTemplate() {
           }}
           style={{
             backgroundImage: `url(${decorativeBorder})`,
-            backgroundSize: "cover",
+            backgroundSize: "contain",
             backgroundPosition: "bottom center",
             backgroundRepeat: "repeat-x",
           }}
