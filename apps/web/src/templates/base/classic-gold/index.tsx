@@ -294,7 +294,7 @@ export default function ClassicGoldTemplate() {
       )}
       {decorativeBorder && (
         <motion.div
-          className="fixed bottom-0 left-0 right-0 h-32 md:h-40 z-30 pointer-events-none"
+          className="fixed bottom-0 left-0 right-0 h-64 md:h-96 z-30 pointer-events-none"
           initial={{ opacity: 0, y: 50 }}
           animate={{
             opacity: 1,
