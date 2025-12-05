@@ -159,7 +159,10 @@ export function PaymentLogDialog({ open, onOpenChange, log }: PaymentLogDialogPr
             <div>
               <label className="text-xs font-semibold text-gray-700">Template</label>
               <p className="text-sm text-gray-900 mt-1">
-                {log.templateId_populated?.title || log.templateId}
+                {log.templateId_populated?.title || 
+                 (typeof log.templateId === 'object' && log.templateId !== null
+                   ? (log.templateId as any).title || (log.templateId as any)._id || (log.templateId as any).id || 'N/A'
+                   : log.templateId) || 'N/A'}
                 {log.templateId_populated?.price && (
                   <span className="text-gray-500 ml-2">
                     ({formatAmount(log.templateId_populated.price, log.currency)})
@@ -187,7 +190,11 @@ export function PaymentLogDialog({ open, onOpenChange, log }: PaymentLogDialogPr
               {log.userId && !log.userId_populated && (
                 <div>
                   <label className="text-xs font-semibold text-gray-700">User ID</label>
-                  <p className="text-sm text-gray-900 mt-1 font-mono">{log.userId}</p>
+                  <p className="text-sm text-gray-900 mt-1 font-mono">
+                    {typeof log.userId === 'object' && log.userId !== null
+                      ? (log.userId as any)._id || (log.userId as any).id || String(log.userId)
+                      : log.userId}
+                  </p>
                 </div>
               )}
             </div>

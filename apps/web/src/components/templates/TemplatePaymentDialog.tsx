@@ -49,16 +49,6 @@ function BakongQRDisplay({
     onExpire: onExpired,
   });
 
-  // Format amount with thousand separators
-  const formatAmount = (amt: number | undefined) => {
-    if (!amt) return '0';
-    return amt.toLocaleString('en-US', { maximumFractionDigits: 0 });
-  };
-
-  // Convert USD to KHR if needed (approximate rate: 1 USD = 4000 KHR)
-  const displayAmount = currency === 'USD' && amount ? amount * 4000 : amount;
-  const displayCurrency = currency === 'USD' ? 'KHR' : currency;
-
   return (
     <div className="space-y-4">
       {/* KHQR Card Design */}
@@ -88,9 +78,9 @@ function BakongQRDisplay({
           {/* Amount */}
           <div className="mb-3">
             <p className="text-3xl font-bold text-black">
-              {formatAmount(displayAmount)}
+              {amount}
             </p>
-            <p className="text-sm font-normal text-black mt-1">{displayCurrency}</p>
+            <p className="text-sm font-normal text-black mt-1">{currency}</p>
           </div>
 
           {/* Dashed Line Separator */}

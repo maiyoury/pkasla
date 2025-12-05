@@ -91,7 +91,7 @@ class BakongService {
       // Prepare payment request
       const paymentData = {
         merchantAccountId: merchantAccountId,
-        amount: amountInSmallestUnit,
+        amount: input.amount,
         currency: currency,
         transactionId: transactionId,
         description:
@@ -295,69 +295,115 @@ class BakongService {
 
   /**
    * Check transaction status using MD5 hash
+   * @param transactionId - Transaction ID or MD5 hash
+   * @param md5Hash - Optional MD5 hash (if provided, will skip database lookup)
    */
   async getTransactionStatus(
-    transactionId: string
+    transactionId: string,
+    md5Hash?: string
   ): Promise<BakongTransactionStatus> {
     try {
-      logger.debug({ transactionId }, "Checking Bakong transaction status");
+      logger.debug({ transactionId, hasDirectMd5: !!md5Hash }, "Checking Bakong transaction status");
 
       const bakongInstance = this.ensureBakong();
 
-      // Retrieve payment log to get MD5 hash or qrCodeData
-      const { PaymentLogModel } = await import("./payment-log.model");
-      const paymentLog = await PaymentLogModel.findOne({
-        transactionId,
-        paymentMethod: "bakong",
-        eventType: "payment_created",
-      }).sort({ createdAt: -1 });
+      let finalMd5Hash: string | null = md5Hash || null;
 
-      let md5Hash: string | null = null;
+      // If MD5 hash is not provided directly, retrieve from payment log
+      if (!finalMd5Hash) {
+        const { PaymentLogModel } = await import("./payment-log.model");
+        const paymentLog = await PaymentLogModel.findOne({
+          transactionId,
+          paymentMethod: "bakong",
+          eventType: "payment_created",
+        }).sort({ createdAt: -1 });
 
-      if (paymentLog?.metadata?.md5Hash) {
-        md5Hash = paymentLog.metadata.md5Hash;
-      } else if (paymentLog?.metadata?.qrCodeData) {
-        // Generate MD5 from stored KHQR string
-        md5Hash = crypto.createHash('md5').update(paymentLog.metadata.qrCodeData).digest('hex');
-      } else {
-        throw new AppError(
-          "MD5 hash not found for transaction. Cannot check status.",
-          httpStatus.NOT_FOUND
-        );
+        if (paymentLog?.metadata?.md5Hash) {
+          finalMd5Hash = paymentLog.metadata.md5Hash;
+        } else if (paymentLog?.metadata?.qrCodeData) {
+          // Generate MD5 from stored KHQR string
+          finalMd5Hash = crypto.createHash('md5').update(paymentLog.metadata.qrCodeData).digest('hex');
+        } else {
+          throw new AppError(
+            "MD5 hash not found for transaction. Cannot check status.",
+            httpStatus.NOT_FOUND
+          );
+        }
       }
 
-      logger.debug({ transactionId, md5Hash }, "Using MD5 hash to check transaction status");
+      logger.debug({ transactionId, md5Hash: finalMd5Hash?.substring(0, 8) + "..." }, "Using MD5 hash to check transaction status");
 
       // Use MD5 hash to check transaction status
       const response = await bakongInstance.post(
         `/v1/check_transaction_by_md5`,
-        { md5: md5Hash }
+        { md5: finalMd5Hash }
       );
 
-      const status = this.mapBakongStatus(response.data.status);
-      const transactionStatus = {
-        transactionId: response.data.transactionId || transactionId,
+      // Log raw response for debugging
+      logger.debug(
+        {
+          transactionId,
+          responseData: response.data,
+        },
+        "Bakong API response received"
+      );
+
+      // Handle different response structures
+      const responseData = response.data?.data || response.data;
+      
+      if (!responseData) {
+        logger.error(
+          {
+            transactionId,
+            fullResponse: response.data,
+          },
+          "Invalid response structure from Bakong API"
+        );
+        throw new AppError(
+          "Invalid response from Bakong API",
+          httpStatus.INTERNAL_SERVER_ERROR
+        );
+      }
+
+      // Map status from response (handle different possible field names)
+      const statusValue = responseData.status || responseData.transactionStatus || responseData.state;
+      if (!statusValue) {
+        logger.warn(
+          {
+            transactionId,
+            responseData,
+          },
+          "Status field not found in Bakong API response"
+        );
+      }
+
+      const status = this.mapBakongStatus(statusValue || "PENDING");
+      
+      // Extract transaction details with fallbacks
+      const transactionStatus: BakongTransactionStatus = {
+        transactionId: responseData.transactionId || responseData.id || transactionId,
         status,
-        amount: response.data.amount || 0,
-        currency: response.data.currency || "USD",
-        timestamp: response.data.timestamp,
-        payerAccountId: response.data.payerAccountId,
-        payerName: response.data.payerName,
+        amount: responseData.amount || responseData.transactionAmount || 0,
+        currency: (responseData.currency || "USD") as BakongCurrency,
+        timestamp: responseData.timestamp || responseData.createdAt || responseData.updatedAt,
+        payerAccountId: responseData.payerAccountId || responseData.payerId || responseData.accountId,
+        payerName: responseData.payerName || responseData.payer || responseData.accountName,
       };
 
       logger.info(
         {
-          transactionId,
-          status,
+          transactionId: transactionStatus.transactionId,
+          status: transactionStatus.status,
           amount: transactionStatus.amount,
           currency: transactionStatus.currency,
+          hasPayerInfo: !!(transactionStatus.payerAccountId || transactionStatus.payerName),
         },
-        "Bakong transaction status retrieved"
+        "Bakong transaction status retrieved successfully"
       );
 
       // Log status check event to database
       await logPaymentEvent({
-        transactionId,
+        transactionId: transactionStatus.transactionId,
         paymentMethod: "bakong",
         eventType: "transaction_status_checked",
         status: status,
@@ -367,6 +413,7 @@ class BakongService {
           payerAccountId: transactionStatus.payerAccountId,
           payerName: transactionStatus.payerName,
           timestamp: transactionStatus.timestamp,
+          md5Hash: finalMd5Hash?.substring(0, 8) + "...",
         },
       });
 
@@ -378,19 +425,45 @@ class BakongService {
           transactionId,
           responseStatus: error.response?.status,
           responseData: error.response?.data,
+          stack: error.stack,
         },
         "Failed to get Bakong transaction status"
       );
 
+      // Handle specific error cases
       if (error.response?.status === 404) {
-        throw new AppError("Transaction not found", httpStatus.NOT_FOUND);
-      }
-      if (error.response) {
         throw new AppError(
-          `Bakong API error: ${error.response.data?.message || error.response.statusText}`,
+          "Transaction not found or not yet processed",
+          httpStatus.NOT_FOUND
+        );
+      }
+      
+      if (error.response?.status === 400) {
+        const errorMessage = error.response.data?.message || 
+                            error.response.data?.error || 
+                            "Invalid request to Bakong API";
+        throw new AppError(
+          `Bakong API validation error: ${errorMessage}`,
+          httpStatus.BAD_REQUEST
+        );
+      }
+
+      if (error.response) {
+        const errorMessage = error.response.data?.message || 
+                            error.response.data?.error || 
+                            error.response.statusText ||
+                            "Unknown error from Bakong API";
+        throw new AppError(
+          `Bakong API error: ${errorMessage}`,
           error.response.status || httpStatus.INTERNAL_SERVER_ERROR
         );
       }
+
+      // Re-throw AppError as-is
+      if (error instanceof AppError) {
+        throw error;
+      }
+
       throw new AppError(
         `Failed to get transaction status: ${error.message}`,
         httpStatus.INTERNAL_SERVER_ERROR

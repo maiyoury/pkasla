@@ -133,7 +133,7 @@ export const createBakongSubscriptionPaymentHandler = async (req: Request, res: 
     const payment = await bakongService.createSubscriptionPayment({
       userId: req.user.id,
       amount: plan.price,
-      currency: 'KHR',
+      currency: 'USD',
       metadata: {
         planId: plan.id,
         planName: plan.displayName,
@@ -193,7 +193,7 @@ export const createBakongTemplatePaymentHandler = async (req: Request, res: Resp
     const payment = await bakongService.createTemplatePayment({
       userId: req.user.id,
       amount: template.price,
-      currency: 'KHR',
+      currency: 'USD',
       metadata: {
         templateId: template.id,
         templateName: template.title,
@@ -229,6 +229,7 @@ export const createBakongTemplatePaymentHandler = async (req: Request, res: Resp
 
 /**
  * Check Bakong transaction status
+ * Supports checking by transactionId (from params) or MD5 hash (from query)
  */
 export const getBakongTransactionStatusHandler = async (req: Request, res: Response) => {
   if (!req.user) {
@@ -237,20 +238,26 @@ export const getBakongTransactionStatusHandler = async (req: Request, res: Respo
   }
 
   const { transactionId } = req.params;
+  const { md5 } = req.query;
 
   logger.info({
     userId: req.user.id,
     transactionId,
+    hasMd5: !!md5,
     ip: req.ip,
   }, 'Getting Bakong transaction status request received');
 
   try {
-    const status = await bakongService.getTransactionStatus(transactionId);
+    // If MD5 is provided in query, use it directly; otherwise lookup by transactionId
+    const md5Hash = typeof md5 === 'string' ? md5 : undefined;
+    const status = await bakongService.getTransactionStatus(transactionId, md5Hash);
 
     logger.info({
       userId: req.user.id,
-      transactionId,
+      transactionId: status.transactionId,
       status: status.status,
+      amount: status.amount,
+      currency: status.currency,
     }, 'Bakong transaction status retrieved successfully');
 
     return res.status(httpStatus.OK).json(buildSuccessResponse(status));
@@ -259,6 +266,7 @@ export const getBakongTransactionStatusHandler = async (req: Request, res: Respo
       error: error.message,
       userId: req.user.id,
       transactionId,
+      hasMd5: !!md5,
     }, 'Failed to get Bakong transaction status');
     throw error;
   }
