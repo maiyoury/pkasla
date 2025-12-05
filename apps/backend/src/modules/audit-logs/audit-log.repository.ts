@@ -21,7 +21,7 @@ export class AuditLogRepository {
     sort?: Record<string, 1 | -1>,
   ) {
     const skip = (page - 1) * pageSize;
-    const defaultSort = { createdAt: -1 };
+    const defaultSort: Record<string, 1 | -1> = { createdAt: -1 };
     const query = AuditLogModel.find(filter);
     
     if (sort) {
