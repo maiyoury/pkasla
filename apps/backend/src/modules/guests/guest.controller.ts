@@ -3,6 +3,10 @@ import httpStatus from 'http-status';
 import { guestService } from './guest.service';
 import { eventService } from '@/modules/events/event.service';
 import { buildSuccessResponse } from '@/helpers/http-response';
+import { googleSheetsService } from './google-sheets.service';
+import { googleOAuthService } from './google-oauth.service';
+import { env } from '@/config/environment';
+import { AppError } from '@/common/errors/app-error';
 
 /**
  * Create a new guest
@@ -189,5 +193,136 @@ export const joinEventByQRHandler = async (req: Request, res: Response) => {
   );
 
   return res.status(httpStatus.CREATED).json(buildSuccessResponse(guest, 'Successfully joined the event!'));
+};
+
+/**
+ * Sync guests to Google Sheets (OAuth version)
+ */
+export const syncGuestsToSheetsHandler = async (req: Request, res: Response) => {
+  if (!req.user) {
+    return res.status(httpStatus.UNAUTHORIZED).json({ error: 'Authentication required' });
+  }
+
+  const { eventId } = req.params;
+  const { spreadsheetId, sheetName = 'Guests', autoCreate = false } = req.body;
+
+  // Verify event exists and user owns it
+  const event = await eventService.findById(eventId);
+  if (!event) {
+    throw new AppError('Event not found', httpStatus.NOT_FOUND);
+  }
+
+  const eventHostId = typeof event.hostId === 'string' ? event.hostId : event.hostId.id;
+  if (eventHostId !== req.user.id) {
+    throw new AppError('You can only sync guests for your own events', httpStatus.FORBIDDEN);
+  }
+
+  // Check if user has connected their Google account (OAuth)
+  const isConnected = await googleOAuthService.isConnected(req.user.id);
+
+  if (isConnected) {
+    // Use OAuth (preferred method)
+    const oauth2Client = await googleOAuthService.getUserOAuth2Client(req.user.id);
+    await googleSheetsService.initializeWithOAuth(oauth2Client);
+  } else {
+    // Fallback to service account if configured
+    if (!env.googleSheets || !env.googleSheets.enabled) {
+      throw new AppError(
+        'Please connect your Google account first. Go to Settings > Integrations > Google Sheets.',
+        httpStatus.UNAUTHORIZED
+      );
+    }
+
+    if (!env.googleSheets.clientEmail || !env.googleSheets.privateKey) {
+      throw new AppError('Google Sheets integration not configured', httpStatus.SERVICE_UNAVAILABLE);
+    }
+
+    await googleSheetsService.initialize({
+      spreadsheetId: spreadsheetId || '',
+      sheetName,
+      credentials: {
+        clientEmail: env.googleSheets.clientEmail,
+        privateKey: env.googleSheets.privateKey,
+      },
+    });
+  }
+
+  let finalSpreadsheetId = spreadsheetId;
+
+  // Create spreadsheet if autoCreate is true and no spreadsheetId provided
+  if (!spreadsheetId && autoCreate) {
+    finalSpreadsheetId = await googleSheetsService.createSpreadsheet(event.title);
+  }
+
+  if (!finalSpreadsheetId) {
+    throw new AppError('Spreadsheet ID is required or enable autoCreate', httpStatus.BAD_REQUEST);
+  }
+
+  // Get all guests for the event
+  const guests = await guestService.findByEventId(eventId);
+
+  // Sync to Google Sheets
+  const result = await googleSheetsService.syncGuests(finalSpreadsheetId, guests, sheetName);
+
+  return res.status(httpStatus.OK).json(
+    buildSuccessResponse(
+      {
+        ...result,
+        spreadsheetId: finalSpreadsheetId,
+        spreadsheetUrl: googleSheetsService.getSpreadsheetUrl(finalSpreadsheetId),
+        sheetName,
+        method: isConnected ? 'oauth' : 'service_account',
+      },
+      `Successfully synced ${result.synced} guests to Google Sheets`
+    )
+  );
+};
+
+/**
+ * Get Google Sheets sync configuration for an event
+ */
+export const getSheetsSyncConfigHandler = async (req: Request, res: Response) => {
+  if (!req.user) {
+    return res.status(httpStatus.UNAUTHORIZED).json({ error: 'Authentication required' });
+  }
+
+  const { eventId } = req.params;
+
+  // Verify event exists and user owns it
+  const event = await eventService.findById(eventId);
+  if (!event) {
+    throw new AppError('Event not found', httpStatus.NOT_FOUND);
+  }
+
+  const eventHostId = typeof event.hostId === 'string' ? event.hostId : event.hostId.id;
+  if (eventHostId !== req.user.id) {
+    throw new AppError('You can only access sync config for your own events', httpStatus.FORBIDDEN);
+  }
+
+  // Check OAuth connection status
+  const isOAuthConnected = await googleOAuthService.isConnected(req.user.id);
+  
+  // Check if service account fallback is available
+  const hasServiceAccount = env.googleSheets && env.googleSheets.enabled;
+
+  let googleAccountInfo = null;
+  if (isOAuthConnected) {
+    googleAccountInfo = await googleOAuthService.getUserInfo(req.user.id);
+  }
+
+  return res.status(httpStatus.OK).json(
+    buildSuccessResponse({
+      enabled: isOAuthConnected || hasServiceAccount,
+      oauthConnected: isOAuthConnected,
+      googleEmail: googleAccountInfo?.email,
+      googleName: googleAccountInfo?.name,
+      method: isOAuthConnected ? 'oauth' : hasServiceAccount ? 'service_account' : 'none',
+      message: isOAuthConnected 
+        ? 'Connected to your Google account' 
+        : hasServiceAccount
+        ? 'Using service account (fallback)'
+        : 'Please connect your Google account to sync guests',
+    })
+  );
 };
 
